@@ -1,0 +1,184 @@
+    .morph-widgets-wrapper .widgettitle {
+                        color: #212121;
+                    }
+                    .morph-widgets-wrapper .widget {
+                        color: #616161;
+                    }
+                    .morph-widgets-wrapper .post-date,
+                    .morph-widgets-wrapper .rss-date,
+                    .morph-widgets-wrapper .wp-caption,
+                    .morph-widgets-wrapper .wp-caption-text {
+                        color: #9e9e9e;
+                    }
+                    .morph-widgets-wrapper .widget a {
+                        color: #1b39a8;
+                    }
+                    .morph-widgets-wrapper .widget_search input {
+                        color: #1b39a8;
+                        border-color: #ffffff;
+                    }
+                    /* menu button */
+                    
+                    .morph-main-menu-button:after,
+                    .morph-main-menu-button:before,
+                    .morph-main-menu-button div.morph-main-menu-button-middle:before {
+                        background-color: #ec407a;
+                    }
+                    /* main menu button hover */
+                    
+                    .morph-main-menu-button:hover:after,
+                    .morph-main-menu-button:hover:before,
+                    .morph-main-menu-button:hover div.morph-main-menu-button-middle:before {
+                        background-color: #e91e63;
+                    }
+                    /* menu button active */
+                    
+                    .morph-menu-active .morph-main-menu-button:after,
+                    .morph-menu-active .morph-main-menu-button:before,
+                    .morph-menu-active .morph-main-menu-button div.morph-main-menu-button-middle:before {
+                        background-color: #fafafa;
+                    }
+                    /* menu button active hover */
+                    
+                    .morph-menu-active .morph-main-menu-button:hover:after,
+                    .morph-menu-active .morph-main-menu-button:hover:before,
+                    .morph-menu-active .morph-main-menu-button:hover div.morph-main-menu-button-middle:before {
+                        background-color: #ec407a;
+                    }
+                    .morph-menu-active .morph-main-menu-button:before {
+                        margin: 2px 0 0 0;
+                        transform: translateY(11px) rotate(45deg);
+                        -moz-transform: translateY(11px) rotate(45deg);
+                        -ms-transform: translateY(11px) rotate(45deg);
+                        -webkit-transform: translateY(11px) rotate(45deg);
+                    }
+                    /* secondary menu button */
+                    
+                    .morph-secondary-menu-button svg {}
+                    /* secondary menu button hover */
+                    
+                    .morph-secondary-menu-button svg:hover {
+                        fill: #A0A0A0;
+                    }
+                    /* secondary menu button active */
+                    
+                    .morph-secondary-menu-button-active svg {}
+                    /* secondary menu button active hover */
+                    
+                    .morph-secondary-menu-button-active svg:hover {}
+                    /* search button */
+                    
+                    .morph-search-button svg {
+                        fill: #fafafa;
+                    }
+                    .morph-search-button:hover svg {
+                        fill: #ec407a;
+                    }
+                    /* search close button */
+                    
+                    .morph-search-close-button:before,
+                    .morph-search-close-button:after {
+                        background-color: #fafafa;
+                    }
+                    .morph-search-close-wrapper:hover .morph-search-close-button:before,
+                    .morph-search-close-wrapper:hover .morph-search-close-button:after {
+                        background-color: #ec407a;
+                    }
+                    /* search field border + text */
+                    
+                    .morph-search-wrapper {
+                        border-color: #ec407a;
+                    }
+                    .morph-search-wrapper #searchform input {
+                        color: #fafafa;
+                    }
+                    /* heading + sub-heading text */
+                    
+                    .morph-heading-text {
+                        color: #fafafa;
+                    }
+                    .morph-subheading-text {
+                        color: #fafafa;
+                    }
+                    /* heading overlay */
+                    
+                    .morph-heading-overlay {}
+                    /* background overlay */
+                    
+                    .morph-background-overlay {}
+                    /* main menu */
+                    
+                    .morph-main-background {
+                        background-color: #fafafa;
+                    }
+                    .morph-by-bonfire ul li a {
+                        color: #212121;
+                    }
+                    .morph-by-bonfire ul li a:hover {
+                        color: #ec407a;
+                    }
+                    .morph-by-bonfire ul.sub-menu li a {} .morph-by-bonfire ul.sub-menu li a:hover {} .morph-by-bonfire .menu li span svg {} .morph-by-bonfire .menu li span:hover svg {
+                        fill: #736F6C;
+                    }
+                    .morph-by-bonfire a i {
+                        color: #1b39a8;
+                    }
+                    .morph-by-bonfire a:hover i {
+                        color: #1b39a8;
+                    }
+                    .morph-by-bonfire ul li.border a {}
+                    /* secondary menu */
+                    
+                    .morph-secondary-menu-wrapper {} .morph-secondary-menu-wrapper:after {} .morph-secondary-menu-wrapper a {} .morph-secondary-menu-wrapper a:hover {}
+                    /* background overlay opacity */
+                    
+                    .morph-background-overlay-active {}
+                    /* menu button animations (-/X) */
+                    /* top bar animation (3 lines) */
+                    
+                    .morph-menu-active .morph-main-menu-button:before {
+                        margin: 2px 0 0 0;
+                        transform: translateY(11px) rotate(45deg);
+                        -moz-transform: translateY(11px) rotate(45deg);
+                        -ms-transform: translateY(11px) rotate(45deg);
+                        -webkit-transform: translateY(11px) rotate(45deg);
+                    }
+                    /* bottom bar animation (3 lines) */
+                    
+                    .morph-menu-active .morph-main-menu-button:after {
+                        margin: -1px 0 0 0;
+                        transform: translateY(-3px) rotate(-45deg);
+                        -moz-transform: translateY(-3px) rotate(-45deg);
+                        -ms-transform: translateY(-3px) rotate(-45deg);
+                        -webkit-transform: translateY(-3px) rotate(-45deg);
+                    }
+                    /* middle bar fade out (3 lines) */
+                    
+                    .morph-menu-active div.morph-main-menu-button-middle:before {
+                        opacity: 0;
+                        -webkit-transition: all .15s ease;
+                        -moz-transition: all .15s ease;
+                        -ms-transition: all .15s ease;
+                        transition: all .15s ease;
+                    }
+                    /* custom heading height */
+                    
+                    .morph-heading-wrapper,
+                    .morph-heading-overlay,
+                    .morph-heading-image {
+                        height: 240px;
+                    }
+                    .morph-menu-wrapper {
+                        top: 240px;
+                    }
+                    /* heading overlay opacity */
+                    
+                    .morph-heading-overlay {}
+                    /* heading image */
+                    
+                    .morph-heading-image {
+                        background-image: url(http://materialdesignblog.com/wp-content/uploads/2015/04/MaterialDesignBlogo.png);
+                        background-size: cover;
+                    }
+                    /* heading image pattern */
+                    /* hide morph between resolutions */
