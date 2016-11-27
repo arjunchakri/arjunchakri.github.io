@@ -1,0 +1,31 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>transtions</title>
+		<link rel="stylesheet" type="text/css" href="default.css" />
+		<link rel="stylesheet" type="text/css" href="component.css" />
+	</head>
+	
+	<body>
+		<div class="container">	
+			<div class="os-phrases" id="os-phrase">
+				<h2>assassins creed</h2>
+				<h2>some random text</h2>
+				<h2>assassins creed brotherhood</h2>
+				<h2>this is</h2>
+				<h2>assassins creed rogue</h2>
+				<h2>text blur webkit anims</h2>
+				<h2>abcde</h2>
+				<h2>refresh to replay</h2>
+			</div>
+		</div>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script src="jquery.lettering.js"></script>
+		<script>
+			$(document).ready(function() {
+				$("#os-phrase > h2").css('opacity',1).lettering('words').children("span").lettering().children("span").lettering(); 
+			})
+		</script>
+	</body>
+</html>
