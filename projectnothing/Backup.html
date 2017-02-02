@@ -51,15 +51,27 @@
             -moz-transition: all 0.4s;
             -o-transition: all 0.4s;
         }
-	    #fa{
-	       position:absolute;
-	       opacity:0;
-               right: 200%;
-               bottom: 120%; 
-		    z-index: 5;
-               -webkit-transform:scale(0.8);
-               -webkit-transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
-	}
+	   
+	    
+	    		#fa{
+			position:absolute;
+			opacity:0;
+			right:5%;
+            -webkit-transform:scale(0.8);
+            -webkit-transition:all 0.5s cubic-bezier(0,1.57,.88,1.43);
+		}
+		#fa:nth-child(1){
+			-webkit-transform: translate3d(0,-100px,0);
+		}
+		#fa:nth-child(2){
+			-webkit-transform: translate3d(0,-140px,0);
+		}
+		#fa:nth-child(3){
+			-webkit-transform: translate3d(0,-180px,0);
+		}
+		#fa:nth-child(4){
+			-webkit-transform: translate3d(0,-220px,0);
+		}
           #fa img{
                border-radius: 50%;
                box-shadow: 2px 2px 8px rgba(0,0,0,0.7);
@@ -69,7 +81,8 @@
                transform:scale(0.8);
 			   
                -webkit-transition:all 0.4s;
-               -moz-transition: all 0.4s;
+			   -webkit-transition:all 0.4s;
+			   -moz-transition: all 0.4s;
                -o-transition: all 0.4s;
                transition: all 0.4s;
           }
@@ -88,36 +101,34 @@
 		#float{
                box-shadow: 1px 1px 10px black;
                position: fixed;
-               width: 60px;
-               height: 60px;
+               width: 25px;
+               height: 25px;
                right: 5%;
                bottom: 10%;
                border-radius: 50%;
                background: #E91E63;
                padding: 20px;
-               z-index:100;
-               -webkit-transition: all 0.4s  cubic-bezier(0,1.37,.57,1.08);
-               -moz-transition: all 0.4s  cubic-bezier(0,1.37,.57,1.08);
-               -o-transition: all 0.4s  cubic-bezier(0,1.37,.57,1.08);
-               transition: all 0.4s  cubic-bezier(0,1.37,.57,1.08);
+               -webkit-transition: all 0.4s  cubic-bezier(0,1.57,.88,1.43);
+               -moz-transition: all 0.4s  cubic-bezier(0,1.57,.88,1.43);
+               -o-transition: all 0.4s  cubic-bezier(0,1.57,.88,1.43);
+               transition: all 0.4s  cubic-bezier(0,1.57,.88,1.43);
 		}
-	    
           #float:hover{
                transform: scale(1.1) translateX(-5px);
                box-shadow: 10px 10px 20px rgba(0,0,0,0.7);
           }
-          	#float:hover #fa{
+          #float:hover #fa{
                opacity:1;
-               -webkit-transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
-               -moz-transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
-               -o-transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
-               	transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
-          	}
+               -webkit-transition:all 0.5s cubic-bezier(0,1.57,.88,1.43);
+               -moz-transition:all 0.5s cubic-bezier(0,1.57,.88,1.43);
+               -o-transition:all 0.5s cubic-bezier(0,1.57,.88,1.43);
+               transition:all 0.5s cubic-bezier(0,1.57,.88,1.43);
+          }
 		#float:hover #fa:nth-child(1){
-			-webkit-transform: translate3d(-4px,-205px,0px);
+			-webkit-transform: translate3d(-4px,-105px,0px);
 			-moz-transform: translate3d(-4px,-205px,0px);
 			-o-transform: translate3d(-4px,-205px,0px);
-			transform: translate3d(-4px,-205px,0px);
+			transform: translate3d(-4px,-105px,0px);
 		}
 		#float:hover #fa:nth-child(2){
 			-webkit-transform: translate3d(-4px,-155px,0px);
@@ -126,17 +137,19 @@
 			transform: translate3d(-4px,-155px,0px);
 		}
 		#float:hover #fa:nth-child(3){
-			-webkit-transform: translate3d(-4px,-58px,0px);
-			-moz-transform: translate3d(-4px,-58px,0px);
-			-o-transform: translate3d(-4px,-58px,0px);
-			transform: translate3d(-4px,-58px,0px);
-		}
-          	#float:hover #fa:nth-child(4){
-			-webkit-transform: translate3d(-4px,-105px,0px);
+			-webkit-transform: translate3d(-4px,-205px,0px);
 			-moz-transform: translate3d(-4px,-105px,0px);
 			-o-transform: translate3d(-4px,-105px,0px);
-			transform: translate3d(-4px,-105px,0px);
+			transform: translate3d(-4px,-205px,0px);
 		}
+          #float:hover #fa:nth-child(4){
+			-webkit-transform: translate3d(-4px,-255px,0px);
+			-moz-transform: translate3d(-4px,-58px,0px);
+			-o-transform: translate3d(-4px,-58px,0px);
+			transform: translate3d(-4px,-255px,0px);
+		}
+	    
+	    
 	    
  .foot{
       display: inline-block;
