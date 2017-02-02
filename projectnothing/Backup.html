@@ -277,8 +277,53 @@
     </style>
     <script type="text/javascript" src="jquerygoogle.min.js"></script>
 </head>
-<body style="background-color:#d1d6fc;margin:0;padding:0;" onresize="check()">
-    <div class="morph-main-menu-button-wrapper">
+<body onload = "myFunction()" style="background-color:#d1d6fc;margin:0;padding:0;" onresize="check()">
+    <style>
+     #loader {
+       position: absolute;
+       left: 35%;
+       top: 7%;
+       z-index: 200;
+       width: 100%;
+       height: 100%;
+       margin: auto;
+     }
+     .animate-bottom {
+       position: relative;
+       -webkit-animation-name: animatebottom;
+       -webkit-animation-duration: 1s;
+       animation-name: animatebottom;
+       animation-duration: 1s;
+     }
+     @-webkit-keyframes animatebottom {
+       from { bottom:-200px; opacity:0; }
+       to { bottom:0px; opacity:1; }
+     }
+     @keyframes animatebottom {
+       from{ bottom:-200px; opacity:0; }
+       to{ bottom:0; opacity:1; }
+     }
+     #myDiv {
+       display: none;
+     }
+     </style>
+          <div id="loader">
+               <object>
+                    <embed src="qlogo.svg" width="400px" height="400px">
+               </object>
+          </div>
+          <script type = "text/javascript">
+          var myVar;
+          function myFunction() {
+             myVar = setTimeout(showPage, 3500);
+          }
+          function showPage() {
+          document.getElementById("loader").style.display = "none";
+           document.getElementById("myDiv").style.display = "block";
+          }
+          </script>
+          <div id="myDiv" class="animate-bottom">
+     <div class="morph-main-menu-button-wrapper">
         <div class="morph-main-menu-button">
             <div class="morph-main-menu-button-middle"></div>
         </div>
@@ -449,6 +494,7 @@
      </div>
 </div>
 </div>
+		  </div>
 </body>
 
 </html>
