@@ -55,7 +55,8 @@
 	       position:absolute;
 	       opacity:0;
                right: 5%;
-               bottom: 5%;   
+               bottom: 5%; 
+		    z-index: 50;
                -webkit-transform:scale(0.8);
                -webkit-transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
 	}
@@ -100,6 +101,7 @@
                -o-transition: all 0.4s  cubic-bezier(0,1.37,.57,1.08);
                transition: all 0.4s  cubic-bezier(0,1.37,.57,1.08);
 		}
+	    
           #float:hover{
                transform: scale(1.1) translateX(-5px);
                box-shadow: 10px 10px 20px rgba(0,0,0,0.7);
