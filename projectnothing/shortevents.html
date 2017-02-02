@@ -25,7 +25,7 @@ width: 115%;
 width: 290px;
 background: #3498db;
 margin: 0;
-position: static;
+position: absolute;
 cursor: pointer;
 border-radius: 3px;
 overflow: hidden;
@@ -49,7 +49,7 @@ box-shadow: none;
 #img-wrapper img {
 width: 100%;
 margin: 0;
-position: static;
+position: relative;
 display: block;
 -webkit-transition: .3s all ease;
 transition: .3s all ease;
@@ -116,7 +116,7 @@ transition: .3s all ease .8s;
 }
 
 figcaption {
-position: static;
+position: absolute;
 top: 0;
 left: 0;
 right: 0;
@@ -137,7 +137,7 @@ font-weight: 300;
 }
 
 figcaption .bottom-detail {
-position: static;
+position: absolute;
 width: 100%;
 bottom: 0;
 top: 70px;
@@ -167,28 +167,15 @@ text-decoration:none;
 
 </head>
 <body>
+<div>
 
-
+			
 <div id="tri-d-wrapper">
     <figure id="img-wrapper">
         <img src="shortevents.gif" alt="Preview Image">
         <figcaption>
-		<a href = "" target = "_blank">
+		<a href = "abc.html" target = "_blank">
             <h2 class="title">Events</h2>
-		</a>
-            <div class="bottom-detail">
-                <p>Click on the above link for Quest 2017 Events</p>
-              </div>
-        </figcaption>
-    </figure>
-</div>
-
-<div id="tri-d-wrapper">
-    <figure id="img-wrapper">
-        <img src="shortevents.gif" alt="Preview Image">
-        <figcaption>
-		<a href = "" target = "_blank">
-            <h2 class="title">Workshops</h2>
 		</a>
             <div class="bottom-detail">
                 <p>Click on the above link for Quest 2017 Events</p>
