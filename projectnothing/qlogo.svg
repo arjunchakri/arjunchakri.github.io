@@ -7,17 +7,17 @@
          stroke-width:4;
          stroke-miterlimit:30;
      }
-	       <defs>
+	  <defs>
            <style>
                 .st0{
                     stroke-dasharray: 2800;
                     stroke-dashoffset :0;
                     fill:#18739F;
-                    -webkit-animation: dash 5s linear;
-                    -moz-animation: dash 5s linear;
-                    -o-animation: dash 5s linear;
-                    -ms-animation: dash 5s linear;
-                    animation: dash 5s linear;
+                    -webkit-animation: dash 5s linear 10;
+                    -moz-animation: dash 5s linear 10;
+                    -o-animation: dash 5s linear 10;
+                    -ms-animation: dash 5s linear 10;
+                    animation: dash 5s linear 10;
                 }
                 @-webkit-keyframes dash{
                     0%{
