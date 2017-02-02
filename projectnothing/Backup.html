@@ -51,24 +51,24 @@
             -moz-transition: all 0.4s;
             -o-transition: all 0.4s;
         }
-	#fa{
+	    #fa{
 	       position:absolute;
 	       opacity:0;
                right: 5%;
                bottom: 5%;
-
+               
                -webkit-transform:scale(0.8);
                -webkit-transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
 	}
           #fa img{
                border-radius: 50%;
                box-shadow: 2px 2px 8px rgba(0,0,0,0.7);
-
+               
                -webkit-transform:scale(0.8);
                -moz-transform:scale(0.8);
                -o-transform:scale(0.8);
                transform:scale(0.8);
-
+			   
                -webkit-transition:all 0.4s;
                -moz-transition: all 0.4s;
                -o-transition: all 0.4s;
@@ -80,7 +80,7 @@
                -moz-transform:scale(1);
                -o-transform:scale(1);
                transform:scale(1);
-
+               
 			   -webkit-transition:all 0.4s;
 			   -moz-transition: all 0.4s;
                -o-transition: all 0.4s;
@@ -106,13 +106,13 @@
                transform: scale(1.1) translateX(-5px);
                box-shadow: 10px 10px 20px rgba(0,0,0,0.7);
           }
-          #float:hover #fa{
+          	#float:hover #fa{
                opacity:1;
                -webkit-transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
                -moz-transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
                -o-transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
-               transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
-          }
+               	transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
+          	}
 		#float:hover #fa:nth-child(1){
 			-webkit-transform: translate3d(-4px,-205px,0px);
 			-moz-transform: translate3d(-4px,-205px,0px);
@@ -131,12 +131,13 @@
 			-o-transform: translate3d(-4px,-58px,0px);
 			transform: translate3d(-4px,-58px,0px);
 		}
-          #float:hover #fa:nth-child(4){
+          	#float:hover #fa:nth-child(4){
 			-webkit-transform: translate3d(-4px,-105px,0px);
 			-moz-transform: translate3d(-4px,-105px,0px);
 			-o-transform: translate3d(-4px,-105px,0px);
 			transform: translate3d(-4px,-105px,0px);
 		}
+	    
  .foot{
       display: inline-block;
       position: relative;
@@ -382,24 +383,27 @@
     <header id="header" style="z-index:2;">
         <img src="header.png" id = "header_img">
     </header>
-
-		<div id = "float">
-               <img width = "30px" height = "30px" src="float.png" alt="" style = "margin-left:-5px;margin-top:-5px;">
-			<div id = "main">
-			<div style = "margin-top:10px;" id = "fa">
-                    <a href="http://www.youtube.com"><img width = "50px" height = "50px" src="yt.png" alt=""></a>
-               </div>
-			<div style = "margin-top:10px;" id = "fa">
-                    <a href="http://www.gmail.com"><img width = "50px" height = "50px" src="gmail.png" alt=""></a>
-               </div>
-			<div style = "margin-top:10px;" id = "fa">
-                    <a href="http://www.facebook.com"><img width = "50px" height = "50px" src="fb.png" alt=""></a>
-               </div>
-			<div style = "margin-top:10px;" id = "fa">
-                    <a href="http://www.twitter.com"><img width = "50px" height = "50px" src="twitter.png" alt=""></a>
-               </div>
+		<!--Start Float Button-->
+		  
+			<div id = "float">
+		       <img width = "30px" height = "30px" src="float.png" alt="" style = "margin-left:-5px;margin-top:-5px;">
+				<div id = "main">
+				<div style = "margin-top:10px;" id = "fa">
+			    <a href="http://www.youtube.com"><img width = "50px" height = "50px" src="yt.png" alt=""></a>
+		       </div>
+				<div style = "margin-top:10px;" id = "fa">
+			    <a href="http://www.gmail.com"><img width = "50px" height = "50px" src="gmail.png" alt=""></a>
+		       </div>
+				<div style = "margin-top:10px;" id = "fa">
+			    <a href="http://www.facebook.com"><img width = "50px" height = "50px" src="fb.png" alt=""></a>
+		       </div>
+				<div style = "margin-top:10px;" id = "fa">
+			    <a href="http://www.twitter.com"><img width = "50px" height = "50px" src="twitter.png" alt=""></a>
+		       </div>
+				</div>
 			</div>
-		</div>
+		  
+		  <!--End Float Button-->
    <iframe src = "parallax.html" frameborder="0" style="height:35vw;width:100vw;overflow:scroll;" id = "parallax"></iframe>
     <div class = "demo" style = "width:90vw; height:20vw;transform:translate3d(8%,0,0);" data-date = "2017-03-21 09:00:00">
      </div>
