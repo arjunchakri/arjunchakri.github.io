@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en-US" prefix="og: http://ogp.me/ns#" itemscope="itemscope" itemtype="http://schema.org/WebPage">
+<head>
+    <meta name="viewport" content="width = devicewidth, minimum-scale = 1.0 , initial-scale = 1 , user-scalable=yes">
+    <meta http-equiv = "Cache-control" content = "no-cache">
+    <title>Quest 2017</title>
+    <link rel="icon" href="q-logo.png" type="image" sizes="32x32">
+    <link rel="stylesheet" type="text/css" href="TimeCircles.css">
+    <link rel="stylesheet" href="jquery.parallax.css" />
+    <link rel='stylesheet' href='style.css' type='text/css' />
+    <link rel='stylesheet' href='morph.css' type='text/css' />
+    <link rel='stylesheet' href='morphmain.css' type='text/css' />
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link href="materialize.css" type="text/css" rel="stylesheet" media="screen,projection">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            user-select:none;
+            -webkit-user-select:none;
+            -moz-user-select:none;
+            -o-user-select:none;
+
+            -webkit-touch-callout:none;
+            -moz-touch-callout:none;
+            -o-touch-callout:none;
+        }
+        #header_img{
+            transition: all 0.4s;
+            -webkit-transition: all 0.4s;
+            -moz-transition: all 0.4s;
+        }
+        #header {
+            width: 2000px;
+            height: 80px;
+            background: #37474F;
+            color: white;
+            box-shadow: 20px 0px 15px #222;
+            padding: 10px;
+            position: fixed;
+            transition: all 0.4s;
+            -webkit-transition: all 0.4s;
+            -moz-transition: all 0.4s;
+            -o-transition: all 0.4s;
+        }
+        #image {
+            width: 400px;
+            height: 200px;
+            transition: all 0.4s;
+            -webkit-transition: all 0.4s;
+            -moz-transition: all 0.4s;
+            -o-transition: all 0.4s;
+        }
+        #fa {
+            position: absolute;
+            opacity: 0;
+            right: 5%;
+            bottom: 10%;
+            -webkit-transform: scale(0.8);
+            -webkit-transition: all 0.5s cubic-bezier(0, 1.37, .57, 1.08);
+            -moz-transform: scale(0.8);
+            -moz-transition: all 0.5s cubic-bezier(0, 1.37, .57, 1.08);
+            -o-transform: scale(0.8);
+            -o-transition: all 0.5s cubic-bezier(0, 1.37, .57, 1.08);
+            transform: scale(0.8);
+            transition: all 0.5s cubic-bezier(0, 1.37, .57, 1.08);
+        }
+        #fa img {
+            border-radius: 50%;
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+            -webkit-transform: scale(0.8);
+            -webkit-transition: all 0.5s;
+        }
+        #fa img:hover {
+            box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.7);
+            -webkit-transform: scale(1);
+            -webkit-transition: all 0.5s;
+        }
+        #float {
+            z-index: 50;
+            box-shadow: 1px 1px 10px black;
+            position: fixed;
+            width: 25px;
+            height: 25px;
+            right: 5%;
+            bottom: 10%;
+            border-radius: 50%;
+            background: #E91E63;
+            padding: 20px;
+            -webkit-transition: all 0.4s cubic-bezier(0, 1.37, .57, 1.08);
+        }
+        #float:hover {
+            transform: scale(1.1) translateX(-5px);
+            box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.7);
+        }
+        #float:hover #fa {
+            opacity: 1;
+            -webkit-transition: all 0.5s cubic-bezier(0, 1.37, .57, 1.08);
+        }
+        #float:hover #fa:nth-child(1) {
+            -webkit-transform: translate3d(-4px, -205px, 0px);
+        }
+        #float:hover #fa:nth-child(2) {
+            -webkit-transform: translate3d(-4px, -155px, 0px);
+        }
+        #float:hover #fa:nth-child(3) {
+            -webkit-transform: translate3d(-4px, -58px, 0px);
+        }
+        #float:hover #fa:nth-child(4) {
+            -webkit-transform: translate3d(-4px, -105px, 0px);
+        }
+ .foot{
+      display: inline-block;
+      position: relative;
+      width:155px;
+      padding:10px;
+      -webkit-filter: grayscale(70%); /* Safari 6.0 - 9.0 */
+     filter: grayscale(70%);
+     -webkit-transition : all 0.5s;
+     transition : all 0.5s;
+}
+
+ .foot:hover{
+      -webkit-filter: grayscale(0%); /* Safari 6.0 - 9.0 */
+    filter: grayscale(0%);
+    transform: scale(1.3);
+    -webkit-transition : all 0.5s;
+    transition : all 0.5s;
+}
+     .short{
+          margin: 2%;
+          box-shadow: 0px 0px 5px black;
+          transition: all 0.5s;
+          -webkit-transition: all 0.5s;
+     }
+     .short:hover{
+          box-shadow: 4px 4px 5px rgba(0,0,0,0.5);
+          transform: scale(1.05) ;
+          transition: all 0.5s;
+          -webkit-transition: all 0.5s;
+
+     }
+        .card-2 {
+            display: inline-block;
+            background:white;
+	    margin-bottom:20px;
+            border-radius: 5px;
+            box-shadow: 0 0 4px black;
+            transition: all 0.5s ease-out;
+            -webkit-transition: all 0.5s ease-out;
+        }
+        .card-2:hover {
+            box-shadow: 0 0 30px black;
+            transition: all 0.6s ease-out;
+            -webkit-transition: all 0.6s ease-out;
+        }
+		@media handheld,screen and (min-width: 300px){
+			.card-2{
+				width: 300px;
+				margin-left: 10px;
+				box-shadow: 0 0 15px black;
+			}
+			.card-2:focus{
+				box-shadow: 0 0 5px black;
+				margin-left: 50px;
+			}
+		}@media handheld,screen and (min-width: 400px){
+			.card-2{
+				width: 350px;
+				box-shadow: 0 0 4px black;
+			}
+			.card-2:hover{
+				box-shadow: 0 0 20px black;
+			}
+		}
+		@media handheld,screen and (min-width: 500px){
+			.card-2{
+				width: 450px;
+				box-shadow: 0 0 4px black;
+			}
+			.card-2:hover{
+				box-shadow: 0 0 20px black;
+			}
+		}@media handheld,screen and (min-width: 600px){
+			.card-2{
+				width: 500px;
+				box-shadow: 0 0 4px black;
+			}
+			.card-2:hover{
+				box-shadow: 0 0 20px black;
+			}
+		}@media handheld,screen and (min-width: 700px){
+			.card-2{
+				width: 600px;
+				box-shadow: 0 0 4px black;
+			}
+			.card-2:hover{
+				box-shadow: 0 0 20px black;
+			}
+		}
+		@media handheld,screen and (min-width: 300px){
+     	.short{
+     		width:200px;
+     	}
+     }
+     @media handheld,screen and (min-width: 400px){
+     	.short{
+     		width:300px;
+     	}
+     }
+    </style>
+
+    <script type="text/javascript" src="jquerygoogle.min.js"></script>
+</head>
+<body style="background-color:#d1d6fc;margin:0;padding:0;"   onresize="check()">
+    <div class="morph-main-menu-button-wrapper">
+        <div class="morph-main-menu-button">
+            <div class="morph-main-menu-button-middle"></div>
+        </div>
+    </div>
+    <div class="morph-main-wrapper">
+        <div class="container" style = "margin-left:-100px">
+            <a href="#" data-activates="nav-mobile" class="button-collapse top-nav waves-effect waves-light circle hide-on-large-only">
+                <img src="menu-icon.png" style="width:25px;height:16px;"> </a>
+        </div>
+        <ul class="side-nav fixed">
+            <img src="q-logo.png" style="width:270px;height:270px;">
+            <li class="bold"><a href="" class="waves-effect waves-teal">Home</a>
+            </li>
+            <li class="no-padding">
+                <ul class="collapsible collapsible-accordion">
+                    <li class="bold"><a class="collapsible-header  waves-effect waves-teal">Workshops</a>
+                        <div class="collapsible-body">
+                            <ul>
+                                <li><a href="">Workshop 1</a>
+                                </li>
+                                <li><a href="">Workshop 2</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="bold"><a class="collapsible-header  waves-effect waves-red">Events</a>
+                        <div class="collapsible-body">
+                            <ul>
+                                <li><a href="">1</a>
+                                </li>
+                                <li><a href="">2</a>
+                                </li>
+                                <li><a href=" ">3</a>
+                                </li>
+                                <li><a href=" ">4</a>
+                                </li>
+                                <li><a href=" ">5</a>
+                                </li>
+                                <li><a href=" ">6</a>
+                                </li>
+                                <li><a href=" ">7</a>
+                                </li>
+                                <li><a href=" ">8</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            <li class="bold"><a href=" " class="waves-effect waves-green">Gallery</a>
+            </li>
+            <li class="bold"><a href=" " class="waves-effect waves-green">Contact Us</a>
+            </li>
+    </div>
+    <div class="morph-main-background">
+    </div>
+    <div class="morph-background-overlay"></div>
+    </ul>
+    <header id="header" style="z-index:2;">
+        <img src = "header.png" width = "800px" height = "10px" style = "margin-top:10px">
+    </header>
+   <br>
+   <br>
+   <iframe src = "parallax.html" frameborder="0" style="height: 35vw; width : 100vw; overflow:scroll;"></iframe>
+
+<style>
+.cardshort {
+  background: #d1d6fc;
+  display: inline-block;
+  position: relative;
+  width: 305px;
+  height: 200px;
+  margin: 0px;
+}
+</style>
+
+      <style>
+
+body {
+background: #d1d6fc;
+}
+
+#tri-d-wrapper {
+-webkit-perspective: 300px;
+perspective: 300px;
+position: fixed;
+height: 130%;
+width: 115%;
+}
+
+#img-wrapper {
+width: 290px;
+background: #3498db;
+margin: 0;
+position: relative;
+cursor: pointer;
+border-radius: 3px;
+overflow: hidden;
+top: 50%;
+left: 50%;
+-webkit-transform: rotateX(0deg) scale(.9);
+transform: rotateX(0deg) scale(.9);
+-webkit-transition: .3s all ease;
+transition: .3s all ease;
+box-shadow: 0 15px 20px 5px rgba(0,0,0,.2);
+}
+
+#img-wrapper:hover {
+-webkit-transform: rotateX(0deg) scale(1);
+transform: rotateX(0deg) scale(1);
+box-shadow: none;
+}
+
+#img-wrapper img {
+width: 100%;
+margin: 0;
+position: relative;
+display: block;
+-webkit-transition: .3s all ease;
+transition: .3s all ease;
+}
+
+#img-wrapper:hover img {
+-webkit-transform: scale(1.5);
+-ms-transform: scale(1.5);
+transform: scale(1.5);
+}
+
+#img-wrapper:hover figcaption {
+background: rgba(0,0,0,.75);
+}
+
+#img-wrapper:hover figcaption h2 {
+opacity: 1;
+padding-left: 20px;
+-webkit-transition: .3s all ease .3s;
+transition: .3s all ease .3s;
+}
+
+#img-wrapper:hover figcaption .bottom-detail {
+-webkit-transform: translateY(0);
+-ms-transform: translateY(0);
+transform: translateY(0);
+}
+
+#img-wrapper:hover figcaption .bottom-detail p {
+opacity: 1;
+top: 0;
+-webkit-transition: .3s all ease .5s;
+transition: .3s all ease .5s;
+}
+
+#img-wrapper:hover figcaption .bottom-detail .social-icons li a {
+-webkit-transform: scale(1);
+-ms-transform: scale(1);
+transform: scale(1);
+-webkit-transition: .3s all ease .5s;
+transition: .3s all ease .5s;
+}
+
+#img-wrapper:hover figcaption .bottom-detail .social-icons li a.fa-twitter {
+color: #50ABF1;
+-webkit-transition: .3s all ease .7s;
+transition: .3s all ease .7s;
+}
+
+#img-wrapper:hover figcaption .bottom-detail .social-icons li a.fa-facebook {
+color: #3B599A;
+}
+
+#img-wrapper:hover figcaption .bottom-detail .social-icons li a.fa-dribbble {
+color: #EC4989;
+-webkit-transition: .3s all ease .6s;
+transition: .3s all ease .6s;
+}
+
+#img-wrapper:hover figcaption .bottom-detail .social-icons li a.fa-behance {
+color: 1769ff;
+-webkit-transition: .3s all ease .8s;
+transition: .3s all ease .8s;
+}
+
+figcaption {
+position: relative;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+-webkit-transition: .3s all ease;
+transition: .3s all ease;
+}
+
+figcaption h2 {
+margin: 0;
+color: white;
+font-size: 22px;
+line-height: 70px;
+opacity: 0;
+padding-left: 0;
+padding-right: 20px;
+font-weight: 300;
+}
+
+figcaption .bottom-detail {
+position: relative;
+width: 100%;
+bottom: 0;
+top: 70px;
+background: white;
+-webkit-transform: translateY(100%);
+-ms-transform: translateY(100%);
+transform: translateY(100%);
+-webkit-transition: .3s all ease .1s;
+transition: .3s all ease .1s;
+}
+
+.bottom-detail p {
+font-size: 17px;
+opacity: 0;
+top: 20px;
+padding-left: 20px;
+padding-right: 20px;
+color: #999;
+font-weight: 300;
+line-height: 1.5;
+}
+a{
+text-decoration:none;
+}
+</style>
+
+
+
+<div id="tri-d-wrapper">
+    <figure id="img-wrapper">
+        <img src="shortevents.gif" alt="Preview Image">
+        <figcaption>
+		<a href = "" target = "_blank">
+            <h2 class="title">Events</h2>
+		</a>
+            <div class="bottom-detail">
+                <p>Click on the above link for Quest 2017 Events</p>
+              </div>
+        </figcaption>
+    </figure>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ <div class = "demo" style = "width:90%; height:100%;transform:translate3d(8%,0,0);" data-date = "2017-03-21 09:00:00">
+     </div>
+
+<br>
+    <div class="divider"></div>
+    <div style="text-align:center;">
+        <div class="card-2">
+            <img style="border-radius:5px 5px 0px 0px;" src="aboutjntu.png">
+            <br>
+            <p style="text-align:left; padding:30px;">
+			Situated at the heart of Hyderabad,Jawaharlal Nehru Technological University College of Engineering(Autonomous)
+			has been providing top notch education to students since 1965.The infrastructure development in the past two decades
+			in the college has been prominent.
+			An accredited, comprehensive college, JNTU CEH offers active learning in a vibrant
+			atmosphere where students connect the classroom and their world.
+			With a focus on innovative ideas along with curricular education. The nurturing environment offers
+			education combined with practical experiences such as internships, academic and career counseling and volunteer opportunities.
+			To meet the essential requirements for strengthening theutility of its programs, the college has developed its own
+			infrastructure and services of the high quality, novel thoughts and practical approach. With the cooperation of the
+			Faculty and other staff members, the institution is now capable to impart quality education for more than thousands
+			students per year. At JNTUH CEH, we believe in making our students ready for the future,today.
+			</p>
+        </div>
+        <div class="card-2">
+            <img style="border-radius:5px 5px 0px 0px;" src="aboutquest.png">
+            <p style="text-align:left; padding:30px;">
+			Quest's mission is to organize the world's most advanced tehnology and make it universally reachable and useful.
+			QUEST is an annual technical fest, proudly presented by the Computer Science department of JNTUH.Ever since its
+			inception, Quest has made a name for itself as an avant-garde technical festival, showcasing innovations in the
+			fields of science and technology. With this two day long event, we bring to you a conglomerate of unique ideas,
+			competent skill and unlimited fun. Through its plethora of competitions, lectures and workshops, Quest strives
+			to ignite the minds of the students visiting the festival.From challenging the coder in you at (coding event name)
+			to bringing out the scholar in you at Paper presentations, the events are designed to tech-tain young minds. We,
+			the student community at Computer Science Department of JNTUH invite you to celebrate mutual passion and common
+			thirst for knowledge. Meet like minded tech lovers and think beyond normal.Be a part of Quest and experience
+			the ardour, for this is an event that truly justifies its name. And this time, its going to be the best ever.
+			</p>
+        </div>
+    </div>
+    <iframe width="80%" height="500px" frameborder="0" style="margin-left:10%;border:0" src="https://www.google.com/maps/embed/v1/place?q=place_id:ChIJYyRQ7OyRyzsR0YO0HoCjve8&key=AIzaSyA8-9ERRmFfvRZQlpEz3wX1OyZ6F1sVn_8" allowfullscreen></iframe>
+<div style = "width=100%; height = 100px; margin-bottom:-20px; background-color : #b0b8f2; ">
+     <div style = "text-align:center">
+          <p>Our Previous Sponsors</p>
+     </div>
+          <div style = "text-align:center">
+     <div class = "foot">
+          <img class = "imagefoot" src = "sponsors/spon-coke.png">
+     </div>
+     <div class = "foot">
+          <img src = "sponsors/spon-ab.png">
+     </div>
+     <div class = "foot">
+          <img src = "sponsors/spon-info.png">
+     </div>
+     <div class = "foot">
+          <img src = "sponsors/spon-mera.png">
+     </div>
+     <div class = "foot">
+          <img src = "sponsors/spon-she.png">
+     </div>
+     <div class = "foot">
+          <img src = "sponsors/spon-excellor.png">
+     </div>
+     <div class = "foot">
+          <img src = "sponsors/spon-gpr.png">
+     </div>
+</div>
+</div>
+</body>
+
+</html>
+	<script src="jquery.parallax.js"></script>
+	<script type='text/javascript' src='morph.js'></script>
+	<script type="text/javascript" src="TimeCircles.js"></script>
+	<script type = "text/javascript" src="materialize.js"></script>
+
+    	<script type="text/javascript">
+       	$(function(){
+               $(".demo").TimeCircles({
+                    start: true,
+                    animation: "smooth",
+                    count_past_zero: true,
+                    circle_bg_color: "lightgray",
+                    use_background: true,
+                    fg_width: 0.08,
+                    bg_width: 1,
+                    text_size: 0.1,
+                    number_size: 0.2,
+                    total_duration: "Auto",
+                    direction: "Counter-Clockwise",
+                    use_top_frame: false,
+                    start_angle: 0,
+                    time: {
+                         Days: {
+                              show: true,
+                              text: "Days",
+                              color: "#004D40"
+                         },
+                         Hours: {
+                              show: true,
+                              text: "Hours",
+                              color: "#311B92"
+                         },
+                         Minutes: {
+                              show: true,
+                              text: "Minutes",
+                              color: "#0D47A1"
+                         },
+                         Seconds: {
+                              show: true,
+                              text: "Seconds",
+                              color: "#1A237E"
+                         }
+                    }
+               });
+          });
+    </script>
+    	<script type="text/javascript">
+		jQuery(document).ready(function(){
+			jQuery('.parallax-layer').parallax({
+				mouseport: jQuery("#port")
+			});
+		});
+	</script>

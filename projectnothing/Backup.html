@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en-US" prefix="og: http://ogp.me/ns#" itemscope="itemscope" itemtype="http://schema.org/WebPage">
+<head>
+    <meta name="viewport" content="width = devicewidth, minimum-scale = 1.0 , initial-scale = 1 , user-scalable=yes">
+    <meta http-equiv = "Cache-control" content = "no-cache">
+    <title>Quest 2017</title>
+    <link rel="icon" href="q-logo.png" type="image" sizes="32x32">
+    <link rel="stylesheet" type="text/css" href="TimeCircles.css">
+    <link rel="stylesheet" href="jquery.parallax.css" />
+    <link rel='stylesheet' href='style.css' type='text/css' />
+    <link rel='stylesheet' href='morph.css' type='text/css' />
+    <link rel='stylesheet' href='morphmain.css' type='text/css' />
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link href="materialize.css" type="text/css" rel="stylesheet" media="screen,projection">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            user-select:none;
+            -webkit-user-select:none;
+            -moz-user-select:none;
+            -o-user-select:none;
+
+            -webkit-touch-callout:none;
+            -moz-touch-callout:none;
+            -o-touch-callout:none;
+        }
+        #header_img{
+            transition: all 0.4s;
+            -webkit-transition: all 0.4s;
+            -moz-transition: all 0.4s;
+        }
+        #header {
+            width: 2000px;
+            height: 200px;
+            background: #283593;
+            color: white;
+            box-shadow: 2px 1px 25px #200;
+            padding: 10px;
+            position: fixed;
+            transition: all 0.4s;
+            -webkit-transition: all 0.4s;
+            -moz-transition: all 0.4s;
+            -o-transition: all 0.4s;
+        }
+        #image {
+            width: 400px;
+            height: 200px;
+            transition: all 0.4s;
+            -webkit-transition: all 0.4s;
+            -moz-transition: all 0.4s;
+            -o-transition: all 0.4s;
+        }
+	#fa{
+	       position:absolute;
+	       opacity:0;
+               right: 5%;
+               bottom: 5%;
+
+               -webkit-transform:scale(0.8);
+               -webkit-transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
+	}
+          #fa img{
+               border-radius: 50%;
+               box-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+
+               -webkit-transform:scale(0.8);
+               -moz-transform:scale(0.8);
+               -o-transform:scale(0.8);
+               transform:scale(0.8);
+
+               -webkit-transition:all 0.4s;
+               -moz-transition: all 0.4s;
+               -o-transition: all 0.4s;
+               transition: all 0.4s;
+          }
+          #fa img:hover{
+               box-shadow: 8px 8px 20px rgba(0,0,0,0.7);
+               -webkit-transform:scale(1);
+               -moz-transform:scale(1);
+               -o-transform:scale(1);
+               transform:scale(1);
+
+			   -webkit-transition:all 0.4s;
+			   -moz-transition: all 0.4s;
+               -o-transition: all 0.4s;
+               transition: all 0.4s;
+          }
+		#float{
+               box-shadow: 1px 1px 10px black;
+               position: fixed;
+               width: 60px;
+               height: 60px;
+               right: 5%;
+               bottom: 10%;
+               border-radius: 50%;
+               background: #E91E63;
+               padding: 20px;
+               z-index:100;
+               -webkit-transition: all 0.4s  cubic-bezier(0,1.37,.57,1.08);
+               -moz-transition: all 0.4s  cubic-bezier(0,1.37,.57,1.08);
+               -o-transition: all 0.4s  cubic-bezier(0,1.37,.57,1.08);
+               transition: all 0.4s  cubic-bezier(0,1.37,.57,1.08);
+		}
+          #float:hover{
+               transform: scale(1.1) translateX(-5px);
+               box-shadow: 10px 10px 20px rgba(0,0,0,0.7);
+          }
+          #float:hover #fa{
+               opacity:1;
+               -webkit-transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
+               -moz-transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
+               -o-transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
+               transition:all 0.5s cubic-bezier(0,1.37,.57,1.08);
+          }
+		#float:hover #fa:nth-child(1){
+			-webkit-transform: translate3d(-4px,-205px,0px);
+			-moz-transform: translate3d(-4px,-205px,0px);
+			-o-transform: translate3d(-4px,-205px,0px);
+			transform: translate3d(-4px,-205px,0px);
+		}
+		#float:hover #fa:nth-child(2){
+			-webkit-transform: translate3d(-4px,-155px,0px);
+			-moz-transform: translate3d(-4px,-155px,0px);
+			-o-transform: translate3d(-4px,-155px,0px);
+			transform: translate3d(-4px,-155px,0px);
+		}
+		#float:hover #fa:nth-child(3){
+			-webkit-transform: translate3d(-4px,-58px,0px);
+			-moz-transform: translate3d(-4px,-58px,0px);
+			-o-transform: translate3d(-4px,-58px,0px);
+			transform: translate3d(-4px,-58px,0px);
+		}
+          #float:hover #fa:nth-child(4){
+			-webkit-transform: translate3d(-4px,-105px,0px);
+			-moz-transform: translate3d(-4px,-105px,0px);
+			-o-transform: translate3d(-4px,-105px,0px);
+			transform: translate3d(-4px,-105px,0px);
+		}
+ .foot{
+      display: inline-block;
+      position: relative;
+      width:155px;
+      padding:10px;
+      -webkit-filter: grayscale(70%); /* Safari 6.0 - 9.0 */
+     filter: grayscale(70%);
+     -webkit-transition : all 0.5s;
+     transition : all 0.5s;
+}
+
+ .foot:hover{
+      -webkit-filter: grayscale(0%); /* Safari 6.0 - 9.0 */
+    filter: grayscale(0%);
+    transform: scale(1.3);
+    -webkit-transition : all 0.5s;
+    transition : all 0.5s;
+}
+     .short{
+          margin: 2%;
+          box-shadow: 0px 0px 5px black;
+          transition: all 0.5s;
+          -webkit-transition: all 0.5s;
+     }
+     .short:hover{
+          box-shadow: 4px 4px 5px rgba(0,0,0,0.5);
+          transform: scale(1.05) ;
+          transition: all 0.5s;
+          -webkit-transition: all 0.5s;
+
+     }
+        .card-2 {
+            display: inline-block;
+            background:white;
+	    margin-bottom:20px;
+            border-radius: 5px;
+            box-shadow: 0 0 4px black;
+            transition: all 0.5s ease-out;
+            -webkit-transition: all 0.5s ease-out;
+        }
+        .card-2:hover {
+            box-shadow: 0 0 30px black;
+            transition: all 0.6s ease-out;
+            -webkit-transition: all 0.6s ease-out;
+        }
+		@media handheld,screen and (min-width: 300px){
+			.card-2{
+				width: 300px;
+				margin-left: 10px;
+				box-shadow: 0 0 15px black;
+			}
+			.card-2:focus{
+				box-shadow: 0 0 5px black;
+				margin-left: 50px;
+			}
+		}@media handheld,screen and (min-width: 400px){
+			.card-2{
+				width: 350px;
+				box-shadow: 0 0 4px black;
+			}
+			.card-2:hover{
+				box-shadow: 0 0 20px black;
+			}
+		}
+		@media handheld,screen and (min-width: 500px){
+			.card-2{
+				width: 450px;
+				box-shadow: 0 0 4px black;
+			}
+			.card-2:hover{
+				box-shadow: 0 0 20px black;
+			}
+		}@media handheld,screen and (min-width: 600px){
+			.card-2{
+				width: 500px;
+				box-shadow: 0 0 4px black;
+			}
+			.card-2:hover{
+				box-shadow: 0 0 20px black;
+			}
+		}@media handheld,screen and (min-width: 700px){
+			.card-2{
+				width: 600px;
+				box-shadow: 0 0 4px black;
+			}
+			.card-2:hover{
+				box-shadow: 0 0 20px black;
+			}
+		}
+		@media handheld,screen and (min-width: 300px){
+     	.short{
+     		width:200px;
+     	}
+     }
+     @media handheld,screen and (min-width: 400px){
+     	.short{
+     		width:300px;
+     	}
+     }
+     @media handheld,screen and (min-width: 300px){
+     	#header_img{
+     		width: 50%;
+     		padding:none;
+     		margin-left: -20px;
+     	}
+     	#header{
+     		height: 70px;
+     	}
+     	#parallax{
+     		margin-top:20%;
+     	}
+     }
+     @media handheld,screen and (min-width: 500px){
+     	#parallax{
+     		margin-top:15%;
+     	}
+     }
+
+     @media handheld,screen and (min-width: 600px){
+     	#parallax{
+     		margin-top:10%;
+     	}
+     }
+     @media handheld,screen and (min-width: 700px){
+     	#header_img{
+     		width: 100%;
+     		padding:none;
+     		margin:1% 15%;
+     	}
+     	#header{
+     		height: 150px;
+     	}
+
+     	#parallax{
+     		margin-top:10%;
+     	}
+     }
+    </style>
+    <script type="text/javascript" src="jquerygoogle.min.js"></script>
+</head>
+<body style="background-color:#d1d6fc;margin:0;padding:0;" onresize="check()">
+    <div class="morph-main-menu-button-wrapper">
+        <div class="morph-main-menu-button">
+            <div class="morph-main-menu-button-middle"></div>
+        </div>
+    </div>
+    <div class="morph-main-wrapper">
+        <div class="container">
+            <a href="#" data-activates="nav-mobile" class="button-collapse top-nav waves-effect waves-light circle hide-on-large-only">
+                <img src="menu-icon.png" style="width:25px;height:16px;"> </a>
+        </div>
+        <ul class="side-nav fixed">
+            <img src="q-logo.png" style="width:270px;height:270px;">
+            <li class="bold"><a href="" class="waves-effect waves-teal">Home</a>
+            </li>
+            <li class="no-padding">
+                <ul class="collapsible collapsible-accordion">
+                    <li class="bold"><a class="collapsible-header  waves-effect waves-teal">Workshops</a>
+                        <div class="collapsible-body">
+                            <ul>
+                                <li><a href="">Workshop 1</a>
+                                </li>
+                                <li><a href="">Workshop 2</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="bold"><a class="collapsible-header  waves-effect waves-red">Events</a>
+                        <div class="collapsible-body">
+                            <ul>
+                                <li><a href="">1</a>
+                                </li>
+                                <li><a href="">2</a>
+                                </li>
+                                <li><a href=" ">3</a>
+                                </li>
+                                <li><a href=" ">4</a>
+                                </li>
+                                <li><a href=" ">5</a>
+                                </li>
+                                <li><a href=" ">6</a>
+                                </li>
+                                <li><a href=" ">7</a>
+                                </li>
+                                <li><a href=" ">8</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            <li class="bold"><a href=" " class="waves-effect waves-green">Gallery</a>
+            </li>
+            <li class="bold"><a href=" " class="waves-effect waves-green">Contact Us</a>
+            </li>
+    </div>
+    <div class="morph-main-background">
+    </div>
+    <div class="morph-background-overlay"></div>
+    </ul>
+    <header id="header" style="z-index:2;">
+        <img src="header.png" id = "header_img">
+    </header>
+
+		<div id = "float">
+               <img width = "30px" height = "30px" src="float.png" alt="" style = "margin-left:-5px;margin-top:-5px;">
+			<div id = "main">
+			<div style = "margin-top:10px;" id = "fa">
+                    <a href="http://www.youtube.com"><img width = "50px" height = "50px" src="yt.png" alt=""></a>
+               </div>
+			<div style = "margin-top:10px;" id = "fa">
+                    <a href="http://www.gmail.com"><img width = "50px" height = "50px" src="gmail.png" alt=""></a>
+               </div>
+			<div style = "margin-top:10px;" id = "fa">
+                    <a href="http://www.facebook.com"><img width = "50px" height = "50px" src="fb.png" alt=""></a>
+               </div>
+			<div style = "margin-top:10px;" id = "fa">
+                    <a href="http://www.twitter.com"><img width = "50px" height = "50px" src="twitter.png" alt=""></a>
+               </div>
+			</div>
+		</div>
+   <iframe src = "parallax.html" frameborder="0" style="height:35vw;width:100vw;overflow:scroll;" id = "parallax"></iframe>
+    <div class = "demo" style = "width:90%; height:100%;transform:translate3d(8%,0,0);" data-date = "2017-03-21 09:00:00">
+     </div>
+<div style = "text-align:center;">
+     <a href = ""><img class = "short" src = "shortevents.gif"></a>
+     <a href = ""><img class = "short" src = "shortworkshops.gif"></a>
+     <a href = ""><img class = "short" src = "shortgallery.gif"></a>
+</div>
+<br>
+    <div class="divider"></div>
+    <div style="text-align:center;">
+        <div class="card-2">
+            <img style="border-radius:5px 5px 0px 0px;" src="aboutjntu.png">
+            <br>
+            <p style="text-align:left; padding:30px;">
+			Situated at the heart of Hyderabad,Jawaharlal Nehru Technological University College of Engineering(Autonomous)
+			has been providing top notch education to students since 1965.The infrastructure development in the past two decades
+			in the college has been prominent.
+			An accredited, comprehensive college, JNTU CEH offers active learning in a vibrant
+			atmosphere where students connect the classroom and their world.
+			With a focus on innovative ideas along with curricular education. The nurturing environment offers
+			education combined with practical experiences such as internships, academic and career counseling and volunteer opportunities.
+			To meet the essential requirements for strengthening theutility of its programs, the college has developed its own
+			infrastructure and services of the high quality, novel thoughts and practical approach. With the cooperation of the
+			Faculty and other staff members, the institution is now capable to impart quality education for more than thousands
+			students per year. At JNTUH CEH, we believe in making our students ready for the future,today.
+			</p>
+        </div>
+        <div class="card-2">
+            <img style="border-radius:5px 5px 0px 0px;" src="aboutquest.png">
+            <p style="text-align:left; padding:30px;">
+			Quest's mission is to organize the world's most advanced tehnology and make it universally reachable and useful.
+			QUEST is an annual technical fest, proudly presented by the Computer Science department of JNTUH.Ever since its
+			inception, Quest has made a name for itself as an avant-garde technical festival, showcasing innovations in the
+			fields of science and technology. With this two day long event, we bring to you a conglomerate of unique ideas,
+			competent skill and unlimited fun. Through its plethora of competitions, lectures and workshops, Quest strives
+			to ignite the minds of the students visiting the festival.From challenging the coder in you at (coding event name)
+			to bringing out the scholar in you at Paper presentations, the events are designed to tech-tain young minds. We,
+			the student community at Computer Science Department of JNTUH invite you to celebrate mutual passion and common
+			thirst for knowledge. Meet like minded tech lovers and think beyond normal.Be a part of Quest and experience
+			the ardour, for this is an event that truly justifies its name. And this time, its going to be the best ever.
+			</p>
+        </div>
+    </div>
+    <iframe width="80%" height="500px" frameborder="0" style="margin-left:10%;border:0" src="https://www.google.com/maps/embed/v1/place?q=place_id:ChIJYyRQ7OyRyzsR0YO0HoCjve8&key=AIzaSyA8-9ERRmFfvRZQlpEz3wX1OyZ6F1sVn_8" allowfullscreen></iframe>
+<div style = "width=100%; height = 100px; margin-bottom:-20px; background-color : #b0b8f2; ">
+     <div style = "text-align:center">
+          <p>Our Previous Sponsors</p>
+     </div>
+          <div style = "text-align:center">
+     <div class = "foot">
+          <img class = "imagefoot" src = "sponsors/spon-coke.png">
+     </div>
+     <div class = "foot">
+          <img src = "sponsors/spon-ab.png">
+     </div>
+     <div class = "foot">
+          <img src = "sponsors/spon-info.png">
+     </div>
+     <div class = "foot">
+          <img src = "sponsors/spon-mera.png">
+     </div>
+     <div class = "foot">
+          <img src = "sponsors/spon-she.png">
+     </div>
+     <div class = "foot">
+          <img src = "sponsors/spon-excellor.png">
+     </div>
+     <div class = "foot">
+          <img src = "sponsors/spon-gpr.png">
+     </div>
+</div>
+</div>
+</body>
+
+</html>
+	<script src="jquery.parallax.js"></script>
+	<script type='text/javascript' src='morph.js'></script>
+	<script type="text/javascript" src="TimeCircles.js"></script>
+	<script type = "text/javascript" src="materialize.js"></script>
+
+    	<script type="text/javascript">
+       	$(function(){
+               $(".demo").TimeCircles({
+                    start: true,
+                    animation: "smooth",
+                    count_past_zero: true,
+                    circle_bg_color: "lightgray",
+                    use_background: true,
+                    fg_width: 0.08,
+                    bg_width: 1,
+                    text_size: 0.1,
+                    number_size: 0.2,
+                    total_duration: "Auto",
+                    direction: "Counter-Clockwise",
+                    use_top_frame: false,
+                    start_angle: 0,
+                    time: {
+                         Days: {
+                              show: true,
+                              text: "Days",
+                              color: "#43A047"
+                         },
+                         Hours: {
+                              show: true,
+                              text: "Hours",
+                              color: "#2196F3"
+                         },
+                         Minutes: {
+                              show: true,
+                              text: "Minutes",
+                              color: "#FBC02D"
+                         },
+                         Seconds: {
+                              show: true,
+                              text: "Seconds",
+                              color: "#EF5350"
+                         }
+                    }
+               });
+          });
+    </script>
+    	<script type="text/javascript">
+		jQuery(document).ready(function(){
+			jQuery('.parallax-layer').parallax({
+				mouseport: jQuery("#port")
+			});
+		});
+	</script>
+
+    <script type = "text/javascript">
+		function isMobile() {
+			return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+		}
+		if(!isMobile()){
+	        	function Scroll() {
+	            		var x = window.pageYOffset;
+	            		var h_img = document.getElementById("header_img");
+	            		var top = document.getElementById("header");
+	            		if (x > 300) {
+	                		top.style.height = '70px';
+	                		h_img.style.width = "50%";
+	                		h_img.style.padding = "0px";
+	                		h_img.style.margin = "auto -20px";
+
+	            		}
+	            		else {
+	                		top.style.height = '150px';
+	                		h_img.style.width = "100%";
+	                		h_img.style.margin = "1% 15%";
+	            		}
+	        	}
+        	}
+        	window.addEventListener("scroll", Scroll);
+    	</script>
