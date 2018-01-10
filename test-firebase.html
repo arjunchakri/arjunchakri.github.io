@@ -1,0 +1,27 @@
+
+Firebase test:
+
+<span id = "message">
+h
+</span>
+<script src="https://www.gstatic.com/firebasejs/4.8.1/firebase.js"></script>
+<script>
+
+  var config = {
+    apiKey: "AIzaSyCguA9cODISEwGYYh80I1Edmkf41ySlMWY",
+    authDomain: "testlevel3-c904f.firebaseapp.com",
+    databaseURL: "https://testlevel3-c904f.firebaseio.com",
+    projectId: "testlevel3-c904f",
+    storageBucket: "testlevel3-c904f.appspot.com",
+    messagingSenderId: "387009646612"
+  };
+  firebase.initializeApp(config);
+  var data = firebase.database().ref().child("allProducts");
+  data.once('value',function(snapshot){
+    var ele = document.getElementById("message");
+    ele.innerHTML = snapshot.child("numberOfProducts").val();
+    alert("firebase value recorded");
+  });
+
+
+</script>
