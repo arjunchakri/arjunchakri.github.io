@@ -1,11 +1,27 @@
 
 Firebase test:
+<br><br><br>
 
+testvalueJSON----------------------------
+<br>
 <span id = "message">
-h
+Loading.............
 </span>
+
+<br><br><br>
+entireJSON----------------------------
+<br>
+<span id = "entireJSON">
+  Loading.............
+</span>
+
 <script src="https://www.gstatic.com/firebasejs/4.8.1/firebase.js"></script>
 <script>
+
+function updateElement(id, message){
+  var ele = document.getElementById(id);
+  ele.innerHTML = message;
+}
 
   var config = {
     apiKey: "AIzaSyCguA9cODISEwGYYh80I1Edmkf41ySlMWY",
@@ -18,9 +34,15 @@ h
   firebase.initializeApp(config);
   var data = firebase.database().ref().child("allProducts");
   data.once('value',function(snapshot){
-    var ele = document.getElementById("message");
-    ele.innerHTML = snapshot.child("numberOfProducts").val();
-    alert("firebase value recorded");
+    var jsonStr = JSON.stringify(snapshot.val());
+    var json = JSON.parse(jsonStr);
+
+    updateElement("message",json.numberOfProducts);
+    
+    updateElement("entireJSON",jsonStr);
+
+
+    //alert("firebase value recorded");
   });
 
 
