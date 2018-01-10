@@ -2,16 +2,13 @@
     <title>Chat</title>
     <meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
     <link href="../favicon.png" rel="icon" sizes="16x16">
-
 </head>
-
 <body style="text-align:center">
     <div id="nameform">
         Enter your name buddy:<br>
-        <input type="text" id="name" onchange="updateName()" />
+        <input type="text" id="name" />
+        <input type="button" onclick="updateName()"  value = "set name"/>
     </div>
-
-
     <div id="chatform">
         Firebase test:
         <br><br><br>
@@ -19,12 +16,12 @@
         <br> Your chatbox:
         <br>
         <span id="chatbox">
-
-</span>
-
+        </span>
         <br><br><br>
         <br><br><br>
         <input type="text" id="drool" onchange="updateFB()" />
+        <input type="button" onclick="updateName()" value="send" />
+    
     </div>
 </body>
 <script src="https://www.gstatic.com/firebasejs/4.8.1/firebase.js"></script>
