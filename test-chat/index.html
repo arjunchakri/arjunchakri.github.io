@@ -1,6 +1,13 @@
 
+<head>
+    <title>Chat</title>
+    <meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
+	  <link href = "../favicon.png" rel = "icon" sizes = "16x16">
+
+</head>
+<body style="text-align:center">
 <div id = "nameform">
-Enter your name buddy:
+Enter your name buddy:<br>
 <input type = "text" id="name"  onchange="updateName()"/>
 </div>
 
@@ -19,7 +26,7 @@ chatbox----------------------------
 <br><br><br>
 <input type = "text" id="drool" onchange="updateFB()"/>
 </div>
-
+</body>
 <script src="https://www.gstatic.com/firebasejs/4.8.1/firebase.js"></script>
 <script>
 var username = "";
