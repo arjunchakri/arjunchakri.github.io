@@ -1,94 +1,91 @@
-
 <head>
     <title>Chat</title>
     <meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
-	  <link href = "../favicon.png" rel = "icon" sizes = "16x16">
+    <link href="../favicon.png" rel="icon" sizes="16x16">
 
 </head>
+
 <body style="text-align:center">
-<div id = "nameform">
-Enter your name buddy:<br>
-<input type = "text" id="name"  onchange="updateName()"/>
-</div>
+    <div id="nameform">
+        Enter your name buddy:<br>
+        <input type="text" id="name" onchange="updateName()" />
+    </div>
 
 
-<div id = "chatform" >
-Firebase test:
-<br><br><br>
-<span id = "showname">Hello</span>
-	<br>
-Your chatbox:
-<br>
-<span id = "chatbox">
+    <div id="chatform">
+        Firebase test:
+        <br><br><br>
+        <span id="showname">Hello</span>
+        <br> Your chatbox:
+        <br>
+        <span id="chatbox">
 
 </span>
 
-<br><br><br>
-<br><br><br>
-<input type = "text" id="drool" onchange="updateFB()"/>
-</div>
+        <br><br><br>
+        <br><br><br>
+        <input type="text" id="drool" onchange="updateFB()" />
+    </div>
 </body>
 <script src="https://www.gstatic.com/firebasejs/4.8.1/firebase.js"></script>
 <script>
-var username = "";
-var config = {
-  apiKey: "AIzaSyDS3fcMxqey1aV7zbBklfo5fuDlBPcNIyg",
-    authDomain: "justtotest-2b881.firebaseapp.com",
-    databaseURL: "https://justtotest-2b881.firebaseio.com",
-    projectId: "justtotest-2b881",
-    storageBucket: "justtotest-2b881.appspot.com",
-    messagingSenderId: "1035295522585"
-};
-firebase.initializeApp(config);
- function updateFB() {
-  var msg = document.getElementById("drool").value;
-
-    var data1 = firebase.database().ref().child("chat");
-    var msgWithName = document.getElementById("name").value + " " + msg;
-    data1.set(msgWithName);
-
-  appendElement("chatbox" , "<p style='color:blue'>You sent >> "+msg+"</p><br>");
-}
-
-function updateName(){
-  var username = document.getElementById("name").value;
-  document.getElementById("showname").innerHTML = "Hello "+username;
-    document.getElementById('nameform').style.display='none';
-      document.getElementById('chatform').style.display='block';
-
-}
-
-function appendElement(id, message){
-  var ele = document.getElementById(id);
-  ele.innerHTML += message;
-}
-function updateElement(id, message){
-  var ele = document.getElementById(id);
-  ele.innerHTML = message;
-}
-
-
-  var data = firebase.database().ref().child("chat");
-  data.on('value',function(snapshot){
-    var jsonStr = JSON.stringify(snapshot.val());
-    var json = JSON.parse(jsonStr);
-    var data1 = firebase.database().ref().child("chat");
-
-    var msg = snapshot.val();
-    if( msg.indexOf(document.getElementById("name").value) ){
-      var name = msg.substr(0,msg.indexOf(" "));
-      var mess = msg.substr(msg.indexOf(" ")+1);
-
-      appendElement("chatbox" , "<p style='color:red'> "+name+" says >> "+mess+"</p><br>");
+    var username = "";
+    var config = {
+      apiKey: "AIzaSyDS3fcMxqey1aV7zbBklfo5fuDlBPcNIyg",
+        authDomain: "justtotest-2b881.firebaseapp.com",
+        databaseURL: "https://justtotest-2b881.firebaseio.com",
+        projectId: "justtotest-2b881",
+        storageBucket: "justtotest-2b881.appspot.com",
+        messagingSenderId: "1035295522585"
+    };
+    firebase.initializeApp(config);
+     function updateFB() {
+      var msg = document.getElementById("drool").value;
+    
+        var data1 = firebase.database().ref().child("chat");
+        var msgWithName = document.getElementById("name").value + " " + msg;
+        data1.set(msgWithName);
+    
+      appendElement("chatbox" , "<p style='color:blue'>You sent >> "+msg+"</p><br>");
     }
-
-
-    //alert("firebase value recorded");
-  });
-
-
+    
+    function updateName(){
+      var username = document.getElementById("name").value;
+      document.getElementById("showname").innerHTML = "Hello "+username;
+        document.getElementById('nameform').style.display='none';
+          document.getElementById('chatform').style.display='block';
+    
+    }
+    
+    function appendElement(id, message){
+      var ele = document.getElementById(id);
+      ele.innerHTML += message;
+    }
+    function updateElement(id, message){
+      var ele = document.getElementById(id);
+      ele.innerHTML = message;
+    }
+    
+    
+      var data = firebase.database().ref().child("chat");
+      data.on('value',function(snapshot){
+        var jsonStr = JSON.stringify(snapshot.val());
+        var json = JSON.parse(jsonStr);
+        var data1 = firebase.database().ref().child("chat");
+    
+        var msg = snapshot.val();
+        if( msg.indexOf(document.getElementById("name").value) ){
+          var name = msg.substr(0,msg.indexOf(" "));
+          var mess = msg.substr(msg.indexOf(" ")+1);
+    
+          appendElement("chatbox" , "<p style='color:red'> "+name+" says >> "+mess+"</p><br>");
+        }
+    
+    
+        //alert("firebase value recorded");
+      });
 </script>
 <script type="text/javascript">
-  document.getElementById('nameform').style.display='block';
-  document.getElementById('chatform').style.display='none';
+    document.getElementById('nameform').style.display='block';
+      document.getElementById('chatform').style.display='none';
 </script>
