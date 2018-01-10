@@ -37,8 +37,8 @@ function updateElement(id, message){
     var jsonStr = JSON.stringify(snapshot.val());
     var json = JSON.parse(jsonStr);
 
-    updateElement("message",json.numberOfProducts);
-    
+    updateElement("message",json.productList[0].productId);
+
     updateElement("entireJSON",jsonStr);
 
 
