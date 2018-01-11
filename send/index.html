@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+  <meta charset="UTF-8">
+  <title>Animography's Mobilo Text Editor in SVG</title>
+
+
+  <link rel='stylesheet prefetch' href='https://labs.nearpod.com/bodymovin/demo/mobilo_demo/styles/bundle.css'>
+
+      <link rel="stylesheet" href="css/style.css">
+<!--Button-->
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+        <link rel="stylesheet" href="css/stylebutton.css">
+
+
+</head>
+
+<body>
+
+  <div class="toolbar" id="toolbar" style="display:none">
+        <div class="title">Animography - Mobilo Text Editor</div>
+    <ul class="characters justification">
+        <li class="characters__item characters__item--first left"><button class="characters__item__button"></button></li><!--
+        --><li class="characters__item characters__item--middle center"><button class="characters__item__button"></button></li><!--
+        --><li class="characters__item characters__item--last right"><button class="characters__item__button"></button></li>
+    </ul>
+    <ul class="characters sizing">
+        <li class="characters__item characters__item--first size1"><button class="characters__item__button"></button></li><!--
+        --><li class="characters__item characters__item--middle size2"><button class="characters__item__button"></button></li><!--
+        --><li class="characters__item characters__item--last size3"><button class="characters__item__button"></button></li>
+    </ul>
+    <ul class="characters">
+        <li class="characters__item characters__item--color " >
+            <input class="characters__item__colorInput color1" type="color" id="color1"/>
+        </li><!--
+        --><li class="characters__item characters__item--color">
+            <input class="characters__item__colorInput color2" type="color" id="color2"/>
+        </li><!--
+        --><li class="characters__item characters__item--color">
+            <input class="characters__item__colorInput color3" type="color" id="color3"/>
+        </li>
+    </ul>
+</div>
+<div class="textBox">
+        <div id="charsContainer"></div>
+        <div class="bm caret" id="caret">|</div>
+        <input type="text" id = "actualmessage" class="textHelper">
+</div>
+<div class='centerMe'>
+<div class='cta'>
+  <span>Send me a SMS</span>
+  <form>
+    <div class='input'>
+      <input placeholder='Enter your name'>
+    </div>
+    <div class='button'>
+      <button onclick="sendSMS()">Send</button>
+    </div>
+  </form>
+</div>
+</div>
+<script type="text/javascript">
+  function sendSMS(){
+    var message = document.getElementById('actualmessage').value;
+    alert(message);
+
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("POST", "https://smsapi.engineeringtgr.com/send/?Mobile=8897566013&Password=mywaytosmspassword&Key=arjunvqOKQgpb9zXCAnP7tl6f5iV&Message="+message+"&To=7013818519", true);
+    xhttp.setRequestHeader("Content-type", "application/json");
+    xhttp.send();
+    var response = JSON.stringify(xhttp.responseText);
+
+  }
+</script>
+
+
+  <script src='https://labs.nearpod.com/bodymovin/demo/mobilo_demo/build.js'></script>
+    <script  src="js/index.js"></script>
+    <!--Button-->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
+  <script  src="js/indexbutton.js"></script>
+
+
+
+
+</body>
+
+</html>
