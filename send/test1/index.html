@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+  <meta charset="UTF-8">
+  <title>020 - Mail send icon</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+
+
+      <link rel="stylesheet" href="css/style.css">
+
+
+</head>
+
+<body>
+
+  <div class="frame">
+    <input  class="textbox1" type="text" placeholder="Enter your message(include your name too)" id="msg">
+    <input type="checkbox" onclick="sendSMS()" id="cb">
+	<label for="cb"  class="button">Send me a SMS</label>
+	<label for="cb" class="button reset">I received your Message</label>
+
+	<div class="circle"></div>
+	<div class="circle-outer"></div>
+	<svg class="icon mail">
+		<polyline points="119,1 119,69 1,69 1,1"></polyline>
+		<polyline points="119,1 60,45 1,1 119,1"></polyline>
+	</svg>
+	<svg class="icon plane">
+		<polyline points="119,1 1,59 106,80 119,1"></polyline>
+		<polyline points="119,1 40,67 43,105 69,73"></polyline>
+	</svg>
+</div>
+
+<script type="text/javascript">
+  function sendSMS(){
+    var message = document.getElementById('msg').value;
+    message = message.replace(/\s+/, "")
+
+    var xhttp = new XMLHttpRequest();
+    var url = "https://smsapi.engineeringtgr.com/send/?Mobile=7013818519&Password=Arjunchakri&Message="+message+"&To=8897566013&Key=arjunqAcWi7E9X2VKkxJ";
+    xhttp.open("POST", url, true);
+    xhttp.setRequestHeader("Content-type", "application/json");
+    xhttp.send();
+    var response = JSON.stringify(xhttp.responseText);
+    alert(url);
+    window.location.href=url;
+
+  }
+</script>
+
+<style media="screen">
+  .textbox1{
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  box-sizing: border-box;
+  border: none;
+  background-color: #192a3c;
+  color: white;
+  }
+</style>
+
+</body>
+
+</html>
