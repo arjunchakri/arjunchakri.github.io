@@ -1,0 +1,80 @@
+// Setting up
+
+@import url('https://fonts.googleapis.com/css?family=Roboto'); $bg: #FF7B73; $fg: #FF7B73; body { background: $bg; color: $fg; font-family: "Roboto", sans-serif; font-size: 18px; } .centerMe { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); } ::-webkit-input-placeholder { color: #FCD5D3; }
+
+// Dribbble related code
+
+.cta {
+	background: #fff;
+	font-weight: bold;
+	border-radius: 25px;
+	line-height: 50px;
+	height: 50px;
+	width: 170px;
+	text-align: center;
+	transition: width .2s ease-in-out;
+	cursor: pointer;
+	.hide { display: none; }
+	form { display: flex; } // I know, I know.
+	span {
+		opacity: 0;
+		width: 100%;
+		text-align: center;
+		animation: fadeIn .3s ease-in-out;
+		animation-delay: .2s;
+		animation-fill-mode: forwards;
+	}
+	.input {
+		display: none;
+		opacity: 0;
+		flex: 3;
+		text-align: left;
+		input {
+			border: 0;
+			width: 240px;
+			height: 45px;
+			margin: 0 0 0 25px;
+			outline: none;
+			color: $fg;
+		}
+	}
+	.button {
+		display: none;
+		opacity: 0;
+		flex: 1;
+		button {
+			outline: none;
+			float: right;
+			padding: 0 15px;
+			height: 40px;
+			background: $bg;
+			border-radius: 25px;
+			color: #fff;
+			border: 0;
+			margin: 5px;
+			cursor: pointer;
+			transition: all .2s ease-in-out;
+			&:disabled{ color: #FC9F9D; opacity: .8;  }
+		}
+	}
+	&.sent { cursor: default; }
+	&.active {
+		width: 350px;
+		text-align: left;
+		transition: width .2s ease-in-out;
+		cursor: default;
+		span { display: none; }
+		.input, .button {
+			display: block;
+			animation: fadeIn .3s ease-in-out;
+			animation-delay: .1s;
+			animation-fill-mode: forwards;
+		}
+	}
+}
+
+// Fade + slight zoom
+@keyframes fadeIn {
+	0% { opacity: 0; transform: scale(.7); }
+	100% { opacity: 1; transform: scale(1); }
+}

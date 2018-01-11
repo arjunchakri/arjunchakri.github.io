@@ -1,0 +1,140 @@
+@import url("https://fonts.googleapis.com/css?family=Roboto");
+body {
+  background: #FF7B73;
+  color: #FF7B73;
+  font-family: "Roboto", sans-serif;
+  font-size: 18px;
+}
+
+.centerMe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+}
+
+::-webkit-input-placeholder {
+  color: #FCD5D3;
+}
+
+.cta {
+  background: #fff;
+  font-weight: bold;
+  border-radius: 25px;
+  line-height: 50px;
+  height: 50px;
+  width: 170px;
+  text-align: center;
+  -webkit-transition: width .2s ease-in-out;
+  transition: width .2s ease-in-out;
+  cursor: pointer;
+}
+.cta .hide {
+  display: none;
+}
+.cta form {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+.cta span {
+  opacity: 0;
+  width: 100%;
+  text-align: center;
+  -webkit-animation: fadeIn .3s ease-in-out;
+          animation: fadeIn .3s ease-in-out;
+  -webkit-animation-delay: .2s;
+          animation-delay: .2s;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards;
+}
+.cta .input {
+  display: none;
+  opacity: 0;
+  -webkit-box-flex: 3;
+      -ms-flex: 3;
+          flex: 3;
+  text-align: left;
+}
+.cta .input input {
+  border: 0;
+  width: 240px;
+  height: 45px;
+  margin: 0 0 0 25px;
+  outline: none;
+  color: #FF7B73;
+}
+.cta .button {
+  display: none;
+  opacity: 0;
+  -webkit-box-flex: 1;
+      -ms-flex: 1;
+          flex: 1;
+}
+.cta .button button {
+  outline: none;
+  float: right;
+  padding: 0 15px;
+  height: 40px;
+  background: #FF7B73;
+  border-radius: 25px;
+  color: #fff;
+  border: 0;
+  margin: 5px;
+  cursor: pointer;
+  -webkit-transition: all .2s ease-in-out;
+  transition: all .2s ease-in-out;
+}
+.cta .button button:disabled {
+  color: #FC9F9D;
+  opacity: .8;
+}
+.cta.sent {
+  cursor: default;
+}
+.cta.active {
+  width: 350px;
+  text-align: left;
+  -webkit-transition: width .2s ease-in-out;
+  transition: width .2s ease-in-out;
+  cursor: default;
+}
+.cta.active span {
+  display: none;
+}
+.cta.active .input, .cta.active .button {
+  display: block;
+  -webkit-animation: fadeIn .3s ease-in-out;
+          animation: fadeIn .3s ease-in-out;
+  -webkit-animation-delay: .1s;
+          animation-delay: .1s;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards;
+}
+
+@-webkit-keyframes fadeIn {
+  0% {
+    opacity: 0;
+    -webkit-transform: scale(0.7);
+            transform: scale(0.7);
+  }
+  100% {
+    opacity: 1;
+    -webkit-transform: scale(1);
+            transform: scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    -webkit-transform: scale(0.7);
+            transform: scale(0.7);
+  }
+  100% {
+    opacity: 1;
+    -webkit-transform: scale(1);
+            transform: scale(1);
+  }
+}
