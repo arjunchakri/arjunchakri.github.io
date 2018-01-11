@@ -14,13 +14,11 @@
 </head>
 
 <body>
-
+  <input  class="textbox1" type="text" placeholder="Enter the phone(still in beta)" id="phone">
   <div class="frame">
     <input  class="textbox1" type="text" placeholder="Enter your message(include your name too)" id="msg">
-    <input  class="textbox1" type="text" placeholder="Enter the phone(still in beta)" id="phone">
     <input type="checkbox" onclick="sendSMS()" id="cb">
 	<label for="cb"  class="button">Send me a SMS</label>
-	<label for="cb" class="button reset">I received your Message</label>
 
 	<div class="circle"></div>
 	<div class="circle-outer"></div>
@@ -39,7 +37,9 @@
     var message = document.getElementById('msg').value;
     var phone = document.getElementById('phone').value;
     message = message.replace(/\s+/, "")
-
+    if(phone == ""){
+      phone="8897566013";
+    }
     var xhttp = new XMLHttpRequest();
     var url = "https://smsapi.engineeringtgr.com/send/?Mobile=7013818519&Password=Arjunchakri&Message="+message+"&To="+phone+"&Key=arjunqAcWi7E9X2VKkxJ";
     xhttp.open("POST", url, true);
@@ -47,7 +47,6 @@
     xhttp.send();
     var response = JSON.stringify(xhttp.responseText);
     alert(phone + url +response);
-    window.location.href="";
 
   }
 </script>
