@@ -6,144 +6,143 @@
 <script src="https://www.gstatic.com/firebasejs/4.8.1/firebase.js"></script>
 
 <body style="text-align:center">
-<script>
+    <script>
+        var userIsActive = false;
+        var username;
+        var chatroomID;
+        var chatroomPasscode;
+        var config = {
+            apiKey: "AIzaSyDS3fcMxqey1aV7zbBklfo5fuDlBPcNIyg",
+            authDomain: "justtotest-2b881.firebaseapp.com",
+            databaseURL: "https://justtotest-2b881.firebaseio.com",
+            projectId: "justtotest-2b881",
+            storageBucket: "justtotest-2b881.appspot.com",
+            messagingSenderId: "1035295522585"
+        };
+        firebase.initializeApp(config);
 
-    var userIsActive = false;
-    var username;
-    var chatroomID;
-    var chatroomPasscode;
-    var config = {
-      apiKey: "AIzaSyDS3fcMxqey1aV7zbBklfo5fuDlBPcNIyg",
-        authDomain: "justtotest-2b881.firebaseapp.com",
-        databaseURL: "https://justtotest-2b881.firebaseio.com",
-        projectId: "justtotest-2b881",
-        storageBucket: "justtotest-2b881.appspot.com",
-        messagingSenderId: "1035295522585"
-    };
-    firebase.initializeApp(config);
-
-    function sendMessage() {
-      var msg = document.getElementById("textbox").value;
-	  var firebaseReference = firebase.database().ref().child(chatroomID).child("currentChat");
-	  var msgWithName = document.getElementById("name").value + " " + msg;
-      firebaseReference.set(msgWithName);
-      appendElement("chatbox" , "<p style='color:blue'>You sent >> "+msg+"</p><br>");
-	  updateHistory(msgWithName);
-	}
-	function updateHistory(message){
-	  var firebaseReference = firebase.database().ref().child(chatroomID).child("chatHistory");
-	  var dataHistory;
-	  firebaseReference.once('value', function(snapshot){
-		dataHistory = snapshot.val();
-		var firebaseReference1 = firebase.database().ref().child(chatroomID).child("chatHistory");
-		firebaseReference1.set(message + "<despacito>" + snapshot.val());
-	  }
-	  );
-	}
-	
-    function authenticate(){
-      username = document.getElementById("name").value;
-      document.getElementById("showname").innerHTML = "Hello "+username;
-	  chatroomID = document.getElementById("chatroomID").value;
-	  chatroomPasscode = document.getElementById("chatroomPasscode").value;
-	  //alert(chatroomID + "id");
-	  var firebaseReference = firebase.database().ref().child(chatroomID);
-      firebaseReference.once('value',function(snapshot){
-        var msg = snapshot.val();
-		if(snapshot.val() == null){
-			alert("You are about to create a new chatroom. Please set a passcode. Share them to let your friends join the chat");			
-			createChatRoom(chatroomID, chatroomPasscode);
-				userIsActive = true;
-				initializeChatContent();
-				showChatUI();
-				listener();
-			//	alert("New chatroom created.");			
-		}
-		else{
-			alert("Chatroom exists.");
-			var jsonStr = JSON.stringify(snapshot.val());
-			var json = JSON.parse(jsonStr);
-        	alert(json.passcode);
-			if(chatroomPasscode == json.passcode){
-				alert("Entering you into the chatroom");			
-				userIsActive = true;
-				initializeChatContent();
-				showChatUI();
-				listener();
-			}
-			else{
-				alert("The passcode you have entered is wrong.Ask the correct passcode from the person who has shared you the Chatroom details");			
-			}
-		}
-      });
-    }
-	function initializeChatContent(){
-		var data = firebase.database().ref().child(chatroomID).child("chatHistory");
-		data.once('value',function(snapshot){
-			var msgs = snapshot.val();
-			if(msgs != ""){
-				var messages = msgs.split("<despacito>");
-				for(var i = 0; i< messages.length-1 ; i++){
-					var name = messages[i].substr(0,messages[i].indexOf(" "));
-					var mess = messages[i].substr(messages[i].indexOf(" ")+1);
-					appendElement("chatbox" , "<p style='color:green'> "+name+" says >> "+mess+"</p><br>");
-				}
-			}
-			else{
-				appendElement("chatbox" , "<p style='color:green'> No messages yet... </p><br>");
-			
-			}
-        });
-
-	}
-	function createChatRoom(chatroomID, chatroomPasscode){
-		var firebaseReference = firebase.database().ref();
-		var chatroomData = {
-			passcode : chatroomPasscode,
-			currentChat: "",
-			chatHistory: ""
-		}
-		firebaseReference.child(chatroomID).set(chatroomData);
-	}
-	
-	function showChatUI(){
-		document.getElementById('nameform').style.display='none';
-		document.getElementById('chatform').style.display='block';
-	}
-
-    function appendElement(id, message){
-      var ele = document.getElementById(id);
-      ele.innerHTML += message;
-    }
-    function updateElement(id, message){
-      var ele = document.getElementById(id);
-      ele.innerHTML = message;
-    }
-	function listener(){
-	  var data = firebase.database().ref().child(chatroomID).child("currentChat");
-      data.on('value',function(snapshot){
-        var msg = snapshot.val();
-        if( msg != "" && msg.indexOf(document.getElementById("name").value) ){
-          var name = msg.substr(0,msg.indexOf(" "));
-          var mess = msg.substr(msg.indexOf(" ")+1);
-
-          appendElement("chatbox" , "<p style='color:red'> "+name+" says >> "+mess+"</p><br>");
+        function sendMessage() {
+            var msg = document.getElementById("textbox").value;
+            var firebaseReference = firebase.database().ref().child(chatroomID).child("currentChat");
+            var msgWithName = document.getElementById("name").value + " " + msg;
+            firebaseReference.set(msgWithName);
+            appendElement("chatbox", "<p style='color:blue'>You sent >> " + msg + "</p><br>");
+            document.getElementById()
+            updateHistory(msgWithName);
         }
 
+        function updateHistory(message) {
+            var firebaseReference = firebase.database().ref().child(chatroomID).child("chatHistory");
+            var dataHistory;
+            firebaseReference.once('value', function(snapshot) {
+                dataHistory = snapshot.val();
+                var firebaseReference1 = firebase.database().ref().child(chatroomID).child("chatHistory");
+                firebaseReference1.set(message + "<despacito>" + snapshot.val());
+            });
+        }
 
-        //alert("firebase value recorded");
-      });
-	
-	}
-</script>
+        function authenticate() {
+            username = document.getElementById("name").value;
+            document.getElementById("showname").innerHTML = "Hello " + username;
+            chatroomID = document.getElementById("chatroomID").value;
+            chatroomPasscode = document.getElementById("chatroomPasscode").value;
+            //alert(chatroomID + "id");
+            var firebaseReference = firebase.database().ref().child(chatroomID);
+            firebaseReference.once('value', function(snapshot) {
+                var msg = snapshot.val();
+                if (snapshot.val() == null) {
+                    alert("You are about to create a new chatroom. Please set a passcode. Share them to let your friends join the chat");
+                    createChatRoom(chatroomID, chatroomPasscode);
+                    userIsActive = true;
+                    initializeChatContent();
+                    showChatUI();
+                    listener();
+                    //	alert("New chatroom created.");			
+                } else {
+                    alert("Chatroom exists.");
+                    var jsonStr = JSON.stringify(snapshot.val());
+                    var json = JSON.parse(jsonStr);
+                    alert(json.passcode);
+                    if (chatroomPasscode == json.passcode) {
+                        alert("Entering you into the chatroom");
+                        userIsActive = true;
+                        initializeChatContent();
+                        showChatUI();
+                        listener();
+                    } else {
+                        alert("The passcode you have entered is wrong.Ask the correct passcode from the person who has shared you the Chatroom details");
+                    }
+                }
+            });
+        }
+
+        function initializeChatContent() {
+            var data = firebase.database().ref().child(chatroomID).child("chatHistory");
+            data.once('value', function(snapshot) {
+                var msgs = snapshot.val();
+                if (msgs != "") {
+                    var messages = msgs.split("<despacito>");
+                    for (var i = 0; i < messages.length - 1; i++) {
+                        var name = messages[i].substr(0, messages[i].indexOf(" "));
+                        var mess = messages[i].substr(messages[i].indexOf(" ") + 1);
+                        appendElement("chatbox", "<p style='color:green'> " + name + " says >> " + mess + "</p><br>");
+                    }
+                } else {
+                    appendElement("chatbox", "<p style='color:green'> No messages yet... </p><br>");
+
+                }
+            });
+
+        }
+
+        function createChatRoom(chatroomID, chatroomPasscode) {
+            var firebaseReference = firebase.database().ref();
+            var chatroomData = {
+                passcode: chatroomPasscode,
+                currentChat: "",
+                chatHistory: ""
+            }
+            firebaseReference.child(chatroomID).set(chatroomData);
+        }
+
+        function showChatUI() {
+            document.getElementById('nameform').style.display = 'none';
+            document.getElementById('chatform').style.display = 'block';
+        }
+
+        function appendElement(id, message) {
+            var ele = document.getElementById(id);
+            ele.innerHTML += message;
+        }
+
+        function updateElement(id, message) {
+            var ele = document.getElementById(id);
+            ele.innerHTML = message;
+        }
+
+        function listener() {
+            var data = firebase.database().ref().child(chatroomID).child("currentChat");
+            data.on('value', function(snapshot) {
+                var msg = snapshot.val();
+                if (msg != "" && msg.indexOf(document.getElementById("name").value)) {
+                    var name = msg.substr(0, msg.indexOf(" "));
+                    var mess = msg.substr(msg.indexOf(" ") + 1);
+
+                    appendElement("chatbox", "<p style='color:red'> " + name + " says >> " + mess + "</p><br>");
+                }
+
+
+                //alert("firebase value recorded");
+            });
+
+        }
+    </script>
     <div id="nameform">
-      Enter the chatroomID:<br>
-      <input type="text" id="chatroomID" /><br>
-      Enter the chatroomPasscode:<br>
-      <input type="text" id="chatroomPasscode" /><br>
-      Enter your name buddy:<br>
-      <input type="text" id="name" /><br>
-      <input type="button" onclick="authenticate()"  value = "Enter" />
+        Enter the chatroomID:<br>
+        <input type="text" id="chatroomID" /><br> Enter the chatroomPasscode:<br>
+        <input type="text" id="chatroomPasscode" /><br> Enter your name buddy:<br>
+        <input type="text" id="name" /><br>
+        <input type="button" onclick="authenticate()" value="Enter" />
     </div>
     <div id="chatform">
         Firebase test:
@@ -155,12 +154,12 @@
         </span>
         <br><br><br>
         <br><br><br>
-        <input type="textarea" id="textbox"  />
+        <input type="textarea" id="textbox" />
         <input type="button" onclick="sendMessage()" value="send" />
     </div>
 </body>
 
 <script type="text/javascript">
-    document.getElementById('nameform').style.display='block';
-    document.getElementById('chatform').style.display='none';
+    document.getElementById('nameform').style.display = 'block';
+    document.getElementById('chatform').style.display = 'none';
 </script>
