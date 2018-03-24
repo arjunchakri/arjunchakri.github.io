@@ -3,12 +3,12 @@
     <meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
     <link href="../favicon.png" rel="icon" sizes="16x16">
     <link rel='stylesheet prefetch' href='http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css'>
-    <link rel='stylesheet prefetch' href='http://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900&subset=latin,latin-ext'>
-    <link rel="stylesheet" href="style-login.css">
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
 </head>
 
 
-<body style="text-align:center">
+<body style="text-align:center; padding:0px;margin:0px;">
     <script src="https://www.gstatic.com/firebasejs/4.8.1/firebase.js"></script>
     <script>
         var userIsActive = false;
@@ -46,8 +46,7 @@
 
         function authenticate() {
 
-            document.getElementById('nameform').style.display = 'none';
-            document.getElementById('loader').style.display = 'block';
+            
             username = document.getElementById("username").value;
             document.getElementById("showname").innerHTML = "Hello " + username;
             chatroomID = document.getElementById("chatroomID").value;
@@ -161,53 +160,25 @@
         }
     </script>
     <div id="nameform">
-        <div class="materialContainer">
-            <div class="box">
-                <div class="title">LOGIN</div>
-                <div class="input">
-                    <label for="chatroomID">Chatroom ID</label>
-                    <input type="text" name="chatroomID" id="chatroomID">
-                    <span class="spin"></span>
-                </div>
-                <div class="input">
-                    <label for="chatroomPasscode">Chatroom Passcode</label>
-                    <input type="password" name="chatroomPasscode" id="chatroomPasscode">
-                    <span class="spin"></span>
-                </div>
-                <div class="input">
-                    <label for="username">Your name</label>
-                    <input type="text" name="username" id="username">
-                    <span class="spin"></span>
-                </div>
+					ChatroomID:<br>
+                    <input type="text" name="chatroomID" id="chatroomID"><br>
+					ChatroomPasscode:<br>
+                    <input type="password" name="chatroomPasscode" id="chatroomPasscode"><br>
+					Your name:<br>
+                    <input type="text" name="username" id="username"><br>
+                    <button onclick="authenticate()"><span>Enter</span> </button><br><br><br>
+        
+                <div class="title" style="font-size:20px">Create chatroom: </div><br>
+										ChatroomID:<br>
 
-                <div class="button login">
-                    <button onclick="authenticate()"><span>Enter</span> <i class="fa fa-check"></i></button>
-                </div>
-            </div>
+                    <input type="text" name="chatroomIDNew" id="chatroomIDNew"><br>
+										ChatroomPasscode:<br>
 
-            <div class="overbox">
-                <div class="material-button alt-2"><span class="shape"></span></div>
-
-                <div class="title" style="font-size:20px">Create chatroom: </div>
-
-                <div class="input">
-                    <label for="chatroomIDNew">Set Chatroom ID</label>
-                    <input type="text" name="chatroomIDNew" id="chatroomIDNew">
-                    <span class="spin"></span>
-                </div>
-                <div class="input">
-                    <label for="chatroomPasscodeNew">Set your Passcode</label>
-                    <input type="password" name="chatroomPasscodeNew" id="chatroomPasscodeNew">
-                    <span class="spin"></span>
-                </div>
-                <div class="button login">
-                    <button onclick="createChatRoom()"><span>Enter</span> <i class="fa fa-check"></i></button>
-                </div>
-
+                    <input type="password" name="chatroomPasscodeNew" id="chatroomPasscodeNew"><br>
+                    <button onclick="createChatRoom()"><span>Create</span> </button><br>
+                
                 <div class="title" style="font-size:20px;">Share chatroom Id and Passcode with your friends to make them join your chat.</div>
-            </div>
-
-        </div>
+				<br><br><br><br>--------------UI To be updated--------------
 
     </div>
 
@@ -216,6 +187,8 @@
         <span id="loadingstatus">Loading...</span>
         <script>
             function startLoader() {
+			document.getElementById('nameform').style.display = 'none';
+            document.getElementById('loader').style.display = 'block';
                 document.getElementById('loader').className = 'fadeable';
                 window.setTimeout(function() {
                     document.getElementById('loader').className += ' fade-in';
@@ -261,6 +234,10 @@
 </body>
 
 <style>
+*{
+font-family: 'Open Sans', sans-serif;
+ 
+}
     #--------chatUI Styles #sendbutton {
         transition: 0.5s;
     }
