@@ -2,10 +2,14 @@
     <title>Chat</title>
     <meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
     <link href="../favicon.png" rel="icon" sizes="16x16">
+    <link rel='stylesheet prefetch' href='http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css'>
+    <link rel='stylesheet prefetch' href='http://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900&subset=latin,latin-ext'>
+    <link rel="stylesheet" href="style-login.css">
 </head>
-<script src="https://www.gstatic.com/firebasejs/4.8.1/firebase.js"></script>
+
 
 <body style="text-align:center">
+    <script src="https://www.gstatic.com/firebasejs/4.8.1/firebase.js"></script>
     <script>
         var userIsActive = false;
         var username;
@@ -24,10 +28,9 @@
         function sendMessage() {
             var msg = document.getElementById("textbox").value;
             var firebaseReference = firebase.database().ref().child(chatroomID).child("currentChat");
-            var msgWithName = document.getElementById("name").value + " " + msg;
+            var msgWithName = document.getElementById("username").value + " " + msg;
             firebaseReference.set(msgWithName);
-            appendElement("chatbox", "<p style='color:blue'>You sent >> " + msg + "</p><br>");
-            document.getElementById()
+            addOutgoingMessage(msg);
             updateHistory(msgWithName);
         }
 
@@ -42,38 +45,41 @@
         }
 
         function authenticate() {
-            username = document.getElementById("name").value;
+
+            document.getElementById('nameform').style.display = 'none';
+            document.getElementById('loader').style.display = 'block';
+            username = document.getElementById("username").value;
             document.getElementById("showname").innerHTML = "Hello " + username;
             chatroomID = document.getElementById("chatroomID").value;
             chatroomPasscode = document.getElementById("chatroomPasscode").value;
-            //alert(chatroomID + "id");
-            var firebaseReference = firebase.database().ref().child(chatroomID);
-            firebaseReference.once('value', function(snapshot) {
-                var msg = snapshot.val();
-                if (snapshot.val() == null) {
-                    alert("You are about to create a new chatroom. Please set a passcode. Share them to let your friends join the chat");
-                    createChatRoom(chatroomID, chatroomPasscode);
-                    userIsActive = true;
-                    initializeChatContent();
-                    showChatUI();
-                    listener();
-                    //	alert("New chatroom created.");			
-                } else {
-                    alert("Chatroom exists.");
-                    var jsonStr = JSON.stringify(snapshot.val());
-                    var json = JSON.parse(jsonStr);
-                    alert(json.passcode);
-                    if (chatroomPasscode == json.passcode) {
-                        alert("Entering you into the chatroom");
-                        userIsActive = true;
-                        initializeChatContent();
-                        showChatUI();
-                        listener();
+            if (chatroomID == "" || username == "") {
+                alert("Enter chatroomId and Username");
+            } else {
+                startLoader();
+                appendElement("loadingstatus", "Searching for chatroom : " + chatroomID + "<br>");
+                var firebaseReference = firebase.database().ref().child(chatroomID);
+                firebaseReference.once('value', function(snapshot) {
+                    var msg = snapshot.val();
+                    if (snapshot.val() == null) {
+                        appendElement("loadingstatus", "Chatroom not found. Please check the chat room name.<br>");
                     } else {
-                        alert("The passcode you have entered is wrong.Ask the correct passcode from the person who has shared you the Chatroom details");
+                        appendElement("loadingstatus", "Chatroom found. Evaluating passcode.<br>");
+
+                        var jsonStr = JSON.stringify(snapshot.val());
+                        var json = JSON.parse(jsonStr);
+                        if (chatroomPasscode == json.passcode) {
+
+                            appendElement("loadingstatus", "Passcode validated.<br>");
+                            userIsActive = true;
+                            initializeChatContent();
+                            showChatUI();
+                            listener();
+                        } else {
+                            appendElement("loadingstatus", "The passcode you have entered is wrong.Ask the correct passcode from the person who has shared you the Chatroom details");
+                        }
                     }
-                }
-            });
+                });
+            }
         }
 
         function initializeChatContent() {
@@ -85,28 +91,39 @@
                     for (var i = 0; i < messages.length - 1; i++) {
                         var name = messages[i].substr(0, messages[i].indexOf(" "));
                         var mess = messages[i].substr(messages[i].indexOf(" ") + 1);
-                        appendElement("chatbox", "<p style='color:green'> " + name + " says >> " + mess + "</p><br>");
+                        addIncomingMessage(name, mess);
                     }
                 } else {
-                    appendElement("chatbox", "<p style='color:green'> No messages yet... </p><br>");
+                    appendElement("messages", "<p style='color:green'> No messages yet.. Try sending..</p><br>");
 
                 }
             });
 
         }
 
-        function createChatRoom(chatroomID, chatroomPasscode) {
-            var firebaseReference = firebase.database().ref();
-            var chatroomData = {
-                passcode: chatroomPasscode,
-                currentChat: "",
-                chatHistory: ""
+        function createChatRoom() {
+            var chatroomID = document.getElementById("chatroomIDNew").value;
+            var chatroomPasscode = document.getElementById("chatroomPasscodeNew").value;
+            if (chatroomID == "") {
+                alert("Enter chatroomId.");
+            } else {
+                if (chatroomPasscode == "") {
+                    alert('NOTE: You didnt enter any passcode. Setting passcode to empty.');
+                }
+                var firebaseReference = firebase.database().ref();
+                var chatroomData = {
+                    passcode: chatroomPasscode,
+                    currentChat: "",
+                    chatHistory: ""
+                }
+                firebaseReference.child(chatroomID).set(chatroomData);
+                alert('Chatroom created !!');
             }
-            firebaseReference.child(chatroomID).set(chatroomData);
         }
 
         function showChatUI() {
             document.getElementById('nameform').style.display = 'none';
+            document.getElementById('loader').style.display = 'none';
             document.getElementById('chatform').style.display = 'block';
         }
 
@@ -120,46 +137,193 @@
             ele.innerHTML = message;
         }
 
+        function addIncomingMessage(sender, message) {
+            var ele = document.getElementById('messages');
+            ele.innerHTML += "<div class='incoming'><b>" + sender + "</b>" + "<br> " + message + "</div>";
+        }
+
+        function addOutgoingMessage(message) {
+            var ele = document.getElementById('messages');
+            ele.innerHTML += "<div class='outgoing'>" + message + "</div>";
+        }
+
         function listener() {
             var data = firebase.database().ref().child(chatroomID).child("currentChat");
             data.on('value', function(snapshot) {
                 var msg = snapshot.val();
-                if (msg != "" && msg.indexOf(document.getElementById("name").value)) {
+                if (msg != "" && msg.indexOf(document.getElementById("username").value)) {
                     var name = msg.substr(0, msg.indexOf(" "));
                     var mess = msg.substr(msg.indexOf(" ") + 1);
-
-                    appendElement("chatbox", "<p style='color:red'> " + name + " says >> " + mess + "</p><br>");
+                    addIncomingMessage(name, mess);
                 }
-
-
-                //alert("firebase value recorded");
             });
 
         }
     </script>
     <div id="nameform">
-        Enter the chatroomID:<br>
-        <input type="text" id="chatroomID" /><br> Enter the chatroomPasscode:<br>
-        <input type="text" id="chatroomPasscode" /><br> Enter your name buddy:<br>
-        <input type="text" id="name" /><br>
-        <input type="button" onclick="authenticate()" value="Enter" />
+        <div class="materialContainer">
+            <div class="box">
+                <div class="title">LOGIN</div>
+                <div class="input">
+                    <label for="chatroomID">Chatroom ID</label>
+                    <input type="text" name="chatroomID" id="chatroomID">
+                    <span class="spin"></span>
+                </div>
+                <div class="input">
+                    <label for="chatroomPasscode">Chatroom Passcode</label>
+                    <input type="password" name="chatroomPasscode" id="chatroomPasscode">
+                    <span class="spin"></span>
+                </div>
+                <div class="input">
+                    <label for="username">Your name</label>
+                    <input type="text" name="username" id="username">
+                    <span class="spin"></span>
+                </div>
+
+                <div class="button login">
+                    <button onclick="authenticate()"><span>Enter</span> <i class="fa fa-check"></i></button>
+                </div>
+            </div>
+
+            <div class="overbox">
+                <div class="material-button alt-2"><span class="shape"></span></div>
+
+                <div class="title" style="font-size:20px">Create chatroom: </div>
+
+                <div class="input">
+                    <label for="chatroomIDNew">Set Chatroom ID</label>
+                    <input type="text" name="chatroomIDNew" id="chatroomIDNew">
+                    <span class="spin"></span>
+                </div>
+                <div class="input">
+                    <label for="chatroomPasscodeNew">Set your Passcode</label>
+                    <input type="password" name="chatroomPasscodeNew" id="chatroomPasscodeNew">
+                    <span class="spin"></span>
+                </div>
+                <div class="button login">
+                    <button onclick="createChatRoom()"><span>Enter</span> <i class="fa fa-check"></i></button>
+                </div>
+
+                <div class="title" style="font-size:20px;">Share chatroom Id and Passcode with your friends to make them join your chat.</div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id='loader' style="height:100%;background-color:rgb(255,156,1); text-align:center;">
+        <img src="batmanrunning.gif"><br>
+        <span id="loadingstatus">Loading...</span>
+        <script>
+            function startLoader() {
+                document.getElementById('loader').className = 'fadeable';
+                window.setTimeout(function() {
+                    document.getElementById('loader').className += ' fade-in';
+                }, 100);
+
+            }
+        </script>
+
+        <style>
+            .fadeable {
+                opacity: 0;
+            }
+
+            .fade-in {
+                color: #111111;
+                opacity: 1;
+                transition: opacity 3s;
+                -moz-transition: opacity 3s;
+                -ms-transition: opacity 3s;
+                -o-transition: opacity 3s;
+                -webkit-transition: opacity 3s;
+            }
+        </style>
     </div>
     <div id="chatform">
-        Firebase test:
-        <br><br><br>
-        <span id="showname">Hello</span>
-        <br> Your chatbox:
-        <br>
+
         <span id="chatbox">
         </span>
-        <br><br><br>
-        <br><br><br>
-        <input type="textarea" id="textbox" />
-        <input type="button" onclick="sendMessage()" value="send" />
+
+        <div style="position:relative; left:25%; height:93%;background-color: #34495e; width:50%;text-align:center;border-radius:10px;">
+            <div id="header" style="padding:5px;background-color:#14212d; color: white;text-align:center;border-top-left-radius:10px;border-top-right-radius:10px;">
+                <span id="showname">Hello</span>
+            </div>
+            <div id='messages' style="border-bottom-right-radius:15px;border-bottom-left-radius:15px;height:95%; margin: 0px; overflow-y:scrollable; overflow-x:hidden; ">
+
+            </div>
+        </div>
+        <div id="sendmessage" style=" text-align:center; width: 98%; position: absolute;bottom: 0; left: 0;resize: none;  background: #14212d;padding:10px;border-radius:25px;">
+            <input type="textarea" id="textbox" style="width:90%;  padding: 6px ;  border-radius:10px;border: none;    background-color: #1e72aa;color: white;" />
+            <input type="button" onclick="sendMessage()" id="sendbutton" style=" " value="SEND" />
+        </div>
     </div>
 </body>
 
+<style>
+    #--------chatUI Styles #sendbutton {
+        transition: 0.5s;
+    }
+
+    #sendbutton:hover {
+        background-color: #1e72bb;
+    }
+
+    .incoming,
+    .outgoing {
+        word-wrap: break-word;
+        max-width: 80%;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+
+
+    }
+
+    .incoming {
+        text-align: left;
+        color: white;
+        padding-left: 20px;
+        background-color: #1e72aa;
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
+
+    .outgoing {
+        text-align: right;
+        padding-right: 20px;
+        transform: translateX(22%);
+        color: #1e72aa;
+        background-color: white;
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+    }
+
+    ::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+        box-shadow: inset 0 0 5px grey;
+        border-radius: 25px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #1e72aa;
+        border-radius: 25px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        width: 10px;
+        background: black;
+    }
+</style>
+<script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+<script src="js-login.js"></script>
+
 <script type="text/javascript">
     document.getElementById('nameform').style.display = 'block';
+    document.getElementById('loader').style.display = 'none';
     document.getElementById('chatform').style.display = 'none';
 </script>
