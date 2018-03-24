@@ -3,7 +3,7 @@
     <meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
     <link href="../favicon.png" rel="icon" sizes="16x16">
     <link rel='stylesheet prefetch' href='http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css'>
-	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 
 </head>
 
@@ -46,7 +46,7 @@
 
         function authenticate() {
 
-            
+
             username = document.getElementById("username").value;
             document.getElementById("showname").innerHTML = "Hello " + username;
             chatroomID = document.getElementById("chatroomID").value;
@@ -160,25 +160,24 @@
         }
     </script>
     <div id="nameform">
-					ChatroomID:<br>
-                    <input type="text" name="chatroomID" id="chatroomID"><br>
-					ChatroomPasscode:<br>
-                    <input type="password" name="chatroomPasscode" id="chatroomPasscode"><br>
-					Your name:<br>
-                    <input type="text" name="username" id="username"><br>
-                    <button onclick="authenticate()"><span>Enter</span> </button><br><br><br>
-        
-                <div class="title" style="font-size:20px">Create chatroom: </div><br>
-										ChatroomID:<br>
+        ChatroomID:<br>
+        <input type="text" name="chatroomID" id="chatroomID"><br> ChatroomPasscode:
+        <br>
+        <input type="password" name="chatroomPasscode" id="chatroomPasscode"><br> Your name:<br>
+        <input type="text" name="username" id="username"><br>
+        <button onclick="authenticate()"><span>Enter</span> </button><br><br><br>
 
-                    <input type="text" name="chatroomIDNew" id="chatroomIDNew"><br>
-										ChatroomPasscode:<br>
+        <div class="title" style="font-size:20px">Create chatroom: </div><br> ChatroomID:
+        <br>
 
-                    <input type="password" name="chatroomPasscodeNew" id="chatroomPasscodeNew"><br>
-                    <button onclick="createChatRoom()"><span>Create</span> </button><br>
-                
-                <div class="title" style="font-size:20px;">Share chatroom Id and Passcode with your friends to make them join your chat.</div>
-				<br><br><br><br>--------------UI To be updated--------------
+        <input type="text" name="chatroomIDNew" id="chatroomIDNew"><br> ChatroomPasscode:
+        <br>
+
+        <input type="password" name="chatroomPasscodeNew" id="chatroomPasscodeNew"><br>
+        <button onclick="createChatRoom()"><span>Create</span> </button><br>
+
+        <div class="title" style="font-size:20px;">Share chatroom Id and Passcode with your friends to make them join your chat.</div>
+        <br><br><br><br>--------------UI To be updated--------------
 
     </div>
 
@@ -187,8 +186,8 @@
         <span id="loadingstatus">Loading...</span>
         <script>
             function startLoader() {
-			document.getElementById('nameform').style.display = 'none';
-            document.getElementById('loader').style.display = 'block';
+                document.getElementById('nameform').style.display = 'none';
+                document.getElementById('loader').style.display = 'block';
                 document.getElementById('loader').className = 'fadeable';
                 window.setTimeout(function() {
                     document.getElementById('loader').className += ' fade-in';
@@ -234,10 +233,11 @@
 </body>
 
 <style>
-*{
-font-family: 'Open Sans', sans-serif;
- 
-}
+    * {
+        font-family: 'Open Sans', sans-serif;
+
+    }
+
     #--------chatUI Styles #sendbutton {
         transition: 0.5s;
     }
