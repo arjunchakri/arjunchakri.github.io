@@ -1,0 +1,111 @@
+<!DOCTYPE html><html>
+<head>
+      <title>NAC Notes</title>
+    <meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
+    <link href="../favicon.png" rel="icon" sizes="16x16">
+
+<link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
+
+
+
+</head>
+<body style="text-align:center;">
+<style>
+*{
+font-family: 'Ubuntu', sans-serif;
+}
+
+</style>
+  
+<div id=inputscreen style="top:30%">
+Notes : <input id='notesname' ><br>
+<input type=button value=Select onclick="openNotes()">
+</div>
+
+<div id=loadingscreen style="display:none">
+loading...<br>
+<img style="height:30%;width:30%" src="loader.gif">
+<br><span id='loadingstatus'></span><br>
+
+</div>
+
+<div id=shownotes style="display:none">
+Notesname : <span id='notesheader'>null</span>
+<textarea style="height:100vw; width:100%;" id='notes'>
+</textarea>
+</div>
+
+
+<script src="https://www.gstatic.com/firebasejs/5.0.3/firebase.js"></script>
+<script>
+var globalNotename ="";
+  var config = {
+    apiKey: "AIzaSyD7U4K1qxPtIkWioazc17uZduncx-fAUmE",
+    authDomain: "collaborativenotes-afd92.firebaseapp.com",
+    databaseURL: "https://collaborativenotes-afd92.firebaseio.com",
+    projectId: "collaborativenotes-afd92",
+    storageBucket: "collaborativenotes-afd92.appspot.com",
+    messagingSenderId: "671782576619"
+  };
+  firebase.initializeApp(config);
+
+function openNotes(){
+document.getElementById("loadingscreen").style.display = "block";
+
+var notesname= document.getElementById("notesname").value;
+globalNotename=notesname;
+document.getElementById("notesheader").innerHTML=notesname;
+var firebaseReference = firebase.database().ref().child(notesname);
+firebaseReference.once('value', function(snapshot) {
+                    var msg = snapshot.val();
+if (snapshot.val() == null) {
+                        alert("notes not found. creating notes.");
+createNote(notesname);
+document.getElementById("notes").value="";
+showNotes();
+startListener(notesname);
+startWriter(notesname);
+                    }
+else{
+var jsonStr = JSON.stringify(snapshot.val());
+var json = JSON.parse(jsonStr);
+document.getElementById("notes").value=json.notes;
+showNotes();
+startListener(notesname);
+startWriter(notesname);
+}
+
+});
+}
+
+function showNotes(){
+document.getElementById("inputscreen").style.display="none";
+document.getElementById("shownotes").style.display="block";
+
+}
+
+        function startListener(notesname) {
+            var data = firebase.database().ref().child(notesname).child("notes");
+            data.on('value', function(snapshot) {
+                var msg = snapshot.val();
+                document.getElementById("notes").value = msg;
+            });
+
+        }
+
+function createNote(notesname) {
+                var firebaseReference = firebase.database().ref();
+                var notesData = {
+                    notes: ""
+                    
+                }
+                firebaseReference.child(notesname).set(notesData);
+            }
+//database writer
+document.getElementById("notes").addEventListener('input', function() {
+var firebaseReference1 = firebase.database().ref().child(globalNotename).child("notes");
+firebaseReference1.set(document.getElementById("notes").value);
+});
+        
+</script>
+</body>
