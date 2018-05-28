@@ -18,12 +18,13 @@ font-family: 'Ubuntu', sans-serif;
 </style>
   
 <div id=inputscreen style="top:30%">
-Notes : <input id='notesname' ><br>
+      -YET TO BE TESTED- <br>
+Enter a notes name : <input id='notesname' ><br>
 <input type=button value=Select onclick="openNotes()">
 </div>
 
 <div id=loadingscreen style="display:none">
-loading...<br>
+fetching your notes...<br>
 <img style="height:30%;width:30%" src="loader.gif">
 <br><span id='loadingstatus'></span><br>
 
@@ -51,6 +52,7 @@ var globalNotename ="";
 
 function openNotes(){
 document.getElementById("loadingscreen").style.display = "block";
+document.getElementById("inputscreen").style.display = "none";
 
 var notesname= document.getElementById("notesname").value;
 globalNotename=notesname;
