@@ -54,8 +54,8 @@
         var url_string = window.location.href;
         var url = new URL(url_string);
         var a = url.searchParams.get("name");
-        if(a != null || a != "null"){
-            alert("opening your notes");
+        if(a !== null){
+            alert("opening your notes : " + a);
             openNotes(a);
         }
         
@@ -92,7 +92,6 @@
             var firebaseReference = firebase.database().ref();
             var notesData = {
                 notes: ""
-
             }
             firebaseReference.child(notesname).set(notesData);
         }
