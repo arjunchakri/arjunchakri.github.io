@@ -20,7 +20,7 @@
     </style>
 
     <div id=inputscreen style="top:30%">
-        -YET TO BE TESTED- <br> Enter a notes name : <input id='notesname'><br>
+        -YET TO BE TESTED- <br> Enter a notes name(case-insensitive) : <input id='notesname'><br>
         <input type=button value=Select onclick="openNotes()">
     </div>
 
@@ -50,12 +50,17 @@
             messagingSenderId: "671782576619"
         };
         firebase.initializeApp(config);
-
+        
+        var url_string = window.location.href;
+        var url = new URL(url_string);
+        var a = url.searchParams.get("a");
+        alert("a");
+        
         function openNotes() {
             document.getElementById("loadingscreen").style.display = "block";
             document.getElementById("inputscreen").style.display = "none";
 
-            var notesname = document.getElementById("notesname").value;
+            var notesname = document.getElementById("notesname").value.toLowerCase();
             globalNotename = notesname;
             document.getElementById("notesheader").innerHTML = notesname;
             var firebaseReference = firebase.database().ref().child(notesname);
@@ -80,22 +85,6 @@
             });
         }
 
-        function showNotes() {
-            document.getElementById("inputscreen").style.display = "none";
-            document.getElementById("loadingscreen").style.display = "none"
-            document.getElementById("shownotes").style.display = "block";
-
-        }
-
-        function startListener(notesname) {
-            var data = firebase.database().ref().child(notesname).child("notes");
-            data.on('value', function(snapshot) {
-                var msg = snapshot.val();
-                document.getElementById("notes").value = msg;
-            });
-
-        }
-
         function createNote(notesname) {
             var firebaseReference = firebase.database().ref();
             var notesData = {
@@ -104,10 +93,39 @@
             }
             firebaseReference.child(notesname).set(notesData);
         }
+        
+        function showNotes() {
+            document.getElementById("inputscreen").style.display = "none";
+            document.getElementById("loadingscreen").style.display = "none"
+            document.getElementById("shownotes").style.display = "block";
+
+        }
+
+        //database listener
+        function startListener(notesname) {
+            var data = firebase.database().ref().child(notesname).child("notes");
+            data.on('value', function(snapshot) {
+                var msg = snapshot.val();
+                document.getElementById("notes").value = msg;
+            });
+        }
+
+        
         //database writer
         document.getElementById("notes").addEventListener('input', function() {
             var firebaseReference1 = firebase.database().ref().child(globalNotename).child("notes");
             firebaseReference1.set(document.getElementById("notes").value);
         });
+        
+        
+        var field = document.querySelector('[id="notesname"]');
+        field.addEventListener('keypress', function ( event ) {  
+          var key = event.keyCode;
+            if (key === 32) {
+                event.preventDefault();
+            }
+        });
+        
     </script>
+    
 </body>
