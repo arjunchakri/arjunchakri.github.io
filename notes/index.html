@@ -53,8 +53,8 @@
         //checking if url has an embedded notesname
         var url_string = window.location.href;
         var url = new URL(url_string);
-        var name = url.searchParams.get("name");
-        if(name != null || name != "null"){
+        var a = url.searchParams.get("name");
+        if(a != null || a != "null"){
             alert("opening your notes");
             openNotes(name);
         }
