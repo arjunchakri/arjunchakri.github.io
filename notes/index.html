@@ -11,13 +11,12 @@
 
 
 </head>
-
-<body style="text-align:center;">
     <style>
         * {
             font-family: 'Ubuntu', sans-serif;
         }
     </style>
+<body style="text-align:center;">
 
     <div id=inputscreen style="top:30%">
         -YET TO BE TESTED- <br> Enter a notes name(case-insensitive) : <input id='notesname'><br>
@@ -52,9 +51,9 @@
         //checking if url has an embedded notesname
         var url_string = window.location.href;
         var url = new URL(url_string);
-        var a = url.searchParams.get("a");
-        if(a != null){
-            openNotes(a);
+        var name = url.searchParams.get("name");
+        if(name != null){
+            openNotes(name);
         }
         
         function openNotes(notesnameFromInput) {
