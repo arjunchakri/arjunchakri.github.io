@@ -21,20 +21,18 @@
 
     <div id=inputscreen style="top:30%">
         -YET TO BE TESTED- <br> Enter a notes name(case-insensitive) : <input id='notesname'><br>
-        <input type=button value=Select onclick="openNotes()">
+        <input type=button value=Select onclick="openNotes(document.getElementById("notesname").value)">
     </div>
 
     <div id=loadingscreen style="display:none">
         fetching your notes...<br>
         <img style="height:30%;width:30%" src="loader.gif">
         <br><span id='loadingstatus'></span><br>
-
     </div>
 
     <div id=shownotes style="display:none">
-        Notesname : <span id='notesheader'>null</span>
-        <textarea style="height:100vw; width:100%;" id='notes'>
-</textarea>
+        Notesname : <span id='notesheader'>-NONE-</span>
+        <textarea style="height:100vw; width:100%;" id='notes'></textarea>
     </div>
 
 
@@ -51,16 +49,19 @@
         };
         firebase.initializeApp(config);
         
+        //checking if url has an embedded notesname
         var url_string = window.location.href;
         var url = new URL(url_string);
         var a = url.searchParams.get("a");
-        alert(a);
+        if(a != null){
+            openNotes(a);
+        }
         
-        function openNotes() {
+        function openNotes(notesnameFromInput) {
             document.getElementById("loadingscreen").style.display = "block";
             document.getElementById("inputscreen").style.display = "none";
 
-            var notesname = document.getElementById("notesname").value.toLowerCase();
+            var notesname = notesnameFromInput.toLowerCase();
             globalNotename = notesname;
             document.getElementById("notesheader").innerHTML = notesname;
             var firebaseReference = firebase.database().ref().child(notesname);
