@@ -39,7 +39,7 @@
                 var msg = snapshot.val();
                     var jsonStr = JSON.stringify(snapshot.val());
                     var json = JSON.parse(jsonStr);
-                    document.getElementById("allnotes").innerHTML = json.notes;
+                    document.getElementById("allnotes").innerHTML = json;
             });
         }
 
