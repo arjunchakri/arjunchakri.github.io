@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>NAC Notes</title>
+    <meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
+    <link href="../favicon.png" rel="icon" sizes="16x16">
+
+    <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
+
+
+
+</head>
+    <style>
+        * {
+            font-family: 'Ubuntu', sans-serif;
+        }
+    </style>
+<body style="text-align:center;">
+   <div id=allnotes>Loading...</div>
+
+
+    <script src="https://www.gstatic.com/firebasejs/5.0.3/firebase.js"></script>
+    <script>
+        var globalNotename = "";
+        var config = {
+            apiKey: "AIzaSyD7U4K1qxPtIkWioazc17uZduncx-fAUmE",
+            authDomain: "collaborativenotes-afd92.firebaseapp.com",
+            databaseURL: "https://collaborativenotes-afd92.firebaseio.com",
+            projectId: "collaborativenotes-afd92",
+            storageBucket: "collaborativenotes-afd92.appspot.com",
+            messagingSenderId: "671782576619"
+        };
+        firebase.initializeApp(config);
+        
+        function openNotes(notesnameFromInput) {
+            document.getElementById("loadingscreen").style.display = "block";
+            document.getElementById("inputscreen").style.display = "none";
+
+            var firebaseReference = firebase.database().ref();
+            firebaseReference.once('value', function(snapshot) {
+                var msg = snapshot.val();
+                    var jsonStr = JSON.stringify(snapshot.val());
+                    var json = JSON.parse(jsonStr);
+                    document.getElementById("allnotes").value = json.notes;
+            });
+        }
+
+        
+    </script>
+    
+</body>
