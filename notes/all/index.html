@@ -32,8 +32,8 @@
             messagingSenderId: "671782576619"
         };
         firebase.initializeApp(config);
-        
-        function openNotes(notesnameFromInput) {
+        openNotes();
+        function openNotes() {
             var firebaseReference = firebase.database().ref();
             firebaseReference.once('value', function(snapshot) {
                 var msg = snapshot.val();
