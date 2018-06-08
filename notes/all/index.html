@@ -34,15 +34,12 @@
         firebase.initializeApp(config);
         
         function openNotes(notesnameFromInput) {
-            document.getElementById("loadingscreen").style.display = "block";
-            document.getElementById("inputscreen").style.display = "none";
-
             var firebaseReference = firebase.database().ref();
             firebaseReference.once('value', function(snapshot) {
                 var msg = snapshot.val();
                     var jsonStr = JSON.stringify(snapshot.val());
                     var json = JSON.parse(jsonStr);
-                    document.getElementById("allnotes").value = json.notes;
+                    document.getElementById("allnotes").innerHTML = json.notes;
             });
         }
 
