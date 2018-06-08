@@ -38,8 +38,8 @@
             firebaseReference.once('value', function(snapshot) {
                 var msg = snapshot.val();
                     var jsonStr = JSON.stringify(snapshot.val());
-                    var json = JSON.parse(jsonStr);
-                    document.getElementById("allnotes").innerHTML = json;
+                   
+                    document.getElementById("allnotes").innerHTML = jsonStr;
             });
         }
 
