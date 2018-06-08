@@ -33,7 +33,7 @@
     </div>
 
     <div id=shownotes style="display:none">
-        Notesname : <span id='notesheader'>-NONE-</span>
+        Notesname : <span id='notesheader'>-NONE-</span><span id="saveStatus"></span>
         <textarea style="height:100vw; width:100%;" id='notes'></textarea>
     </div>
 
@@ -116,8 +116,11 @@
         
         //database writer
         document.getElementById("notes").addEventListener('input', function() {
+            document.getElementById("saveStatus").innerHTML = "Saving...";
             var firebaseReference1 = firebase.database().ref().child(globalNotename).child("notes");
             firebaseReference1.set(document.getElementById("notes").value);
+            
+            document.getElementById("saveStatus").innerHTML = "Saved";
         });
         
         
