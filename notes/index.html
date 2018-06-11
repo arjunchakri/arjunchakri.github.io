@@ -19,7 +19,7 @@
 <body style="text-align:center;">
 
     <div id=inputscreen style="top:30%">
-        -YET TO BE TESTED- <br> Enter a notes name(case-insensitive) : <input id='notesname'><br>
+        -YET TO BE TESTED- <br> Enter a notes name(case-insensitive) : <input id='notesname'  onkeydown = "if (event.keyCode == 13){document.getElementById('notesname').click()}"    ><br>
         <input type=button value=Select onclick="openNotes(document.getElementById('notesname').value)">
         <br><br><br>Your notes-content, along with the changes will be live to others, who opens the same notes.
         <br>
