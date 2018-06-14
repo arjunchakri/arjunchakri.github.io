@@ -1,26 +1,12 @@
-
-
-
 <!-- 
-
-
-
 REVIEW 
 MY 
 CODE 
-
 :) 
-
-
-
 ANY TIPS AND SUGGESTIONS ARE WELCOME. 
-
 JUST PM ME(Contact info is on homepage)
-
-
-
-
 -->
+
 
 
 
@@ -28,7 +14,6 @@ JUST PM ME(Contact info is on homepage)
 
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>NAC Notes</title>
     <meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
@@ -40,64 +25,59 @@ JUST PM ME(Contact info is on homepage)
     <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
 
 </head>
-<style>
-    * {
-        font-family: 'Ubuntu', sans-serif;
-    }
-</style>
-
+    <style>
+        * {
+            font-family: 'Ubuntu', sans-serif;
+        }
+    </style>
 <body style="text-align:center;background-color: #42A5F5;">
     <style>
-        .inputscreen {
-            border-radius: 20px;
-            display: block;
-            color: white;
-            background-color: #1565C0;
-            box-shadow: 0px 0px 7px black;
-            margin: 50px 98px;
+        .inputscreen{
+            border-radius: 20px;    display: block;    color: white;    background-color: #1565C0;    
+            box-shadow:0px 0px 7px black;    margin: 50px 98px;    margin-top:0px;
             padding: 30px;
             -webkit-transition: 0.5s ease-out;
             -moz-transition: 0.5s ease-out;
             -o-transition: 0.5s ease-out;
             transition: 0.5s ease-out;
-
+            
         }
-
-        .inputscreen:hover {
+        .inputscreen:hover{
             -webkit-transition: 0.5s ease-out;
             -moz-transition: 0.5s ease-out;
             -o-transition: 0.5s ease-out;
             transition: 0.5s ease-out;
             border-radius: 70px;
-            box-shadow: 0px 0px 10px black;
+            box-shadow:0px 0px 10px black;
         }
     </style>
-    <div id=inputscreen class="inputscreen">
-        -YET TO BE TESTED- <br>
-        <div>Enter a notes name(case-insensitive) :<br>
-            <input id='notesname' style="margin:10px;padding: 5px;"><br>
+    <div id=inputscreen class="inputscreen" >
+        -YET TO BE TESTED- <br> 
+        <div>Enter a notes name(case-insensitive) :<br> 
+            <input id='notesname' style="margin:10px;padding: 5px;"  ><br>
         </div>
         <div>
-            <input style="margin:10px;padding: 5px;" type=button value="Enter" id="select" onclick="openNotes(document.getElementById('notesname').value)">
+            <input style="margin:10px;padding: 5px;" 
+                    type=button value="Enter" id="select" onclick="openNotes(document.getElementById('notesname').value)">
         </div>
         <br><br><br>Your notes-content, along with the changes will be live to others, who opens the same notes.
         <br>
         <br>
         <div>
             To share your notes, share it as <br>
-            <span style="text-decoration: underline"><b>https://arjunchakri.github.io/notes/?name=(your-notes-name)</b></span>
+            <span style="text-decoration: underline"><b>https://arjunchakri.github.io/notes/?name=(your-notes-name)</b></span> 
             <br>(excluding paranthesis)
         </div>
-        <script>
-            $(document).ready(function() {
-                $('#notesname').keypress(function(e) {
-                    if (e.keyCode == 13)
-                        $('#select').click();
-                });
+    <script>
+       $(document).ready(function(){
+         $('#notesname').keypress(function(e){
+            if(e.keyCode==13)
+                $('#select').click();
             });
-            $(window).load(function() {
-                $("#inputscreen").slideUp(2000);
-            });
+        });
+        $(window).load(function () {
+            $("#inputscreen").slideUp(2000);
+        });
         </script>
     </div>
 
@@ -107,12 +87,13 @@ JUST PM ME(Contact info is on homepage)
         <br><span id='loadingstatus'></span><br>
     </div>
 
-    <div id=shownotes style="display:none">
+   <div id=shownotes style="display:none">
         <div style=" overflow:hidden;">
             Notesname : <span id='notesheader'>-NONE-</span>(<span id="saveStatus">To be saved</span>)
             <textarea style="margin-left:1%;width: 95vw;height: 90vh;padding:10px; background-color:#455A64; color:white; 
                              border-radius: 10px; border: none;overflow: auto;outline: none; display: block;position: absolute;
-                             box-shadow: 100px;" id='notes'></textarea>
+                             box-shadow: 100px;" 
+                                    id='notes'></textarea>
         </div>
     </div>
 
@@ -121,7 +102,7 @@ JUST PM ME(Contact info is on homepage)
     <script>
         document.getElementById("inputscreen").style.display = "block";
         $('#inputscreen').slideDown(1000);
-
+            
         var globalNotename = "";
         var config = {
             apiKey: "AIzaSyD7U4K1qxPtIkWioazc17uZduncx-fAUmE",
@@ -132,27 +113,25 @@ JUST PM ME(Contact info is on homepage)
             messagingSenderId: "671782576619"
         };
         firebase.initializeApp(config);
-
+        
         //checking if url has an embedded notesname
         var url_string = window.location.href;
         var url = new URL(url_string);
         var a = url.searchParams.get("name");
-        if (a !== null) {
+        if(a !== null){
             alert("opening your notes : " + a);
             openNotes(a);
         }
-
+        
         function openNotes(notesnameFromInput) {
             $('body').css({
                 transition: 'background-color 1s ease-in-out',
-                "background-color": "white"
+                "background-color": "white" 
             });
             document.getElementById("loadingscreen").style.display = "block";
-            $('#loadingscreen').slideDown(1000);
             $('#inputscreen').slideUp(1000);
-            setTimeout(function() {
-                document.getElementById("inputscreen").style.display = "none";
-            }, 1000);
+            $('#loadingscreen').slideDown(1000);
+            setTimeout(function(){document.getElementById("inputscreen").style.display = "none";},1000);
             var notesname = notesnameFromInput.toLowerCase();
             globalNotename = notesname;
             document.getElementById("notesheader").innerHTML = notesname;
@@ -176,7 +155,6 @@ JUST PM ME(Contact info is on homepage)
                 }
             });
         }
-
         function createNote(notesname) {
             var firebaseReference = firebase.database().ref();
             var notesData = {
@@ -184,42 +162,47 @@ JUST PM ME(Contact info is on homepage)
             }
             firebaseReference.child(notesname).set(notesData);
         }
-
+        
         function showNotes() {
             //not req
             document.getElementById("inputscreen").style.display = "none";
-
-            $('#loadingscreen').slideUp(1000);
-            setTimeout(function() {
-                document.getElementById("loadingscreen").style.display = "none";
-            }, 1000);
-            document.getElementById("shownotes").style.display = "block";
-            $('#shownotes').slideDown(1000);
-            $('body').css({
-                transition: 'background-color 1s ease-in-out',
-                "background-color": "#B0BEC5"
-            });
-
+            
+            setTimeout(function(){
+                        $('#loadingscreen').slideUp(1000);
+                        document.getElementById("loadingscreen").style.display = "none";
+                        document.getElementById("shownotes").style.display = "block";
+                        $('#shownotes').slideDown(1000);
+                        
+                        $('body').css({
+                            transition: 'background-color 1s ease-in-out',
+                            "background-color": "#B0BEC5" 
+                        });
+                    },2000);
+            
+            
         }
         //database listener
         function startListener(notesname) {
             var data = firebase.database().ref().child(notesname).child("notes");
             data.on('value', function(snapshot) {
-
-                document.getElementById("saveStatus").innerHTML = "Saving...";
+                
+            document.getElementById("saveStatus").innerHTML = "Saving...";
                 var msg = snapshot.val();
                 document.getElementById("notes").value = msg;
             });
         }
-
+        
         //database writer
         document.getElementById("notes").addEventListener('input', function() {
             document.getElementById("saveStatus").innerHTML = "Saving...";
             var firebaseReference1 = firebase.database().ref().child(globalNotename).child("notes");
             firebaseReference1.set(document.getElementById("notes").value);
-
+            
             document.getElementById("saveStatus").innerHTML = "Saved";
         });
+        
+       
+        
     </script>
-
+    
 </body>
