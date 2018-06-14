@@ -32,7 +32,7 @@ JUST PM ME(Contact info is on homepage)
     </style>
 <body style="text-align:center;">
 
-    <div id=inputscreen style="display:none" style="top:30%">
+    <div id=inputscreen style="top:30%">
         -YET TO BE TESTED- <br> Enter a notes name(case-insensitive) : <input id='notesname'  onkeydown = "if (event.keyCode == 13){document.getElementById('notesname').click()}"    ><br>
         <input type=button value=Select id="select" onclick="openNotes(document.getElementById('notesname').value)">
         <br><br><br>Your notes-content, along with the changes will be live to others, who opens the same notes.
@@ -70,9 +70,13 @@ JUST PM ME(Contact info is on homepage)
 
     <script src="https://www.gstatic.com/firebasejs/5.0.3/firebase.js"></script>
     <script>
-        document.getElementById("inputscreen").style.display = "block";
-        $('#inputscreen').slideDown(1000);
-            
+        //page load animation
+        $(window).load(function(){
+            $("#inputscreen").show("slide", {
+            direction: "up"
+            }, 2000);
+        });
+        
         var globalNotename = "";
         var config = {
             apiKey: "AIzaSyD7U4K1qxPtIkWioazc17uZduncx-fAUmE",
