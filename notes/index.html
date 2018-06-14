@@ -1,15 +1,33 @@
+<!-- 
+
+
+REVIEW 
+MY 
+CODE 
+
+:) 
+
+
+ANY TIPS AND SUGGESTIONS ARE WELCOME. 
+JUST PM ME(Contact info is on homepage)
+-->
+
+
+
+
+
+
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>NAC Notes</title>
     <meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
     <link href="../favicon.png" rel="icon" sizes="16x16">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <meta name="viewport" content="width = device-width, minimum-scale = 1.0 , initial-scale = 1,user-scalable=yes">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
     <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
-
-
 
 </head>
     <style>
@@ -42,11 +60,14 @@
         <br><span id='loadingstatus'></span><br>
     </div>
 
-    <div id=shownotes style="display:none">
-        Notesname : <span id='notesheader'>-NONE-</span>(<span id="saveStatus">To be saved</span>)
-        <center>
-            <textarea style="height: 100%;width: 95%;display: block;position: absolute;" id='notes'></textarea>
-        </center>
+   <div id=shownotes style="display:none">
+        <div >
+            Notesname : <span id='notesheader'>-NONE-</span>(<span id="saveStatus">To be saved</span>)
+        </div>
+            <textarea style="margin-left:1%;width: 95vw;height: 90vh;padding:10px; background-color:#455A64; color:white; border-radius: 10px; border: none;overflow: auto;outline: none; display: block;position: absolute;box-shadow: 100px;" 
+                                    id='notes'></textarea>
+        
+        
     </div>
 
 
@@ -137,14 +158,7 @@
             document.getElementById("saveStatus").innerHTML = "Saved";
         });
         
-        
-        var field = document.querySelector('[id="notesname"]');
-        field.addEventListener('keypress', function ( event ) {  
-          var key = event.keyCode;
-            if (key === 32) {
-                event.preventDefault();
-            }
-        });
+       
         
     </script>
     
