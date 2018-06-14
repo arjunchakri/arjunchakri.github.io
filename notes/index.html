@@ -5,6 +5,7 @@
     <title>NAC Notes</title>
     <meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
     <link href="../favicon.png" rel="icon" sizes="16x16">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
     <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
 
@@ -20,10 +21,19 @@
 
     <div id=inputscreen style="top:30%">
         -YET TO BE TESTED- <br> Enter a notes name(case-insensitive) : <input id='notesname'  onkeydown = "if (event.keyCode == 13){document.getElementById('notesname').click()}"    ><br>
-        <input type=button value=Select onclick="openNotes(document.getElementById('notesname').value)">
+        <input type=button value=Select id="select" onclick="openNotes(document.getElementById('notesname').value)">
         <br><br><br>Your notes-content, along with the changes will be live to others, who opens the same notes.
         <br>
         <br>To share your notes, share it as <span style="color:blue">https://arjunchakri.github.io/notes/?name=(your-notes-name)</span> (excluding paranthesis)
+        
+    <script>
+       $(document).ready(function(){
+         $('#notesname').keypress(function(e){
+            if(e.keyCode==13)
+                $('#select').click();
+            });
+        });
+        </script>
     </div>
 
     <div id=loadingscreen style="display:none">
