@@ -28,7 +28,6 @@
         <input id='notesname' style="margin:10px;padding: 5px;"><br>
         <input type=button value=Select id="select" style="margin:10px;padding: 5px;" onclick="openNotes(document.getElementById('notesname').value)">
         <script>
-            
                 $('#notesname').keypress(function(e) {
                     if (e.keyCode == 13)
                         $('#select').click();
@@ -49,6 +48,7 @@
 
     <div id=shownotes style="display:none">
         Notesname : <span id='notesheader'>-NONE-</span>(<span id="saveStatus">To be saved</span>)
+        <input type="button" onclick="backupNotes()" value="Backup notes">
         <textarea style="margin-left:1%;width: 95vw;height: 90vh;padding:10px; background-color:#455A64; color:white; 
         border-radius: 10px; border: none;overflow: auto;outline: none; display: block;position: absolute;
         box-shadow: 100px;" id='notes'></textarea>
@@ -76,6 +76,21 @@
         if(a !== null){
             alert("opening your notes : " + a);
             openNotes(a);
+        }
+        
+        function  getTimestamp(){
+            var today = new Date();
+            var dd = today.getDate();
+            var mm = today.getMonth()+1; //January is 0!
+
+            var yyyy = today.getFullYear();
+            var timestamp = dd+'/'+mm+'/'+yyyy;
+            return timestamp;
+        }
+        
+        function backupNotes(){
+            
+            alert(globalNotename+ getTimestamp());
         }
         
         function openNotes(notesnameFromInput) {
