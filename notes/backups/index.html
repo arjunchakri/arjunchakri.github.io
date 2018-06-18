@@ -4,7 +4,7 @@
 <head>
     <title>NAC Notes</title>
     <meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
-    <link href="../favicon.png" rel="icon" sizes="16x16">
+    <link href="../../favicon.png" rel="icon" sizes="16x16">
     <meta name="viewport" content="width = device-width, minimum-scale = 1.0 , initial-scale = 1,user-scalable=yes">
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -39,7 +39,7 @@
         <span id='notesheader'>-NONE-</span>
         <div id="section-backups"> Fetching your backups...
             <br>
-            <img style="height:30%;width:30%" src="loader.gif">
+            <img style="height:30%;width:30%" src="liquid-loader.gif">
         </div>
         <!-- <textarea class="textarea-backups" id='notes' readonly></textarea> -->
     </div>
@@ -70,6 +70,7 @@
             firebaseReference.once('value', function (snapshot) {
                 var msg = snapshot.val();
                 var divToDisplayBackup = document.getElementById('section-backups');
+                setTimeout(function(){
                 divToDisplayBackup.innerHTML = "";
                 if (msg === null) {
                     divToDisplayBackup.innerHTML = "<h1>No backups available for this note !!</h1>";
@@ -84,7 +85,9 @@
                             divToDisplayBackup.innerHTML += "<textarea class='textarea-backups' readonly>" + json[each] + "</textarea><br><br>";
                         }
                     }
-                }
+                }    
+                },2000);
+                
             });
         }
         else {
