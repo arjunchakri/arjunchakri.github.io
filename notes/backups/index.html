@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>NAC Notes</title>
+    <meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
+    <link href="../favicon.png" rel="icon" sizes="16x16">
+    <meta name="viewport" content="width = device-width, minimum-scale = 1.0 , initial-scale = 1,user-scalable=yes">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
+</head>
+<style>
+    * {
+        font-family: 'Ubuntu', sans-serif;
+    }
+
+    .textarea-backups {
+        margin-left: 1%;
+        width: 95vw;
+        height: 85vh;
+        padding: 10px;
+        background-color: #00897B;
+        color: white;
+        border-radius: 10px;
+        border: none;
+        overflow: auto;
+        outline: none;
+        display: block;
+        position: relative;
+        box-shadow: 100px;
+    }
+</style>
+
+<body style="text-align:center;">
+    <div id=shownotes>
+        Backup snapshots for NOTES :
+        <span id='notesheader'>-NONE-</span>
+        <div id="section-backups"> Fetching your backups...
+            <br>
+            <img style="height:30%;width:30%" src="loader.gif">
+        </div>
+        <!-- <textarea class="textarea-backups" id='notes' readonly></textarea> -->
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/5.0.3/firebase.js"></script>
+    <script>
+        var globalNotename = "";
+        var config = {
+            apiKey: "AIzaSyD7U4K1qxPtIkWioazc17uZduncx-fAUmE",
+            authDomain: "collaborativenotes-afd92.firebaseapp.com",
+            databaseURL: "https://collaborativenotes-afd92.firebaseio.com",
+            projectId: "collaborativenotes-afd92",
+            storageBucket: "collaborativenotes-afd92.appspot.com",
+            messagingSenderId: "671782576619"
+        };
+        firebase.initializeApp(config);
+
+        //checking if url has an embedded notesname
+        var url_string = window.location.href;
+        var url = new URL(url_string);
+        var a = url.searchParams.toString();
+        var param = a.substring(0, a.length - 1);
+        document.getElementById('notesheader').innerHTML = param;
+
+        if (param !== "") {
+            //show all the backupList
+            var firebaseReference = firebase.database().ref().child(param).child('backups');
+            firebaseReference.once('value', function (snapshot) {
+                var msg = snapshot.val();
+                var divToDisplayBackup = document.getElementById('section-backups');
+                divToDisplayBackup.innerHTML = "";
+                if (msg === null) {
+                    divToDisplayBackup.innerHTML = "<h1>No backups available for this note !!</h1>";
+                }
+                else {
+                    var jsonStr = JSON.stringify(snapshot.val());
+                    var json = JSON.parse(jsonStr);
+                    for (var each in json) {
+                        if (json.hasOwnProperty(each)) {
+                            // (each + " -> " + json[each]);
+                            divToDisplayBackup.innerHTML += each;
+                            divToDisplayBackup.innerHTML += "<textarea class='textarea-backups' readonly>" + json[each] + "</textarea><br><br>";
+                        }
+                    }
+                }
+            });
+        }
+        else {
+            alert("Specify a notesname as parameter(append ?(notes-name))");
+        }
+
+
+    </script>
+</body>
