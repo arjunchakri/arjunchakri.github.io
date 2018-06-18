@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 
@@ -11,44 +10,51 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
     <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
-
-
-
 </head>
-    <style>
-        * {
-            font-family: 'Ubuntu', sans-serif;
-        }
-    </style>
-<body style="text-align:center;">
+<style>
+    * {
+        font-family: 'Ubuntu', sans-serif;
+    }
+</style>
 
+<body style="text-align:center;">
     <div id=inputscreen style="top:30%">
-        -YET TO BE TESTED- <br> 
-        Enter a notes name(case-insensitive) :<br> 
-        <input id='notesname' style="margin:10px;padding: 5px;"><br>
+        -YET TO BE TESTED-
+        <br> Enter a notes name(case-insensitive) :
+        <br>
+        <input id='notesname' style="margin:10px;padding: 5px;">
+        <br>
         <input type=button value=Select id="select" style="margin:10px;padding: 5px;" onclick="openNotes(document.getElementById('notesname').value)">
         <script>
-                $('#notesname').keypress(function(e) {
-                    if (e.keyCode == 13)
-                        $('#select').click();
-                });
+            $('#notesname').keypress(function (e) {
+                if (e.keyCode == 13)
+                    $('#select').click();
+            });
         </script>
-        
-        <br><br><br>Your notes-content, along with the changes will be live to others, who opens the same notes.
+
         <br>
-        <br>To share your notes, share it as <span style="color:blue">https://arjunchakri.github.io/notes/?name=(your-notes-name)</span> (excluding paranthesis)
+        <br>
+        <br>Your notes-content, along with the changes will be live to others, who opens the same notes.
+        <br>
+        <br>To share your notes, share it as
+        <span style="color:blue">https://arjunchakri.github.io/notes/?name=(your-notes-name)</span> (excluding paranthesis)
     </div>
 
-    
+
     <div id=loadingscreen style="display:none">
-        fetching your notes...<br>
+        fetching your notes...
+        <br>
         <img style="height:30%;width:30%" src="loader.gif">
-        <br><span id='loadingstatus'></span><br>
+        <br>
+        <span id='loadingstatus'></span>
+        <br>
     </div>
 
     <div id=shownotes style="display:none">
-        Notesname : <span id='notesheader'>-NONE-</span>(<span id="saveStatus">To be saved</span>)
-<!--        <input type="button" onclick="backupNotes()" value="Backup notes">-->
+        Notesname :
+        <span id='notesheader'>-NONE-</span>(
+        <span id="saveStatus">To be saved</span>)
+        <input type="button" id="backupbutton" onclick="backupNotes()" value="Backup notes" style="float:right">
         <textarea style="margin-left:1%;width: 95vw;height: 90vh;padding:10px; background-color:#455A64; color:white; 
         border-radius: 10px; border: none;overflow: auto;outline: none; display: block;position: absolute;
         box-shadow: 100px;" id='notes'></textarea>
@@ -68,31 +74,50 @@
             messagingSenderId: "671782576619"
         };
         firebase.initializeApp(config);
-        
+
         //checking if url has an embedded notesname
         var url_string = window.location.href;
         var url = new URL(url_string);
         var a = url.searchParams.get("name");
-        if(a !== null){
+        if (a !== null) {
             alert("opening your notes : " + a);
             openNotes(a);
         }
-        
-        function  getTimestamp(){
-            var today = new Date();
-            var dd = today.getDate();
-            var mm = today.getMonth()+1; //January is 0!
 
-            var yyyy = today.getFullYear();
-            var timestamp = dd+'/'+mm+'/'+yyyy;
-            return timestamp;
+        function getTimestamp() {
+            var currentdate = new Date();
+            var datetime = currentdate.getDate() + "-"
+                + (currentdate.getMonth() + 1) + "-"
+                + currentdate.getFullYear() + "-"
+                + currentdate.getHours() + "-"
+                + currentdate.getMinutes() + "-"
+                + currentdate.getSeconds();
+            return datetime;
         }
-        
-        function backupNotes(){
-            
-            alert(globalNotename+ getTimestamp());
+
+        function backupNotes() {
+            document.getElementById('backupbutton').value = "Backingup..";
+
+            var filename = globalNotename + "-" + getTimestamp();
+            var firebaseReference = firebase.database().ref().child(globalNotename).child('backups');
+            firebaseReference.once('value', function (snapshot) {
+                var msg = snapshot.val();
+                firebase.database().ref().child(globalNotename).child('backups').child(filename).set(document.getElementById('notes').value);
+                // if(snapshot.val() == null){
+                //     var backupInitArray = [{
+                //         backupname : filename,
+                //         notes: document.getElementById('notes').value
+                //     }];
+                //     firebase.database().ref().child(globalNotename).child('backups').set(backupInitArray);W
+                // }
+                // else{
+
+                // }
+                //firebase.database().ref().child(globalNotename).child('backups').set(backupData);
+                document.getElementById('backupbutton').value = "Backup notes";
+            });
         }
-        
+
         function openNotes(notesnameFromInput) {
             document.getElementById("loadingscreen").style.display = "block";
             document.getElementById("inputscreen").style.display = "none";
@@ -100,7 +125,7 @@
             globalNotename = notesname;
             document.getElementById("notesheader").innerHTML = notesname;
             var firebaseReference = firebase.database().ref().child(notesname);
-            firebaseReference.once('value', function(snapshot) {
+            firebaseReference.once('value', function (snapshot) {
                 var msg = snapshot.val();
                 if (snapshot.val() == null) {
                     alert("notes not found. creating notes.");
@@ -119,6 +144,7 @@
                 }
             });
         }
+
         function createNote(notesname) {
             var firebaseReference = firebase.database().ref();
             var notesData = {
@@ -126,42 +152,42 @@
             }
             firebaseReference.child(notesname).set(notesData);
         }
-        
+
         function showNotes() {
             document.getElementById("inputscreen").style.display = "none";
             document.getElementById("loadingscreen").style.display = "none"
             document.getElementById("shownotes").style.display = "block";
             $('#shownotes').slideDown(1000);
         }
+
         //database listener
         function startListener(notesname) {
             var data = firebase.database().ref().child(notesname).child("notes");
-            data.on('value', function(snapshot) {
-                
-            document.getElementById("saveStatus").innerHTML = "Saving...";
+            data.on('value', function (snapshot) {
+                document.getElementById("saveStatus").innerHTML = "Saving...";
                 var msg = snapshot.val();
                 document.getElementById("notes").value = msg;
             });
         }
-        
+
         //database writer
-        document.getElementById("notes").addEventListener('input', function() {
+        document.getElementById("notes").addEventListener('input', function () {
             document.getElementById("saveStatus").innerHTML = "Saving...";
             var firebaseReference1 = firebase.database().ref().child(globalNotename).child("notes");
             firebaseReference1.set(document.getElementById("notes").value);
-            
+
             document.getElementById("saveStatus").innerHTML = "Saved";
         });
-        
-        
+
+
         var field = document.querySelector('[id="notesname"]');
-        field.addEventListener('keypress', function ( event ) {  
-          var key = event.keyCode;
+        field.addEventListener('keypress', function (event) {
+            var key = event.keyCode;
             if (key === 32) {
                 event.preventDefault();
             }
         });
-        
+
     </script>
-    
+
 </body>
