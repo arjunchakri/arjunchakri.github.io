@@ -37,7 +37,7 @@
         <br>Your notes-content, along with the changes will be live to others, who opens the same notes.
         <br>
         <br>To share your notes, share it as
-        <span style="color:blue">https://arjunchakri.github.io/notes/?name=(your-notes-name)</span> (excluding paranthesis)
+        <span style="color:blue">https://arjunchakri.github.io/notes?(your-notes-name)</span> (excluding paranthesis)
     </div>
 
 
@@ -55,10 +55,9 @@
         <span id='notesheader'>-NONE-</span>(
         <span id="saveStatus">To be saved</span>)
         <input type="button" id="backupbutton" onclick="backupNotes()" value="Backup notes" style="float:right">
-        <textarea style="margin-left:1%;width: 95vw;height: 90vh;padding:10px; background-color:#455A64; color:white; 
+        <textarea style="margin-left:1%;margin-top:25px;width: 95vw;height: 85vh;padding:10px; background-color:#455A64; color:white; 
         border-radius: 10px; border: none;overflow: auto;outline: none; display: block;position: absolute;
         box-shadow: 100px;" id='notes'></textarea>
-
     </div>
 
 
@@ -78,11 +77,12 @@
         //checking if url has an embedded notesname
         var url_string = window.location.href;
         var url = new URL(url_string);
-        var a = url.searchParams.get("name");
-        if (a !== null) {
-            alert("opening your notes : " + a);
-            openNotes(a);
+        var a = url.searchParams.toString();
+        var param = a.substring(0, a.length - 1);
+        if (param !== "") {
+            openNotes(param);
         }
+
 
         function getTimestamp() {
             var currentdate = new Date();
