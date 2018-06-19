@@ -8,7 +8,10 @@
     <meta name="viewport" content="width = device-width, minimum-scale = 1.0 , initial-scale = 1,user-scalable=yes">
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
 </head>
 <style>
@@ -18,28 +21,44 @@
 </style>
 
 <body style="text-align:center;">
-    <div id=inputscreen style="top:30%">
+    <div class="center-align" id=inputscreen style="top:30%">
         -YET TO BE TESTED-
-        <br> Enter a notes name(case-insensitive) :
         <br>
-        <input id='notesname' style="margin:10px;padding: 5px;">
         <br>
-        <input type=button value=Select id="select" style="margin:10px;padding: 5px;" onclick="openNotes(document.getElementById('notesname').value)">
+        <br>
+        <br>
+        <br>
+        <br>
+        <span style="font-size: 20px">Enter a notes name(case-insensitive) :</span>
+        <!-- <input id='notesname' style="margin:10px;padding: 5px;"> -->
+        <br>
+        <center>
+            <div style="width: 300px;">
+                <div class="input-field">
+                    <i class="material-icons prefix">edit</i>
+                    <input id="notesname" type="text">
+                    <label for="notesname">notesname</label>
+                </div>
+            </div>
+        </center>
+        <a class="waves-effect waves-light btn" id="select" onclick="openNotes(document.getElementById('notesname').value)">
+            <i class="material-icons right">forward</i>Open notes</a>
+
+        <!-- <input type=button value=Select id="select" style="margin:10px;padding: 5px;" onclick="openNotes(document.getElementById('notesname').value)"> -->
+
         <script>
             $('#notesname').keypress(function (e) {
                 if (e.keyCode == 13)
                     $('#select').click();
             });
         </script>
-
         <br>
         <br>
         <br>Your notes-content, along with the changes will be live to others, who opens the same notes.
         <br>
         <br>To share your notes, share it as
-        <span style="color:blue">https://arjunchakri.github.io/notes?(your-notes-name)</span> (excluding paranthesis)
+        <span style="color:blue">https://arjunchakri.github.io/notes/?name=(your-notes-name)</span> (excluding paranthesis)
     </div>
-
 
     <div id=loadingscreen style="display:none">
         fetching your notes...
@@ -51,144 +70,195 @@
     </div>
 
     <div id=shownotes style="display:none">
-        Notesname :
-        <span id='notesheader'>-NONE-</span>(
-        <span id="saveStatus">To be saved</span>)
-        <input type="button" onclick="window.open('https://arjunchakri.github.io/notes/backups?'+globalNotename,'_blank');" value="View backups" style="float:right">
-        <input type="button" id="backupbutton" onclick="backupNotes()" value="Backup notes" style="float:right">
-        <textarea style="margin-left:1%;margin-top:25px;width: 95vw;height: 85vh;padding:10px; background-color:#455A64; color:white; 
+        <ul id="slide-out" class="sidenav">
+            <li>
+                <a href="#" onclick="backupNotes()">
+                    <i class="material-icons">save</i>Backup notes(as snapshot)</a>
+            </li>
+            <li>
+                <a href="#!" onclick="window.open('https://arjunchakri.github.io/notes/backups?'+globalNotename,'_blank');">
+                    <i class="material-icons">history</i>Open backups</a>
+                </a>
+            </li>
+            <li>
+                <div class="divider"></div>
+            </li>
+            <li>
+                <a class="subheader">About this notes</a>
+            </li>
+            <li>
+                <a class="waves-effect" href="#!">Goto homepage</a>
+            </li>
+        </ul>
+        <!-- <a href="#" data-target="slide-out" style="float:left;margin:10px;" class="sidenav-trigger">
+            <i class="material-icons">menu</i>
+        </a> -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var elems = document.querySelectorAll('.sidenav');
+                var instances = M.Sidenav.init(elems, options);
+            });
+
+            // Initialize collapsible (uncomment the lines below if you use the dropdown variation)
+            // var collapsibleElem = document.querySelector('.collapsible');
+            // var collapsibleInstance = M.Collapsible.init(collapsibleElem, options);
+
+            // Or with jQuery
+
+            $(document).ready(function () {
+                $('.sidenav').sidenav();
+            });
+        </script>
+
+        <div>Notesname :
+            <span id='notesheader'>-NONE-</span>
+            <!-- <input type="button" onclick="window.open('https://arjunchakri.github.io/notes/backups?'+globalNotename,'_blank');" value="View backups"
+            style="float:right"> -->
+            <!-- <input type="button" id="backupbutton" onclick="backupNotes()" value="Backup notes" style="float:right"> -->
+            <textarea style="margin-left:1%;margin-top:25px;width: 95vw;height: 85vh;padding:10px; background-color:#455A64; color:white; 
         border-radius: 10px; border: none;overflow: auto;outline: none; display: block;position: absolute;
         box-shadow: 100px;" id='notes'></textarea>
-    </div>
+        </div>
+
+        <div class="fixed-action-btn">
+            <a class="btn-floating btn-large red sidenav-trigger" data-target="slide-out">
+                <i class="large material-icons">menu</i>
+            </a>
+        </div>
+        
+        <script src="https://www.gstatic.com/firebasejs/5.0.3/firebase.js"></script>
+        <script>
+            var globalNotename = "";
+            var config = {
+                apiKey: "AIzaSyD7U4K1qxPtIkWioazc17uZduncx-fAUmE",
+                authDomain: "collaborativenotes-afd92.firebaseapp.com",
+                databaseURL: "https://collaborativenotes-afd92.firebaseio.com",
+                projectId: "collaborativenotes-afd92",
+                storageBucket: "collaborativenotes-afd92.appspot.com",
+                messagingSenderId: "671782576619"
+            };
+            firebase.initializeApp(config);
+
+            //checking if url has an embedded notesname
+            var url_string = window.location.href;
+            var url = new URL(url_string);
+            var a = url.searchParams.toString();
+            var param = a.substring(0, a.length - 1);
+            if (param !== "") {
+                M.toast({ html: 'Opening notes - ' + param });
+                openNotes(param);
+            }
 
 
-    <script src="https://www.gstatic.com/firebasejs/5.0.3/firebase.js"></script>
-    <script>
-        var globalNotename = "";
-        var config = {
-            apiKey: "AIzaSyD7U4K1qxPtIkWioazc17uZduncx-fAUmE",
-            authDomain: "collaborativenotes-afd92.firebaseapp.com",
-            databaseURL: "https://collaborativenotes-afd92.firebaseio.com",
-            projectId: "collaborativenotes-afd92",
-            storageBucket: "collaborativenotes-afd92.appspot.com",
-            messagingSenderId: "671782576619"
-        };
-        firebase.initializeApp(config);
+            function getTimestamp() {
+                var currentdate = new Date();
+                var datetime = currentdate.getDate() + "-"
+                    + (currentdate.getMonth() + 1) + "-"
+                    + currentdate.getFullYear() + "-"
+                    + currentdate.getHours() + "-"
+                    + currentdate.getMinutes() + "-"
+                    + currentdate.getSeconds();
+                return datetime;
+            }
 
-        //checking if url has an embedded notesname
-        var url_string = window.location.href;
-        var url = new URL(url_string);
-        var a = url.searchParams.toString();
-        var param = a.substring(0, a.length - 1);
-        if (param !== "") {
-            openNotes(param);
-        }
+            function backupNotes() {
+                document.getElementById('backupbutton').value = "Backingup..";
+                var filename = globalNotename + "-" + getTimestamp();
+                M.toast({ html: 'Backing up notes : ' + filename });
 
+                var firebaseReference = firebase.database().ref().child(globalNotename).child('backups');
+                firebaseReference.once('value', function (snapshot) {
+                    var msg = snapshot.val();
+                    firebase.database().ref().child(globalNotename).child('backups').child(filename).set(document.getElementById('notes').value);
+                    // if(snapshot.val() == null){
+                    //     var backupInitArray = [{
+                    //         backupname : filename,
+                    //         notes: document.getElementById('notes').value
+                    //     }];
+                    //     firebase.database().ref().child(globalNotename).child('backups').set(backupInitArray);W
+                    // }
+                    // else{
 
-        function getTimestamp() {
-            var currentdate = new Date();
-            var datetime = currentdate.getDate() + "-"
-                + (currentdate.getMonth() + 1) + "-"
-                + currentdate.getFullYear() + "-"
-                + currentdate.getHours() + "-"
-                + currentdate.getMinutes() + "-"
-                + currentdate.getSeconds();
-            return datetime;
-        }
+                    // }
+                    //firebase.database().ref().child(globalNotename).child('backups').set(backupData);
+                    document.getElementById('backupbutton').value = "Backup notes";
+                    M.toast({ html: 'Backup completed.' });
+                });
+            }
 
-        function backupNotes() {
-            document.getElementById('backupbutton').value = "Backingup..";
+            function openNotes(notesnameFromInput) {
+                document.getElementById("loadingscreen").style.display = "block";
+                document.getElementById("inputscreen").style.display = "none";
+                var notesname = notesnameFromInput.toLowerCase();
+                globalNotename = notesname;
+                document.getElementById("notesheader").innerHTML = notesname;
+                var firebaseReference = firebase.database().ref().child(notesname);
+                firebaseReference.once('value', function (snapshot) {
+                    var msg = snapshot.val();
+                    if (snapshot.val() == null) {
+                        M.toast({ html: 'Notes not found. Creating new notes. ' });
+                        createNote(notesname);
+                        document.getElementById("notes").value = "";
+                        showNotes();
+                        startListener(notesname);
+                        startWriter(notesname);
+                    } else {
+                        M.toast({ html: 'Notes found.' });
+                        var jsonStr = JSON.stringify(snapshot.val());
+                        var json = JSON.parse(jsonStr);
+                        document.getElementById("notes").value = json.notes;
+                        showNotes();
+                        startListener(notesname);
+                        startWriter(notesname);
+                    }
+                });
+            }
 
-            var filename = globalNotename + "-" + getTimestamp();
-            var firebaseReference = firebase.database().ref().child(globalNotename).child('backups');
-            firebaseReference.once('value', function (snapshot) {
-                var msg = snapshot.val();
-                firebase.database().ref().child(globalNotename).child('backups').child(filename).set(document.getElementById('notes').value);
-                // if(snapshot.val() == null){
-                //     var backupInitArray = [{
-                //         backupname : filename,
-                //         notes: document.getElementById('notes').value
-                //     }];
-                //     firebase.database().ref().child(globalNotename).child('backups').set(backupInitArray);W
-                // }
-                // else{
+            function createNote(notesname) {
+                var firebaseReference = firebase.database().ref();
+                var notesData = {
+                    notes: ""
+                }
+                firebaseReference.child(notesname).set(notesData);
+            }
 
-                // }
-                //firebase.database().ref().child(globalNotename).child('backups').set(backupData);
-                document.getElementById('backupbutton').value = "Backup notes";
+            function showNotes() {
+                document.getElementById("inputscreen").style.display = "none";
+                document.getElementById("loadingscreen").style.display = "none"
+                document.getElementById("shownotes").style.display = "block";
+                $('#shownotes').slideDown(1000);
+            }
+
+            //database listener
+            function startListener(notesname) {
+                var data = firebase.database().ref().child(notesname).child("notes");
+                data.on('value', function (snapshot) {
+                    document.getElementById("saveStatus").innerHTML = "Saving...";
+                    var msg = snapshot.val();
+                    document.getElementById("notes").value = msg;
+                });
+            }
+
+            //database writer
+            document.getElementById("notes").addEventListener('input', function () {
+                document.getElementById("saveStatus").innerHTML = "Saving...";
+                var firebaseReference1 = firebase.database().ref().child(globalNotename).child("notes");
+                firebaseReference1.set(document.getElementById("notes").value);
+
+                document.getElementById("saveStatus").innerHTML = "Saved";
             });
-        }
 
-        function openNotes(notesnameFromInput) {
-            document.getElementById("loadingscreen").style.display = "block";
-            document.getElementById("inputscreen").style.display = "none";
-            var notesname = notesnameFromInput.toLowerCase();
-            globalNotename = notesname;
-            document.getElementById("notesheader").innerHTML = notesname;
-            var firebaseReference = firebase.database().ref().child(notesname);
-            firebaseReference.once('value', function (snapshot) {
-                var msg = snapshot.val();
-                if (snapshot.val() == null) {
-                    alert("notes not found. creating notes.");
-                    createNote(notesname);
-                    document.getElementById("notes").value = "";
-                    showNotes();
-                    startListener(notesname);
-                    startWriter(notesname);
-                } else {
-                    var jsonStr = JSON.stringify(snapshot.val());
-                    var json = JSON.parse(jsonStr);
-                    document.getElementById("notes").value = json.notes;
-                    showNotes();
-                    startListener(notesname);
-                    startWriter(notesname);
+
+            var field = document.querySelector('[id="notesname"]');
+            field.addEventListener('keypress', function (event) {
+                var key = event.keyCode;
+                if (key === 32) {
+                    event.preventDefault();
                 }
             });
-        }
 
-        function createNote(notesname) {
-            var firebaseReference = firebase.database().ref();
-            var notesData = {
-                notes: ""
-            }
-            firebaseReference.child(notesname).set(notesData);
-        }
-
-        function showNotes() {
-            document.getElementById("inputscreen").style.display = "none";
-            document.getElementById("loadingscreen").style.display = "none"
-            document.getElementById("shownotes").style.display = "block";
-            $('#shownotes').slideDown(1000);
-        }
-
-        //database listener
-        function startListener(notesname) {
-            var data = firebase.database().ref().child(notesname).child("notes");
-            data.on('value', function (snapshot) {
-                document.getElementById("saveStatus").innerHTML = "Saving...";
-                var msg = snapshot.val();
-                document.getElementById("notes").value = msg;
-            });
-        }
-
-        //database writer
-        document.getElementById("notes").addEventListener('input', function () {
-            document.getElementById("saveStatus").innerHTML = "Saving...";
-            var firebaseReference1 = firebase.database().ref().child(globalNotename).child("notes");
-            firebaseReference1.set(document.getElementById("notes").value);
-
-            document.getElementById("saveStatus").innerHTML = "Saved";
-        });
-
-
-        var field = document.querySelector('[id="notesname"]');
-        field.addEventListener('keypress', function (event) {
-            var key = event.keyCode;
-            if (key === 32) {
-                event.preventDefault();
-            }
-        });
-
-    </script>
+        </script>
 
 </body>
+
+</html>
