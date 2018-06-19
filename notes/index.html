@@ -226,17 +226,18 @@
                 data.on('value', function (snapshot) {
                     document.getElementById("saveStatus").innerHTML = "Saving...";
                     var msg = snapshot.val();
+                    M.toast({ html: 'Changes from other user.'});
                     document.getElementById("notes").value = msg;
                 });
             }
 
             //database writer
             document.getElementById("notes").addEventListener('input', function () {
-                document.getElementById("saveStatus").innerHTML = "Saving...";
                 var firebaseReference1 = firebase.database().ref().child(globalNotename).child("notes");
                 firebaseReference1.set(document.getElementById("notes").value);
-
-                document.getElementById("saveStatus").innerHTML = "Saved";
+                M.toast({ html: 'Changes saved'});
+                
+                
             });
 
 
