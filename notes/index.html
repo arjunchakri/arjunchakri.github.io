@@ -98,13 +98,6 @@
                 var elems = document.querySelectorAll('.sidenav');
                 var instances = M.Sidenav.init(elems, options);
             });
-
-            // Initialize collapsible (uncomment the lines below if you use the dropdown variation)
-            // var collapsibleElem = document.querySelector('.collapsible');
-            // var collapsibleInstance = M.Collapsible.init(collapsibleElem, options);
-
-            // Or with jQuery
-
             $(document).ready(function () {
                 $('.sidenav').sidenav();
             });
@@ -125,7 +118,7 @@
                 <i class="large material-icons">menu</i>
             </a>
         </div>
-        
+
         <script src="https://www.gstatic.com/firebasejs/5.0.3/firebase.js"></script>
         <script>
             var globalNotename = "";
@@ -162,7 +155,6 @@
             }
 
             function backupNotes() {
-                document.getElementById('backupbutton').value = "Backingup..";
                 var filename = globalNotename + "-" + getTimestamp();
                 M.toast({ html: 'Backing up notes : ' + filename });
 
@@ -181,7 +173,6 @@
 
                     // }
                     //firebase.database().ref().child(globalNotename).child('backups').set(backupData);
-                    document.getElementById('backupbutton').value = "Backup notes";
                     M.toast({ html: 'Backup completed.' });
                 });
             }
