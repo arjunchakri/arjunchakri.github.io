@@ -225,7 +225,6 @@
                 var data = firebase.database().ref().child(notesname).child("notes");
                 data.on('value', function (snapshot) {
                     var msg = snapshot.val();
-                    M.toast({ html: 'Changes from other user.'});
                     document.getElementById("notes").value = msg;
                 });
             }
