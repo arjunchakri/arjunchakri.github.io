@@ -105,16 +105,15 @@ FEEDBACK AND SUGGESTIONS ARE APPRECIATED.
                 <a class="subheader">Want to upload a file? </a>
             </li>
             <li>
-                <a class="waves-effect" 
-                   href="https://script.google.com/macros/s/AKfycbwRTLzPP_1CFZshaDW0iqS6DKGlbKHaxcPZpjh7x0dAxadM3Po/exec" 
-                   onclick="return popitup('https://script.google.com/macros/s/AKfycbwRTLzPP_1CFZshaDW0iqS6DKGlbKHaxcPZpjh7x0dAxadM3Po/exec');">
+                <a class="waves-effect" href="https://script.google.com/macros/s/AKfycbwRTLzPP_1CFZshaDW0iqS6DKGlbKHaxcPZpjh7x0dAxadM3Po/exec"
+                    onclick="return popitup('https://script.google.com/macros/s/AKfycbwRTLzPP_1CFZshaDW0iqS6DKGlbKHaxcPZpjh7x0dAxadM3Po/exec');">
                     <i class="material-icons">cloud_upload</i>Upload file</a>
             </li>
 
             <li>
-                <a class="waves-effect" href = "../folder-temp.html" target="_blank">
+                <a class="waves-effect" href="../folder-temp.html" target="_blank">
                     <i class="material-icons">cloud_done</i>View files</a>
-                
+
             </li>
         </ul>
         <!-- <a href="#" data-target="slide-out" style="float:left;margin:10px;" class="sidenav-trigger">
@@ -260,9 +259,9 @@ FEEDBACK AND SUGGESTIONS ARE APPRECIATED.
             document.getElementById("notes").addEventListener('input', function () {
                 var firebaseReference1 = firebase.database().ref().child(globalNotename).child("notes");
                 firebaseReference1.set(document.getElementById("notes").value);
-                M.toast({ html: 'Changes saved'});
-                
-                
+                M.toast({ html: 'Changes saved' });
+
+
             });
 
 
@@ -274,9 +273,9 @@ FEEDBACK AND SUGGESTIONS ARE APPRECIATED.
                 }
             });
             function popitup(url) {
-	            newwindow=window.open(url,'name','height=200,width=400');
-	            if (window.focus) {newwindow.focus()}
-	            return false;
+                newwindow = window.open(url, 'name', 'height=200,width=400');
+                if (window.focus) { newwindow.focus() }
+                return false;
             }
         </script>
 
