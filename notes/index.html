@@ -131,6 +131,8 @@ FEEDBACK AND SUGGESTIONS ARE APPRECIATED.
 
         <div>Notesname :
             <span id='notesheader'>-NONE-</span>
+            <span id = "float:left"><i class="material-icons">cloud_done</i>
+            <span id='syncedmessage'></span></span>
             <!-- <input type="button" onclick="window.open('https://arjunchakri.github.io/notes/backups?'+globalNotename,'_blank');" value="View backups"
             style="float:right"> -->
             <!-- <input type="button" id="backupbutton" onclick="backupNotes()" value="Backup notes" style="float:right"> -->
@@ -259,9 +261,7 @@ FEEDBACK AND SUGGESTIONS ARE APPRECIATED.
             document.getElementById("notes").addEventListener('input', function () {
                 var firebaseReference1 = firebase.database().ref().child(globalNotename).child("notes");
                 firebaseReference1.set(document.getElementById("notes").value);
-                M.toast({ html: 'Changes saved' });
-
-
+                document.getElementById("syncedmessage").innerHTML = "Synced to cloud";
             });
 
 
