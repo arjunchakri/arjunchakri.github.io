@@ -1,26 +1,3 @@
-<!--
-
-
-
-
-
-
-
-:)
-
-
-
-
-
-
-
-
-
-
-
-
--->
-
 <!DOCTYPE html>
 <html>
 
@@ -266,10 +243,15 @@
 
             //database writer
             document.getElementById("notes").addEventListener('input', function () {
-                document.getElementById("syncedmessage").innerHTML = "Please wait....";
+                document.getElementById("syncedmessage").innerHTML = "Syncing...";
                 var firebaseReference1 = firebase.database().ref().child(globalNotename).child("notes");
-                firebaseReference1.set(document.getElementById("notes").value);
-                document.getElementById("syncedmessage").innerHTML = "Synced to cloud";
+                firebaseReference1.set(document.getElementById("notes").value, function(error){
+                        if(error){
+                            document.getElementById("syncedmessage").innerHTML = "Sync failed";
+                        }else{
+                            document.getElementById("syncedmessage").innerHTML = "Synced to cloud";
+                        }
+                    );
             });
 
 
