@@ -84,6 +84,14 @@
                 <div class="divider"></div>
             </li>
             <li>
+                <a class="waves-effect" href="#" onclick="downloadFile()">
+                    <i class="material-icons">cloud_download</i>Download your notes</a>
+            </li>
+
+            <li>
+                <div class="divider"></div>
+            </li>
+            <li>
                 <a class="subheader">Want to upload a file? </a>
             </li>
             <li>
@@ -112,14 +120,15 @@
         </script>
 
         <div>
-            <div style = "margin:10px;">
-            Notesname :<span id='notesheader'>!default</span>
-            <span style = "float: right; margin-right:50px;">
-                <span id='syncedmessage'></span>
-                <i class="material-icons">cloud_done</i>
-            </span>
+            <div style="margin:10px;">
+                Notesname :
+                <span id='notesheader'>!default</span>
+                <span style="float: right; margin-right:50px;">
+                    <span id='syncedmessage'></span>
+                    <i class="material-icons">cloud_done</i>
+                </span>
             </div>
-                <!-- <input type="button" onclick="window.open('https://arjunchakri.github.io/notes/backups?'+globalNotename,'_blank');" value="View backups"
+            <!-- <input type="button" onclick="window.open('https://arjunchakri.github.io/notes/backups?'+globalNotename,'_blank');" value="View backups"
             style="float:right"> -->
             <!-- <input type="button" id="backupbutton" onclick="backupNotes()" value="Backup notes" style="float:right"> -->
             <textarea style="margin-left:3%;margin-top:25px;width: 95vw;height: 85vh;padding:10px; background-color:#455A64; color:white; 
@@ -159,7 +168,7 @@
 
             function getTimestamp() {
                 var currentdate = new Date();
-                var datetime = "Date: "+currentdate.getDate() + "-"
+                var datetime = "Date: " + currentdate.getDate() + "-"
                     + (currentdate.getMonth() + 1) + "-"
                     + currentdate.getFullYear() + " Time: "
                     + currentdate.getHours() + "-"
@@ -247,14 +256,14 @@
             document.getElementById("notes").addEventListener('input', function () {
                 document.getElementById("syncedmessage").innerHTML = "Syncing...";
                 var firebaseReference1 = firebase.database().ref().child(globalNotename).child("notes");
-                firebaseReference1.set(document.getElementById("notes").value, function(error){
-                        if(error){
-                            document.getElementById("syncedmessage").innerHTML = "Sync failed";
-                        }else{
-                            document.getElementById("syncedmessage").innerHTML = "Synced to cloud";
-                        }
+                firebaseReference1.set(document.getElementById("notes").value, function (error) {
+                    if (error) {
+                        document.getElementById("syncedmessage").innerHTML = "Sync failed";
+                    } else {
+                        document.getElementById("syncedmessage").innerHTML = "Synced to cloud";
+                    }
                 }
-                    );
+                );
             });
 
 
@@ -269,6 +278,21 @@
                 newwindow = window.open(url, 'name', 'height=200,width=400');
                 if (window.focus) { newwindow.focus() }
                 return false;
+            }
+            function downloadFile() {
+                filename = document.getElementById('notesname').value;
+                text = document.getElementById('notes').value;
+
+                var element = document.createElement('a');
+                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+                element.setAttribute('download', filename);
+
+                element.style.display = 'none';
+                document.body.appendChild(element);
+
+                element.click();
+
+                document.body.removeChild(element);
             }
         </script>
 
