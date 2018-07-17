@@ -13,7 +13,7 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": "/",
+  "start_url": "https://arjunchakri.github.io/notes/",
   "background_color": "#00897b",
   "display": "standalone",
   "scope": "/",
