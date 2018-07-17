@@ -3,12 +3,12 @@
   "name": "NAC Notes",
   "icons": [
     {
-      "src": "/icon/favicon192.png",
+      "src": "https://arjunchakri.github.io/notes/icon/favicon192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/icon/favicon512.png",
+      "src": "https://arjunchakri.github.io/notes/icon/favicon512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
