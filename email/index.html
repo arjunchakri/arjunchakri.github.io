@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>NAC Notes</title>
+    <meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
+    <link href="../favicon.png" rel="icon" sizes="16x16">
+    <meta name="viewport" content="width = device-width, minimum-scale = 1.0 , initial-scale = 1,user-scalable=yes">
+
+    
+    <link rel="apple-touch-icon" href="https://arjunchakri.github.io/notes/icon/ios_iconA.png">
+    <link rel="apple-touch-startup-image" href="../favicon.png" >
+    <script src="https://smtpjs.com/v2/smtp.js">
+    </script>
+
+
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #00897B;
+            background-color: currentColor;
+        }
+
+        h1 {
+            font: 200 3rem Montserrat, sans-serif;
+            letter-spacing: -0.07ex;
+            -webkit-animation: anim 1.5s infinite alternate ease-in-out;
+            animation: anim 1.5s infinite alternate ease-in-out;
+        }
+
+        @-webkit-keyframes anim {
+            from {
+                text-shadow: 0 0 10px transparent;
+            }
+            to {
+                text-shadow: 0 28px 50px rgba(0, 0, 0, 0.8);
+            }
+        }
+
+        @keyframes anim {
+            from {
+                text-shadow: 0 0 10px transparent;
+            }
+            to {
+                text-shadow: 0 28px 50px rgba(0, 0, 0, 0.8);
+            }
+        }
+    </style>
+</head>
+
+<body style="text-align:center">
+
+    <h1 id="message">aa</h1>
+    <script>
+        //checking if url has an embedded message
+        var url_string = window.location.href;
+        var url = new URL(url_string);
+        var a = url.searchParams.toString();
+        var param = a.substring(0, a.length - 1);
+        if (param !== "") {
+            sendEmailToMe(param);
+        } else {
+            displayMessage("Give some parameter to url<br>" + "(arjunchakri.github.io/send?[your-message])");
+        }
+
+        function displayMessage(message) {
+            document.getElementById("message").innerHTML = message;
+        }
+
+        function sendEmailToMe(message) {
+            Email.send("me@arjunchakri.github.io",
+                "arjunchakri@gmail.com",
+                "You got a quick message.",
+                message,
+                "mail.smtp2go.com",
+                "arjunchakri@gmail.com",
+                "SYiVofrt3z6B");
+            displayMessage("I got the message :) ");
+
+        }
+    </script>
+
+
+</body>
+
+</html>
