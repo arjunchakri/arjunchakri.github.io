@@ -1,0 +1,11 @@
+<script>
+//checking if url has an embedded notesname
+            var url_string = window.location.href;
+            var url = new URL(url_string);
+            var a = url.searchParams.toString();
+            var param = a.substring(0, a.length - 1);
+            if (param !== "") {
+              param = param + 1;
+              document.innerHTML = param;
+            }
+</script>
