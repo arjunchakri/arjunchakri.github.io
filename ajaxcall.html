@@ -1,3 +1,5 @@
+<span id='results'></span>
+
 <script>
 //checking if url has an embedded notesname
             var url_string = window.location.href;
@@ -6,7 +8,6 @@
             var param = a.substring(0, a.length - 1);
             if (param !== "") {
               param = param + 1;
-              document.getElementById('result').innerHTML = param;
+              document.getElementById('results').innerHTML = param;
             }
 </script>
-<span id='results'></span>
