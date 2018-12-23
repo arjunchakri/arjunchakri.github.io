@@ -10,6 +10,9 @@
     
     <link rel="apple-touch-icon" href="https://arjunchakri.github.io/notes/icon/ios_iconA.png">
     <link rel="apple-touch-startup-image" href="../favicon.png" >
+
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+
     <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
 
     </script>
@@ -76,9 +79,8 @@
         }
 
         function sendEmailToMe(message) {
-            window.location.href=
-                "https://script.google.com/macros/s/AKfycbzDAQxpbetwg4mJ8lgKlA0og1DunZHyEYzDYFrNdV-qxotAUQ/exec?appname=FromWebsite&message=" 
-                + message;
+           $.get("https://script.google.com/macros/s/AKfycbzDAQxpbetwg4mJ8lgKlA0og1DunZHyEYzDYFrNdV-qxotAUQ/exec?appname=FromWebsite&message=" 
+                + message);
             displayMessage("I got the message :) ");
 
         }
