@@ -79,7 +79,7 @@
         }
 
         function sendEmailToMe(message) {
-           $.get("https://script.google.com/macros/s/AKfycbzDAQxpbetwg4mJ8lgKlA0og1DunZHyEYzDYFrNdV-qxotAUQ/exec?appname=FromWebsite&message=" 
+           window.location.href = ("https://script.google.com/macros/s/AKfycbzDAQxpbetwg4mJ8lgKlA0og1DunZHyEYzDYFrNdV-qxotAUQ/exec?appname=FromWebsite&message=" 
                 + message);
             displayMessage("I got the message :) ");
 
