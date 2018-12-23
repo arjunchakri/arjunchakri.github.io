@@ -12,7 +12,6 @@
     <link rel="apple-touch-startup-image" href="../favicon.png" >
     <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
 
-    <script src="https://smtpjs.com/v2/smtp.js">
     </script>
 
 <style>
@@ -77,13 +76,9 @@
         }
 
         function sendEmailToMe(message) {
-            Email.send("me@arjunchakri.github.io",
-                "arjunchakri@gmail.com",
-                "You got a quick message.",
-                message,
-                "mail.smtp2go.com",
-                "arjunchakri@gmail.com",
-                "SYiVofrt3z6B");
+            window.location.href=
+                "https://script.google.com/macros/s/AKfycbzDAQxpbetwg4mJ8lgKlA0og1DunZHyEYzDYFrNdV-qxotAUQ/exec?appname=FromWebsite&message=" 
+                + message;
             displayMessage("I got the message :) ");
 
         }
