@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
+	<link rel="apple-touch-icon" href="https://arjunchakri.github.io/notes/icon/ios_iconA.png">
+	<link rel="apple-touch-startup-image" href="https://arjunchakri.github.io/favicon.png">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="viewport" content="width = device-width, minimum-scale = 1.0 , initial-scale = 1,user-scalable=yes">
+
+
+	<title>Polls</title>
+	<link href="https://arjunchakri.github.io/favicon.png" rel="icon" sizes="16x16">
+
+	<link rel="manifest" href="https://arjunchakri.github.io/polls/manifest.json">
+
+
+
+  <link rel="stylesheet" href="./style.css">
+  <script  src="./script.js"></script>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!-- moment.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<div class="wrapper">
+  <div id="maincontainer">
+    <div class="container" >
+      <h1 id="headertext">Welcome</h1>
+      
+      <div class="form">
+        <input class="logininputs" id="pollroom" placeholder="Poll Room ID" />
+        <input class="logininputs" id="username" placeholder="Username" />
+        <input class="logininputs" type="password" id="password" placeholder="Password" />
+        <button class="loginbutton" id="login-button" onclick="initializeLogin()">Enter</button>
+      </div>
+    </div>
+  </div>
+
+	<ul class="bg-bubbles">
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+	</ul>
+</div>
+  <script src="https://www.gstatic.com/firebasejs/5.0.3/firebase.js"></script>
+
+  <script>
+
+    var firebaseConfig = {
+        apiKey: "AIzaSyBDYtoAAiIcBiDr5PiWjChG-SptrtenAcg",
+        authDomain: "pollsapp-a5838.firebaseapp.com",
+        databaseURL: "https://pollsapp-a5838.firebaseio.com",
+        projectId: "pollsapp-a5838",
+        storageBucket: "pollsapp-a5838.appspot.com",
+        messagingSenderId: "667416379012",
+        appId: "1:667416379012:web:c0a4dee2329e3ee17e8cd1",
+        measurementId: "G-0FYRPT20Y2"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    var pollroom = "";
+
+    var BROWSER_CACHE_KEY = "pollappkey";
+    
+    
+    function checkCachedCredentials() {
+
+      var cachedcreds = localStorage.getItem(BROWSER_CACHE_KEY);
+
+      if(cachedcreds === null) {
+        return;
+      }
+
+      performlogin(cachedcreds.pollroom, cachedcreds.username, cachecreds.password)
+    }
+
+
+    function initializeLogin() {
+      
+      $('.form').fadeOut(500);
+      $('.wrapper').addClass('form-success');
+      
+      pollroom = $("#pollroom").val();
+      var username = $("#username").val();
+      var password = $("#password").val();
+
+      $("#headertext").html("Logging in... <br>");
+      if (pollroom.trim().length == 0) {
+        showLoginMessage("Enter a Poll Room. Try again. ")
+        return;
+      }
+      
+      if (username.trim().length == 0) {
+        showLoginMessage("Enter a Username. Try again. ")
+        return;
+      }
+
+      if (password.trim().length == 0) {
+        showLoginMessage("Enter a Password. Try again. ")
+        return;
+      }
+
+      performlogin(pollroom, username, password)
+
+    } 
+
+    function performlogin(pollroom_input, username, password)  {
+      pollroom = pollroom_input
+      if(pollroom_input == username) {
+        showLoginMessage("Logging in as admin... ")
+        adminLogin(pollroom_input, username, password);
+      } else {
+        // user login
+        userLogin(pollroom_input, username, password);
+
+      }
+    }
+
+    function userLogin(pollroom, username, password) {
+      var firebaseReference = firebase.database().ref().child(pollroom);
+
+      firebaseReference.once('value', function (snapshot) {
+
+          if (snapshot.val() == null) {
+              showLoginMessage("Room not found. <br>")
+            } else {
+              showUserUI(pollroom, snapshot.val(), username, password)
+          }
+
+      });
+    }
+
+    function showUserUI(pollroom, roomdata, username, password) {
+      var users = roomdata.users
+      var polls = roomdata.polls
+      var userdata = undefined;
+      
+      if(users != undefined) {
+        var containsuser = false;
+
+        for(var eachuser in users) {
+          if(eachuser == username) {
+            containsuser = true;
+            userdata = eachuser
+            if(users[eachuser]["password"] != stringToHash(password)) {
+              showLoginMessage("User password is wrong. Please check")
+              return;
+            }
+
+          }
+        }
+        
+        if(!containsuser) {
+          showLoginMessage("User not found. Contact room admin.")
+          return;
+        }
+
+      } else {
+        showLoginMessage("No users found. Contact room admin.")
+        return;
+      }
+
+      //cache creds in browser
+      cachecreds(pollroom, username, password)
+
+      $('#maincontainer').empty();
+
+      $("#maincontainer").append("<div class=usercardpanel id='cardpanelwhite'> </div>")
+      $("#cardpanelwhite").append("<br> <hr> <br>")
+      $("#cardpanelwhite").append("<br> <hr > <br>")
+      $("#maincontainer").append("<div class=usercardpanel id='cardpanel_lower'> </div>")
+
+      $("#cardpanelwhite").append("<h1> Open polls for " + username + " </h1> ")
+      $("#cardpanel_lower").append("<h1> Closed polls </h1> ")
+
+      $("#cardpanelwhite").append("<br> <hr> <br>")
+
+      if(polls != undefined) {
+
+        for(var eachpoll in polls) {
+
+          var userpoll_data = users[userdata]["polls"][eachpoll]
+
+          var choices = polls[eachpoll]["choices"]
+          var pollendtime = polls[eachpoll]["pollendtime"]
+          var answer = polls[eachpoll]["answer"]
+
+          //alert(moment(addpollendtime, moment.HTML5_FMT.DATETIME_LOCAL).fromNow())
+          //alert(moment().isAfter(moment(addpollendtime, moment.HTML5_FMT.DATETIME_LOCAL)))
+          var polltimeleft_flag = !moment().isAfter(moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL));
+          var useranswered_flag = (typeof userpoll_data  !== 'undefined');
+          
+          if(polltimeleft_flag && !useranswered_flag) {
+            // POLL TIME LEFT... 
+            var deadline_message = moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL).fromNow()
+            $("#cardpanelwhite").append( "<h1>Pollname : " + eachpoll + " ( expires " + deadline_message +  " ) </h1> <br>")
+            var unique_pollcode = stringToHash(eachpoll)
+            var pollpanelid = "cardpanelwhite-" + unique_pollcode;
+            $("#cardpanelwhite").append( "<div id='" + pollpanelid + "'></div>")
+
+            var choices_list = choices.split(",")
+            
+            //userchoice radio 1
+            //addradiobutton
+            $("#" + pollpanelid).append( "Prediction : <br>")
+            addradio("#" + pollpanelid, "radios-prediction", "radiogroup-prediction", unique_pollcode, choices_list)
+            
+            $("#" + pollpanelid).append( "Prediction : <br>")
+            var prediction_list = ["20", "40", "60", "80"]
+
+            addradio("#" + pollpanelid, "radios-confidence", "radiogroup-confidence", unique_pollcode, prediction_list)
+
+            $("#" + pollpanelid).append("<button class=loginbutton onclick=\"submitPollData('" + userdata + "', '" + eachpoll + "','" + unique_pollcode + "')\">Submit</button>")
+
+            $("#" + pollpanelid).append("<br> <hr> <br>")
+
+          } else if(useranswered_flag) {
+            $("#cardpanel_lower").append("You predicted - " + userpoll_data["value"] + " with confidence - " + userpoll_data["confidence"] + " for the poll - " + eachpoll + " <br>")
+          } else {
+            $("#cardpanel_lower").append("You missed predicting for - " + eachpoll + " <br> ")
+          }
+        }
+        
+      } else {
+        $("#cardpanel").append("NONE <br>")
+      }
+    }
+
+    function submitPollData(userdata, pollid, pollhash) {
+      var pollpanelid = "cardpanelwhite-" + pollhash;
+
+      var uservalue = $("input[name='radiogroup-prediction-" + pollhash + "']:checked").val();
+      alert(uservalue)
+      var userconfidence = $("input[name='radiogroup-confidence-" + pollhash + "']:checked").val();
+      alert(userconfidence)
+
+      if(confirm("Prediction: " + uservalue +", confidence: " + userconfidence + ". Are you sure you want to submit ? THIS IS NOT REVERSIBLE, AND YOU WONT GET A SECOND CHANCE.")){ 
+        saveUserPoll(userdata, pollid, uservalue, userconfidence)
+        $("#" + pollpanelid).hide(500);
+        
+      } else {
+        alert("Action cancelled by user.")
+        return;
+      }
+    }
+
+    function saveUserPoll(userdata, pollid, uservalue, userconfidence) {
+
+      var firebaseReference = firebase.database().ref();
+      var userpollinputs = {
+        value: uservalue,
+        confidence: userconfidence,
+        submittime: moment().format(moment.HTML5_FMT.DATETIME_LOCAL)
+      }
+      firebaseReference.child(pollroom).child("users").child(userdata).child("polls").child(pollid).set(userpollinputs);
+      
+    }
+
+    function addradio(parentpanel, parentradioid, radioid, unique_pollcode, choices_list) {
+      $(parentpanel).append("<div class=group id='" + parentradioid + "-" + unique_pollcode + "' > </div>")
+      //   <div class="group">
+      //   <input type="radio" name="rb" id="rb1" />
+      //   <label for="rb1">Check this</label>
+      //   <input type="radio" name="rb" id="rb2" />
+      //   <label for="rb2">... or this...</label>
+      //   <input type="radio" name="rb" id="rb3" />
+      //   <label for="rb3">or maybe this</label>
+      //   </div>
+      var radiochecked = "checked"
+      for (var i = 0; i < choices_list.length; i++) {
+        each_choice = choices_list[i]
+        each_choice = each_choice.trim();
+        var checked = "checked"
+        $("#" + parentradioid + "-" + unique_pollcode).append("<input type=radio name='" + radioid + "-" + unique_pollcode + "' value='" + each_choice + "' id='choice-" + unique_pollcode + each_choice + "' " + radiochecked + " /> <label for='choice-" + unique_pollcode + each_choice + "'>" + each_choice + "</label>")
+        if(radiochecked != "") {
+          radiochecked = "";
+        }
+      }
+
+
+    }
+
+
+
+    function adminLogin(pollroom, username, password) {
+
+      var firebaseReference = firebase.database().ref().child(username);
+
+      firebaseReference.once('value', function (snapshot) {
+
+          if (snapshot.val() == null) {
+              showLoginMessage("Poll room not found. <br>")
+
+              var userresponse = confirm("Poll room not found with the name - " + username + ". Want to create a new one ?")
+              if(userresponse) {
+                showLoginMessage("Creating a new poll room")
+                createNewRoom(username, password);
+                showLoginMessage("Created. Please login again.")
+                return;
+              } else {
+                showLoginMessage("Room creation cancelled by user.")
+                return;
+              }
+            } else {
+              showAdminUI(pollroom, snapshot.val(), username, password)
+          }
+
+      });
+
+    }
+
+    function clearCache() {
+      localStorage.clear();
+    }
+
+    function cachecreds(pollroom, username, password) {
+
+      var cachedcreds = {
+        pollroom: pollroom,
+        username: username,
+        password: password
+      };
+      localStorage.setItem(BROWSER_CACHE_KEY, cachedcreds)
+
+    }
+
+    function showAdminUI(pollroom, roomdata, username, password) {
+      if(roomdata.password != stringToHash(password)) {
+        showLoginMessage("Admin password is wrong. Please check")
+        return;
+      }
+
+      //cache creds in browser
+      cachecreds(pollroom, username, password)
+
+      $('#maincontainer').empty();
+
+      var polls = roomdata.polls
+      var users = roomdata.users
+
+      $("#maincontainer").append("<div id=cardpanel> </div>")
+
+      $("#cardpanel").append("<h2> Admin page for Poll Room - " + username + " </h2> ")
+
+      $("#cardpanel").append("<br> <hr> <br>")
+
+      $("#cardpanel").append("<h3> Users : </h3> <br>")
+
+      if(users != undefined) {
+        for(var eachuser in users) {
+          $("#cardpanel").append( eachuser + " <br>")
+        }
+        
+      } else {
+        $("#cardpanel").append("NONE <br>")
+      }
+
+      $("#cardpanel").append("<br> To add a new user - <input class='inputcolored' id=\"addusername\" placeholder=\"username\" /> <input class='inputcolored' id=\"addpassword\" placeholder=\"password\" /> <button onclick=addUser()>Add user</button>")
+
+      $("#cardpanel").append("<br> <hr style=\"margin-top: 20px\" /> <br>")
+
+      $("#cardpanel").append("<h3> Polls : </h3> <br>")
+      
+      if(polls != undefined) {
+        for(var eachpoll in polls) {
+          
+          $("#cardpanel").append( eachpoll + " -- choices: " + polls[eachpoll]["choices"] + " -- pollendtime: " + polls[eachpoll]["pollendtime"] + " -- pollanswer -> " + polls[eachpoll]["answer"] + "<button onclick=addPollAnswer('" + eachpoll + "')>Add answer</button>" + " <br>")
+        
+        }
+        
+      } else {
+        $("#cardpanel").append("NONE <br>")
+      }
+
+      $("#cardpanel").append("<br> To add a new poll - <input class='inputcolored' id=\"addpollid\" placeholder=\"pollname\" /> <input class='inputcolored' id=\"addchoices\" placeholder=\"Choices\" /> <input type=\"datetime-local\" id=\"addpollendtime\" name=\"pollendtime\"> <button onclick=addPoll()>Add poll</button>")
+
+    }
+
+    function addPollAnswer(pollid) {
+      var userinput = prompt("Please the poll answer ")
+      if(userinput == null) {
+        alert("Variable not provided by user. " + variable + ". Cannot proceed with execution.")
+        return null;
+      }
+
+      var firebaseReference = firebase.database().ref();
+      firebaseReference.child(pollroom).child("polls").child(pollid).child("answer").set(userinput);
+      alert("Poll answer saved. Refresh page to view changes.")
+
+    }
+
+    function addPoll() {
+      var addpollid = $("#addpollid").val();
+      var addchoices = $("#addchoices").val();
+      var addpollendtime = $("#addpollendtime").val();
+      if (addpollid.trim().length == 0) {
+        alert("Enter a proper poll id. ERROR ")
+        return;
+      }
+      if (addchoices.trim().length == 0) {
+        alert("Enter a proper choice. ERROR ")
+        return;
+      }
+      if (addchoices.split(",").length <= 1) {
+        alert("Multiple choices should be given, comma separated. ERROR ")
+        return;
+      }
+      if (addpollendtime.trim().length == 0) {
+        alert("Enter a proper poll time. ERROR ")
+        return;
+      }
+      //moment.HTML5_FMT.DATETIME_LOCAL
+      //alert(moment(addpollendtime, moment.HTML5_FMT.DATETIME_LOCAL).fromNow())
+      //alert(moment().isAfter(moment(addpollendtime, moment.HTML5_FMT.DATETIME_LOCAL)))
+
+      var firebaseReference = firebase.database().ref();
+      var polldata = {
+        choices: addchoices,
+        pollendtime: addpollendtime,
+        answer: ""
+      }
+      firebaseReference.child(pollroom).child("polls").child(addpollid).set(polldata);
+      
+      alert("Poll added. Refresh page to view changes.")
+    }
+
+    function addUser() {
+      var addusername = $("#addusername").val();
+      var addpassword = $("#addpassword").val();
+
+      if (addusername.trim().length == 0) {
+        alert("Enter a proper password. ERROR ")
+        return;
+      }
+
+      if (addpassword.trim().length == 0) {
+        alert("Enter a proper password. ERROR ")
+        return;
+      }
+
+      var firebaseReference = firebase.database().ref();
+      var userdata = {
+          password: stringToHash(addpassword)
+      }
+      firebaseReference.child(pollroom).child("users").child(addusername).set(userdata);
+      alert("User added. Refresh page to view changes.")
+    }
+
+    function createNewRoom(username, password) {
+
+      var firebaseReference = firebase.database().ref();
+      
+      var pollroom = {
+        password: stringToHash(password),
+        users: {},
+        polls: {}
+      }
+      firebaseReference.child(username).set(pollroom);
+
+    }
+
+    function showLoginMessage(content) {
+      $("#headertext").html(content + "<br>");
+    }
+
+    // Convert to 32bit integer 
+    function stringToHash(string) { 
+          
+          var hash = 0; 
+            
+          if (string.length == 0) return hash; 
+            
+          for (i = 0; i < string.length; i++) { 
+              char = string.charCodeAt(i); 
+              hash = ((hash << 5) - hash) + char; 
+              hash = hash & hash; 
+          } 
+            
+          return hash; 
+      } 
+
+
+  </script>
+
+</body>
+</html>

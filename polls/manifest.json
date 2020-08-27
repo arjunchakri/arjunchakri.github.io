@@ -1,0 +1,21 @@
+{
+  "short_name": "Polls",
+  "name": "Polls",
+  "icons": [
+    {
+      "src": "https://arjunchakri.github.io/notes/icon/favicon192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://arjunchakri.github.io/notes/icon/favicon512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "https://arjunchakri.github.io/polls/",
+  "background_color": "#00897b",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#00695c"
+}
