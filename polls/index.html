@@ -192,7 +192,7 @@
 
         for(var eachpoll in polls) {
 
-          var userpoll_data = users[userdata]["polls"][eachpoll]
+          var userpoll_data = users[userdata]["polls"] == undefined ? undefined : users[userdata]["polls"][eachpoll];
 
           var choices = polls[eachpoll]["choices"]
           var pollendtime = polls[eachpoll]["pollendtime"]
@@ -203,7 +203,7 @@
           var polltimeleft_flag = !moment().isAfter(moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL));
           var useranswered_flag = (typeof userpoll_data  !== 'undefined');
           
-          if(polltimeleft_flag && !useranswered_flag) {
+          if(polltimeleft_flag) {
             // POLL TIME LEFT... 
             var deadline_message = moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL).fromNow()
             $("#cardpanelwhite").append( "<h1>Pollname : " + eachpoll + " ( expires " + deadline_message +  " ) </h1> <br>")
@@ -223,8 +223,11 @@
 
             addradio("#" + pollpanelid, "radios-confidence", "radiogroup-confidence", unique_pollcode, prediction_list)
 
-            $("#" + pollpanelid).append("<button class=loginbutton onclick=\"submitPollData('" + userdata + "', '" + eachpoll + "','" + unique_pollcode + "')\">Submit</button>")
-
+            $("#" + pollpanelid).append("<button class=loginbutton onclick=\"submitPollData('" + userdata + "', '" + eachpoll + "','" + unique_pollcode + "')\">Submit</button>")      
+           
+           if(useranswered_flag){
+            $("#" + pollpanelid).append("You have predicted :"+userpoll_data["value"] + " with confidence - " + userpoll_data["confidence"]+" on "+userpoll_data["submittime"]);
+           }
             $("#" + pollpanelid).append("<br> <hr> <br>")
 
           } else if(useranswered_flag) {
