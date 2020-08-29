@@ -206,11 +206,16 @@
           if(polltimeleft_flag) {
             // POLL TIME LEFT... 
             var deadline_message = moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL).fromNow()
-            $("#cardpanelwhite").append( "<h1>Pollname : " + eachpoll + " ( expires " + deadline_message +  " ) </h1> <br>")
-            var unique_pollcode = stringToHash(eachpoll)
-            var pollpanelid = "cardpanelwhite-" + unique_pollcode;
+            let unique_pollcode = stringToHash(eachpoll)
+            $("#cardpanelwhite").append( "<h1 id='h1-"+unique_pollcode+"'>+Pollname : " + eachpoll + " ( expires " + deadline_message +  " ) </h1> <br>")
+            let pollpanelid = "cardpanelwhite-" + unique_pollcode;
             $("#cardpanelwhite").append( "<div id='" + pollpanelid + "'></div>")
-
+            $(document).ready(function(){
+              $("#h1-"+unique_pollcode).mousedown(function(){
+                $("#"+pollpanelid).slideToggle();
+              });
+            });
+            $("#" + pollpanelid).hide();
             var choices_list = choices.split(",")
             
             //userchoice radio 1
@@ -252,7 +257,7 @@
 
       if(confirm("Prediction: " + uservalue +", confidence: " + userconfidence + ". Are you sure you want to submit ? THIS IS NOT REVERSIBLE, AND YOU WONT GET A SECOND CHANCE.")){ 
         saveUserPoll(userdata, pollid, uservalue, userconfidence)
-        $("#" + pollpanelid).hide(500);
+        $("#" + pollpanelid).slideToggle();
         
       } else {
         alert("Action cancelled by user.")
