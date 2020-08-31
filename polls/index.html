@@ -192,7 +192,7 @@
 
         for(var eachpoll in polls) {
 
-          var userpoll_data = users[userdata]["polls"] == undefined ? undefined : users[userdata]["polls"][eachpoll];
+          var userpoll_data = typeof users[userdata]["polls"] === 'undefined' ? undefined : users[userdata]["polls"][eachpoll];
 
           var choices = polls[eachpoll]["choices"]
           var pollendtime = polls[eachpoll]["pollendtime"]
