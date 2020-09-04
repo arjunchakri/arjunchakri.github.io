@@ -24,6 +24,10 @@
   <!-- moment.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
 
+  <!-- pdf generator for leaderboard-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.4.1/jspdf.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.10/jspdf.plugin.autotable.js"></script>
+	
 </head>
 <body>
 <!-- partial:index.partial.html -->
@@ -59,14 +63,14 @@
   <script>
 
     var firebaseConfig = {
-        apiKey: "AIzaSyBDYtoAAiIcBiDr5PiWjChG-SptrtenAcg",
-        authDomain: "pollsapp-a5838.firebaseapp.com",
-        databaseURL: "https://pollsapp-a5838.firebaseio.com",
-        projectId: "pollsapp-a5838",
-        storageBucket: "pollsapp-a5838.appspot.com",
-        messagingSenderId: "667416379012",
-        appId: "1:667416379012:web:c0a4dee2329e3ee17e8cd1",
-        measurementId: "G-0FYRPT20Y2"
+            apiKey: "AIzaSyD5Q11SFWdWxel8DSR8Drs7M2e-KE-GfaY",
+            authDomain: "gaming-e803c.firebaseapp.com",
+            databaseURL: "https://gaming-e803c.firebaseio.com",
+            projectId: "gaming-e803c",
+            storageBucket: "gaming-e803c.appspot.com",
+            messagingSenderId: "626465373805",
+            appId: "1:626465373805:web:1b8ccb6d11bba5da6d4964",
+            measurementId: "G-7T6T3JPX2B"
     };
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
@@ -179,7 +183,10 @@
       $('#maincontainer').empty();
 
       $("#maincontainer").append("<div class=usercardpanel id='cardpanelwhite'> </div>")
+      $("#cardpanelwhite").append("<div class=usercardpanel id='cardpanelLeaderboard'> </div>")
+      $("#cardpanelwhite").append("<h1 id='headerLBoard'>LeaderBoard</h1>");
       $("#cardpanelwhite").append("<br> <hr> <br>")
+      buildLeaderBoard(roomdata.scorecard);
       $("#cardpanelwhite").append("<br> <hr > <br>")
       $("#maincontainer").append("<div class=usercardpanel id='cardpanel_lower'> </div>")
 
@@ -246,6 +253,56 @@
         $("#cardpanel").append("NONE <br>")
       }
     }
+
+    function buildLeaderBoard(scorecard){
+      scorecard = null;
+      $("#cardpanelwhite").append("<div class=usercardpanel id='leaderBoard'> </div>")
+      
+      $("#leaderBoard").append($("<div id='lBoard_table_div'></div>")
+                    .append("<input type='text' placeholder='search for a user' id='userSearch'></input>")
+                    .append("<button id='downloadPdf' onclick='pdfDownload()'>Download pdf</button>")
+                    .append($("<table id='lboard_table'></table>")
+                                  .addClass("lboard_table")
+                                  .append($("<tr></tr>")
+                                    .append($("<th></th>").text("Rank"))
+                                      .append($("<th></th>").text("User Name"))
+                                        .append($("<th></th>").text("Points")))));
+
+      
+      $(document).ready(function(){
+        $("#headerLBoard").mousedown(function(){
+          $("#leaderBoard").slideToggle();
+        });        
+      });
+      
+      $(document).ready(function(){
+        $("#userSearch").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        $("#lboard_table tr").filter(function() {
+          $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+        });
+      });
+
+      if(scorecard && !isUndefined(scorecard)){
+        var allUsersPoints = scorecard.userPoints;
+        console.log("User Points : "+allUsersPoints);
+
+        for(var userPoints in allUsersPoints){
+          $("#lboard_table").append($("<tr></tr>")
+                    .append($("<td></td>").text(allUsersPoints[userPoints].rank))
+                    .append($("<td></td>").text(allUsersPoints[userPoints].user))
+                    .append($("<td></td>").text(allUsersPoints[userPoints].points)));
+        }
+      }
+    }
+
+
+    function pdfDownload(){
+			  var doc = new jsPDF()
+			  doc.autoTable({ html: '#lboard_table' })
+			  doc.save('table.pdf')
+		}
 
     function submitPollData(userdata, pollid, pollhash) {
       var pollpanelid = "cardpanelwhite-" + pollhash;
@@ -397,10 +454,81 @@
 
     }
 
+    function computeTotalScores(pollRoom, pollId){
+        var polls = pollRoom.polls;
+        var users = pollRoom.users;
+
+        if(isUndefined(polls)){
+          alert("No polls in this room");
+          return;
+        }
+
+        if(isUndefined(users)){
+          alert("No users in the room to compute scoress");
+          return;
+        }
+      var userPoints = []
+      for(var user in users) {
+        var userpoll_data = isUndefined(users[user]["polls"]) ? undefined : users[user]["polls"];
+        if(isUndefined(userpoll_data)){
+          console.log("no poll data available for user : "+user.username);
+        }
+        var totalPoints = 0;
+        for(var poll in polls) {
+            if(moment(polls[poll]["pollendtime"]).isAfter(polls[pollId]["pollendtime"])){
+              continue;
+            }
+            var answer = polls[poll]["answer"];
+            console.log("For poll="+poll+", answer="+answer);            
+            if(typeof answer === 'undefined' || answer == null || answer.trim() == ""){
+              continue;
+            }
+            var userPollSelection;
+            if(!isUndefined(userpoll_data)){
+              userPollSelection = userpoll_data[poll];              
+            } 
+            if(isUndefined(userPollSelection)){
+              totalPoints -=100;
+            }else{
+              console.log("user : "+user.username+" selection for poll : "+poll+" is :"+userPollSelection.value);
+            totalPoints += userPollSelection.value === answer ? 
+                                  parseInt(userPollSelection.confidence) : -parseInt(userPollSelection.confidence);
+            }
+        }
+        console.log("user :"+user+", points : "+totalPoints);
+        
+        userPoints.push({
+          user : user,
+          points : totalPoints,
+          rank: 0,
+        });
+      }  
+      rank(userPoints, (user1Points, user2Points) => user2Points.points - user1Points.points);
+      console.log(userPoints); 
+      var scorecard = {
+        userPoints : userPoints,
+        pollid : pollId
+      }
+      firebase.database().ref().child(pollroom).child("scorecard").set(scorecard);
+    }
+
+    function isUndefined(testParameter){
+      return testParameter === undefined;
+    }
+
+    function rank(userPoints, f) {
+      const sortedUserPoints = userPoints.sort(f)
+      sortedUserPoints.map(x => x.rank = sortedUserPoints.findIndex(s => f(x, s) === 0) + 1) 
+    }
+
+    function sortUsersOnPoints(user1Points, user2Points){
+      return user1Points.points > user2Points.polls ? -1 : user2Points > user1Points ? 1 : 0;
+    }
+
     function addPollAnswer(pollid) {
       var userinput = prompt("Please the poll answer ")
       if(userinput == null) {
-        alert("Variable not provided by user. " + variable + ". Cannot proceed with execution.")
+        alert("userinput not provided by user. Cannot proceed with execution.")
         return null;
       }
 
@@ -408,6 +536,20 @@
       firebaseReference.child(pollroom).child("polls").child(pollid).child("answer").set(userinput);
       alert("Poll answer saved. Refresh page to view changes.")
 
+
+      var cachedcreds = localStorage.getItem(BROWSER_CACHE_KEY);
+
+      var firebaseReference = firebaseReference.child(pollroom);
+
+      firebaseReference.once('value', function (snapshot) {
+
+        if (snapshot.val() == null) {
+          alert("Error in retriving dataa.");
+          return
+        }
+        var pollRoom = snapshot.val();
+        computeTotalScores(pollRoom, pollid)
+      }); 
     }
 
     function addPoll() {

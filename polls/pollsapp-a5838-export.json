@@ -1,0 +1,91 @@
+{
+  "aa" : {
+    "password" : 3104,
+    "polls" : {
+      "tesing" : {
+        "answer" : "",
+        "choices" : "a,b",
+        "pollendtime" : "2020-08-28T19:54"
+      },
+      "test" : {
+        "answer" : "",
+        "choices" : "test, any",
+        "pollendtime" : "2020-08-24T13:50"
+      },
+      "testnow" : {
+        "answer" : "",
+        "choices" : "a,b",
+        "pollendtime" : "2020-08-26T19:32"
+      },
+      "who wins" : {
+        "answer" : "",
+        "choices" : "a,b",
+        "pollendtime" : "2020-08-26T19:47"
+      },
+      "whowinstest 4" : {
+        "answer" : "",
+        "choices" : "text1, text3",
+        "pollendtime" : "2020-08-29T19:57"
+      },
+      "whowinstest2" : {
+        "answer" : "",
+        "choices" : "test a, test b",
+        "pollendtime" : "2020-08-27T21:38"
+      },
+      "whowinstest3" : {
+        "answer" : "",
+        "choices" : "test a, test b",
+        "pollendtime" : "2020-08-29T21:38"
+      }
+    },
+    "users" : {
+      "a" : {
+        "password" : 97,
+        "polls" : {
+          "who wins" : {
+            "confidence" : "40",
+            "submittime" : "2020-08-25T23:01",
+            "value" : "a"
+          },
+          "whowinstest2" : {
+            "confidence" : "80",
+            "submittime" : "2020-08-25T23:28",
+            "value" : "test b"
+          },
+          "whowinstest3" : {
+            "confidence" : "80",
+            "submittime" : "2020-08-27T19:44",
+            "value" : "test a"
+          }
+        }
+      },
+      "aa" : {
+        "password" : 3104
+      },
+      "arjunchakri" : {
+        "password" : 2069893880
+      }
+    }
+  },
+  "arjun" : {
+    "password" : 93083314,
+    "polls" : {
+      "IPL match 5" : {
+        "answer" : "",
+        "choices" : "RCB, MI",
+        "pollendtime" : "2020-08-27T19:55"
+      }
+    },
+    "users" : {
+      "akhil" : {
+        "password" : 92872481
+      },
+      "akhil2" : {
+        "password" : -1415920335
+      },
+      "akhil3" : {
+        "password" : -1415920334
+      }
+    }
+  }
+}

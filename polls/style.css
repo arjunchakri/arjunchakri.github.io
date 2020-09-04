@@ -322,3 +322,37 @@ label::before {
   -webkit-transition: .25s all ease;
   transition: .25s all ease;
 }
+
+.lBoard{
+	margin: 0;
+	padding: 0;
+	font-family: 'Montserrat', sans-serif;
+	position: absolute;
+	top: 50px;
+	left: 10px;
+}
+
+#headerlBoard{
+	position: relative;
+	left:  10px;
+}
+
+.lboard_table {
+	border-radius: 20px;
+}
+
+.lboard_table th {
+	border: 1px solid black;
+	padding : 25px;
+	margin:10px
+}
+
+.lboard_table td{
+	border: 1px solid black;
+	padding : 25px;
+	margin:10px
+}
+
+#userSearch{
+	background-color: #00cc99;
+}
