@@ -199,7 +199,7 @@
 
         for(var eachpoll in polls) {
 
-          var userpoll_data = typeof users[userdata]["polls"] === 'undefined' ? undefined : users[userdata]["polls"][eachpoll];
+          var userpoll_data = isUndefined(users[userdata]["polls"]) ? undefined : users[userdata]["polls"][eachpoll];
 
           var choices = polls[eachpoll]["choices"]
           var pollendtime = polls[eachpoll]["pollendtime"]
@@ -227,19 +227,16 @@
             
             //userchoice radio 1
             //addradiobutton
-            $("#" + pollpanelid).append( "Prediction : <br>")
+            $("#" + pollpanelid).append( "Prediction : Current prediction - "+ (useranswered_flag ? "<h3 id='pollSelection' style='display:inline'>"+(userpoll_data["value"])+"</h3>":"<br/>"));
             addradio("#" + pollpanelid, "radios-prediction", "radiogroup-prediction", unique_pollcode, choices_list)
             
-            $("#" + pollpanelid).append( "Prediction : <br>")
+            $("#" + pollpanelid).append( "Prediction Confidence: Current prediction - "+ (useranswered_flag ? "<h3 id='pollConfidence' style='display:inline'>"+(userpoll_data["confidence"])+"</h3>":"<br/>"));
             var prediction_list = ["20", "40", "60", "80"]
 
             addradio("#" + pollpanelid, "radios-confidence", "radiogroup-confidence", unique_pollcode, prediction_list)
 
             $("#" + pollpanelid).append("<button class=loginbutton onclick=\"submitPollData('" + userdata + "', '" + eachpoll + "','" + unique_pollcode + "')\">Submit</button>")      
            
-           if(useranswered_flag){
-            $("#" + pollpanelid).append("You have predicted :"+userpoll_data["value"] + " with confidence - " + userpoll_data["confidence"]+" on "+userpoll_data["submittime"]);
-           }
             $("#" + pollpanelid).append("<br> <hr> <br>")
 
           } else if(useranswered_flag) {
@@ -255,7 +252,6 @@
     }
 
     function buildLeaderBoard(scorecard){
-      scorecard = null;
       $("#cardpanelwhite").append("<div class=usercardpanel id='leaderBoard'> </div>")
       
       $("#leaderBoard").append($("<div id='lBoard_table_div'></div>")
@@ -308,14 +304,13 @@
       var pollpanelid = "cardpanelwhite-" + pollhash;
 
       var uservalue = $("input[name='radiogroup-prediction-" + pollhash + "']:checked").val();
-      alert(uservalue)
       var userconfidence = $("input[name='radiogroup-confidence-" + pollhash + "']:checked").val();
-      alert(userconfidence)
 
-      if(confirm("Prediction: " + uservalue +", confidence: " + userconfidence + ". Are you sure you want to submit ? THIS IS NOT REVERSIBLE, AND YOU WONT GET A SECOND CHANCE.")){ 
+      if(confirm("Prediction: " + uservalue +", confidence: " + userconfidence + ". Are you sure you want to submit ? THIS IS NOT REVERSIBLE POST THE CUT OFF TIME.")){ 
         saveUserPoll(userdata, pollid, uservalue, userconfidence)
+        $("#pollSelection").text(uservalue); 
+        $("#pollConfidence").text(userconfidence);         
         $("#" + pollpanelid).slideToggle();
-        
       } else {
         alert("Action cancelled by user.")
         return;
@@ -480,7 +475,7 @@
             }
             var answer = polls[poll]["answer"];
             console.log("For poll="+poll+", answer="+answer);            
-            if(typeof answer === 'undefined' || answer == null || answer.trim() == ""){
+            if(isUndefined(answer) || answer == null || answer.trim() == ""){
               continue;
             }
             var userPollSelection;
@@ -521,9 +516,7 @@
       sortedUserPoints.map(x => x.rank = sortedUserPoints.findIndex(s => f(x, s) === 0) + 1) 
     }
 
-    function sortUsersOnPoints(user1Points, user2Points){
-      return user1Points.points > user2Points.polls ? -1 : user2Points > user1Points ? 1 : 0;
-    }
+     
 
     function addPollAnswer(pollid) {
       var userinput = prompt("Please the poll answer ")
@@ -605,8 +598,15 @@
       var userdata = {
           password: stringToHash(addpassword)
       }
-      firebaseReference.child(pollroom).child("users").child(addusername).set(userdata);
-      alert("User added. Refresh page to view changes.")
+      firebaseReference.child(pollroom).child("users").child(addusername).once("value", snapshot => {
+        if (snapshot.exists()){
+            alert("User already exists with the same name. Please try a different user name");
+            return;
+        }else{
+           firebaseReference.child(pollroom).child("users").child(addusername).set(userdata);
+           alert("User added. Refresh page to view changes.")
+       }
+      });
     }
 
     function createNewRoom(username, password) {
