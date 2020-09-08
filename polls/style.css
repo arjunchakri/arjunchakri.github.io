@@ -77,7 +77,8 @@ body :-ms-input-placeholder {
   background: linear-gradient(to bottom right, #50a3a2 0%, #53e3a6 100%);
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  position: fixed;
+  overflow: scroll;
 }
 .wrapper.form-success .container h1 {
   -webkit-transform: translateY(85px);
