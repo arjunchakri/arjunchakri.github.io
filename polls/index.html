@@ -225,10 +225,10 @@
             
             //userchoice radio 1
             //addradiobutton
-            $("#" + pollpanelid).append( "Prediction : Current prediction - "+ (useranswered_flag ? "<h3 id='pollSelection' style='display:inline'>"+(userpoll_data["value"])+"</h3>":"<br/>"));
+            $("#" + pollpanelid).append( "Prediction : Current prediction - <h3 id='pollSelection-"+unique_pollcode+"' style='display:inline'>"+(useranswered_flag ?userpoll_data["value"]:"")+"</h3><br/>");
             addradio("#" + pollpanelid, "radios-prediction", "radiogroup-prediction", unique_pollcode, choices_list)
             
-            $("#" + pollpanelid).append( "Prediction Confidence: Current prediction - "+ (useranswered_flag ? "<h3 id='pollConfidence' style='display:inline'>"+(userpoll_data["confidence"])+"</h3>":"<br/>"));
+            $("#" + pollpanelid).append( "Prediction Confidence: Current prediction - <h3 id='pollConfidence-"+unique_pollcode+"' style='display:inline'>"+(useranswered_flag ? userpoll_data["confidence"]:"")+"</h3><br/>");
             var prediction_list = ["20", "40", "60", "80"]
 
             addradio("#" + pollpanelid, "radios-confidence", "radiogroup-confidence", unique_pollcode, prediction_list)
@@ -316,8 +316,8 @@
 
       if(confirm("Prediction: " + uservalue +", confidence: " + userconfidence + ". Are you sure you want to submit ? THIS IS NOT REVERSIBLE POST THE CUT OFF TIME.")){ 
         saveUserPoll(userdata, pollid, uservalue, userconfidence)
-        $("#pollSelection").text(uservalue); 
-        $("#pollConfidence").text(userconfidence);         
+        $("#pollSelection-"+pollhash).text(uservalue); 
+        $("#pollConfidence-"+pollhash).text(userconfidence);         
         $("#" + pollpanelid).slideToggle();
       } else {
         alert("Action cancelled by user.")
