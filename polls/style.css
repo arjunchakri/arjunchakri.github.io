@@ -353,6 +353,6 @@ label::before {
 	margin:10px
 }
 
-#userSearch{
+.userSearch{
 	background-color: #00cc99;
 }
