@@ -238,9 +238,9 @@
             $("#" + pollpanelid).append("<br> <hr> <br>")
 
           } else if(useranswered_flag) {
-            $("#cardpanel_lower").append("You predicted - " + userpoll_data["value"] + " with confidence - " + userpoll_data["confidence"] + " for the poll - " + eachpoll + " <br>")
+            $("#cardpanel_lower").append(" 😃 You predicted - " + userpoll_data["value"] + " with confidence - " + userpoll_data["confidence"] + " for the poll - " + eachpoll + " <br>")
           } else {
-            $("#cardpanel_lower").append("You missed predicting for - " + eachpoll + " <br> ")
+            $("#cardpanel_lower").append(" 🙁 You missed predicting for - " + eachpoll + " <br> ")
           }
         }
         
