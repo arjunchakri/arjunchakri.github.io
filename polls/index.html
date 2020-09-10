@@ -89,6 +89,7 @@
     var pollroom = "";
     var users
     var polls
+    var roomdata_global
 
     var BROWSER_CACHE_KEY = "pollappkey";
     
@@ -176,6 +177,7 @@
     function showUserUI(pollroom, roomdata, username, password) {
       users = roomdata.users
       polls = roomdata.polls
+      roomdata_global = roomdata
       var userdata = undefined;
       
       if(users != undefined) {
@@ -212,7 +214,7 @@
       $("#cardpanelwhite").append("<button class=loginbutton onclick=\"clearCache()\"> Logout </button> <br>")
       $("#cardpanelwhite").append("<button class=loginbutton onclick=\"changePassword('" + username + "', '" + password + "')\"> Change Password </button> <br>")
 
-      $("#cardpanelwhite").append("<button class=loginbutton onclick=\"buildLeaderBoard()\"> Leaderboard </button> <br>")
+      $("#cardpanelwhite").append("<button class=loginbutton onclick=\"invokeLeaderBoard()\"> Leaderboard </button> <br>")
       $("#cardpanelwhite").append("<button class=loginbutton onclick=\"invokeAllPollsLeaderBoard()\"> Room board </button> <br>")
 
       $("#cardpanelwhite").append("<div class=usercardpanel id='cardpanelLeaderboard'> </div>")
@@ -316,15 +318,20 @@
 
     }
 
+    function invokeLeaderBoard() {
+      buildLeaderBoard(roomdata_global.scorecard);
+    }
+
     function invokeAllPollsLeaderBoard() {
       buildAllPollsLeaderBoard(users, polls,"selections");
     }
 
     function buildLeaderBoard(scorecard){
-      $("#cardpanelwhite").append("<h1 id='headerLBoard'>LeaderBoard</h1>");
-      $("#cardpanelwhite").append("<br> <hr> <br>")
+      $("#displaymodal").empty();
+      $("#displaymodal").append("<h1 id='headerLBoard'>LeaderBoard</h1>");
+      $("#displaymodal").append("<br> <hr> <br>")
 
-      $("#cardpanelwhite").append("<div class=usercardpanel id='leaderBoard'> </div>")
+      $("#displaymodal").append("<div class=usercardpanel id='leaderBoard'> </div>")
       
       $("#leaderBoard").append($("<div id='lBoard_table_div'></div>")
                     .append("<input type='text' placeholder='search...' class = 'userSearch' id='userSearch'></input>")
@@ -363,7 +370,9 @@
                     .append($("<td></td>").text(allUsersPoints[userPoints].points)));
         }
       }
-      $("#cardpanelwhite").append("<br> <hr > <br>")
+
+      showPopupModal()
+
     }
 
 
