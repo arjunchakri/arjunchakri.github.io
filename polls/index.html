@@ -109,8 +109,10 @@
       }
       $('.form').fadeOut(500);
       $('.wrapper').addClass('form-success');
-
+      
+      
       showLoginMessage("Recovering login... ")
+      $("#maincontainer").append("<button class=loginbutton onclick=\"clearCache()\">Force logout</button><br>");
 
       var cachedcreds_json = JSON.parse(cachedcreds) 
       performlogin(cachedcreds_json.pollroom, cachedcreds_json.username, cachedcreds_json.password)
@@ -207,9 +209,11 @@
       $('#maincontainer').empty();
 
       $("#maincontainer").append("<div class=usercardpanel id='cardpanelwhite'> </div>")
-      $("#cardpanelwhite").append("<button onclick=\"clearCache()\"> Logout </button> <br>")
-      $("#cardpanelwhite").append("<button onclick=\"buildLeaderBoard()\"> Leaderboard </button> <br>")
-      $("#cardpanelwhite").append("<button onclick=\"invokeAllPollsLeaderBoard()\"> Room board </button> <br>")
+      $("#cardpanelwhite").append("<button class=loginbutton onclick=\"clearCache()\"> Logout </button> <br>")
+      $("#cardpanelwhite").append("<button class=loginbutton onclick=\"changePassword('" + username + "', '" + password + "')\"> Change Password </button> <br>")
+
+      $("#cardpanelwhite").append("<button class=loginbutton onclick=\"buildLeaderBoard()\"> Leaderboard </button> <br>")
+      $("#cardpanelwhite").append("<button class=loginbutton onclick=\"invokeAllPollsLeaderBoard()\"> Room board </button> <br>")
 
       $("#cardpanelwhite").append("<div class=usercardpanel id='cardpanelLeaderboard'> </div>")
       // buildLeaderBoard(roomdata.scorecard);
@@ -217,6 +221,7 @@
       $("#maincontainer").append("<div class=usercardpanel id='cardpanel_lower'> </div>")
 
       $("#cardpanelwhite").append("<h1> Open polls for " + username + " </h1> ")
+
       $("#cardpanel_lower").append("<h1> Closed polls </h1> ")
 
       $("#cardpanelwhite").append("<br> <hr> <br>")
@@ -240,7 +245,7 @@
             // POLL TIME LEFT... 
             var deadline_message = moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL).fromNow()
             let unique_pollcode = stringToHash(eachpoll)
-            $("#cardpanelwhite").append( "<h1 id='h1-"+unique_pollcode+"'>+Pollname : " + eachpoll + " ( expires " + deadline_message +  " ) </h1> <br>")
+            $("#cardpanelwhite").append( "<h1 id='h1-"+unique_pollcode+"'> + Poll : " + eachpoll + " ( expires " + deadline_message +  " ) </h1> <br>")
             let pollpanelid = "cardpanelwhite-" + unique_pollcode;
             $("#cardpanelwhite").append( "<div id='" + pollpanelid + "'></div>")
             $(document).ready(function(){
@@ -275,6 +280,34 @@
       } else {
         $("#cardpanel").append("NONE <br>")
       }
+
+      $("#cardpanelwhite").append("<br> <hr> <br>")
+    }
+
+    function changePassword(username, password) {
+      var newpass = prompt("Please enter a new password.")
+      if(newpass == null) {
+        alert("newpass not provided by user. Cannot proceed with execution.")
+        return;
+      }
+      
+      var firebaseReference = firebase.database().ref().child(pollroom).child("users").child(username).child("password");
+
+      firebaseReference.once('value', function (snapshot) {
+        if (snapshot.val() == null) {
+            alert("Couldnt find password. ERROR.")
+        } else {
+          if(snapshot.val() !== stringToHash(password)) {
+            alert("Current password not correct, ERROR.")
+            return;
+          }
+
+          firebaseReference.set(stringToHash(newpass));
+          
+          clearCache()
+        }
+      });
+
     }
 
     function invokeAllPollsLeaderBoard() {
@@ -288,7 +321,7 @@
       $("#cardpanelwhite").append("<div class=usercardpanel id='leaderBoard'> </div>")
       
       $("#leaderBoard").append($("<div id='lBoard_table_div'></div>")
-                    .append("<input type='text' placeholder='search for a user' class = 'userSearch' id='userSearch'></input>")
+                    .append("<input type='text' placeholder='search...' class = 'userSearch' id='userSearch'></input>")
                     .append("<button id='downloadPdf' onclick='pdfDownloadLeaderBoard()'>Download pdf</button>")
                     .append($("<table id='lboard_table'></table>")
                                   .addClass("lboard_table")
