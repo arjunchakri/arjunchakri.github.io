@@ -258,10 +258,10 @@
             
             //userchoice radio 1
             //addradiobutton
-            $("#" + pollpanelid).append( "Prediction : Current prediction - <h3 id='pollSelection-"+unique_pollcode+"' style='display:inline'>"+(useranswered_flag ?userpoll_data["value"]:"")+"</h3><br/>");
+            $("#" + pollpanelid).append( "Choose your Prediction : Current - <h3 id='pollSelection-"+unique_pollcode+"' style='display:inline'>"+(useranswered_flag ?userpoll_data["value"]:" NONE ")+"</h3><br/>");
             addradio("#" + pollpanelid, "radios-prediction", "radiogroup-prediction", unique_pollcode, choices_list)
             
-            $("#" + pollpanelid).append( "Prediction Confidence: Current prediction - <h3 id='pollConfidence-"+unique_pollcode+"' style='display:inline'>"+(useranswered_flag ? userpoll_data["confidence"]:"")+"</h3><br/>");
+            $("#" + pollpanelid).append( "Choose your Confidence: Current - <h3 id='pollConfidence-"+unique_pollcode+"' style='display:inline'>"+(useranswered_flag ? userpoll_data["confidence"]:" NONE ")+"</h3><br/>");
             var prediction_list = ["20", "40", "60", "80"]
 
             addradio("#" + pollpanelid, "radios-confidence", "radiogroup-confidence", unique_pollcode, prediction_list)
@@ -273,7 +273,7 @@
           } else if(useranswered_flag) {
             $("#cardpanel_lower").append(" 😃 You predicted - " + userpoll_data["value"] + " with confidence - " + userpoll_data["confidence"] + " for the poll - " + eachpoll + " <br>")
           } else {
-            $("#cardpanel_lower").append(" 🙁 You missed predicting for - " + eachpoll + " <br> ")
+            $("#cardpanel_lower").append(" 🙁 Missed predicting for - " + eachpoll + " <br> ")
           }
         }
         
