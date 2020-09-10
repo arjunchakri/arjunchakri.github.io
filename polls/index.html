@@ -290,6 +290,11 @@
         alert("newpass not provided by user. Cannot proceed with execution.")
         return;
       }
+
+      if (newpass.trim().length == 0) {
+        alert("Enter a non-empty password. ERROR")
+        return;
+      }
       
       var firebaseReference = firebase.database().ref().child(pollroom).child("users").child(username).child("password");
 
