@@ -40,7 +40,7 @@
 <!-- partial:index.partial.html -->
 <div class="wrapper">
   <div id="maincontainer" style="z-index: 2;">
-    <div class="container" >
+    <div class="container" id="container" >
       <h1 id="headertext">Welcome</h1>
       
       <div class="form" id="logincontainer">
@@ -112,7 +112,7 @@
       
       
       showLoginMessage("Recovering login... ")
-      $("#maincontainer").append("<button class=loginbutton onclick=\"clearCache()\">Force logout</button><br>");
+      $("#container").prepend("<button class=loginbutton onclick=\"clearCache()\">Force logout</button><br>");
 
       var cachedcreds_json = JSON.parse(cachedcreds) 
       performlogin(cachedcreds_json.pollroom, cachedcreds_json.username, cachedcreds_json.password)
@@ -308,7 +308,8 @@
           }
 
           firebaseReference.set(stringToHash(newpass));
-          
+          alert("Password change successful.")
+
           clearCache()
         }
       });
