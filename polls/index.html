@@ -36,7 +36,7 @@
     <div class="container" >
       <h1 id="headertext">Welcome</h1>
       
-      <div class="form">
+      <div class="form" id="logincontainer">
         <input class="logininputs" id="pollroom" placeholder="Poll Room ID" />
         <input class="logininputs" id="username" placeholder="Username" />
         <input class="logininputs" type="password" id="password" placeholder="Password" />
@@ -80,6 +80,9 @@
     var BROWSER_CACHE_KEY = "pollappkey";
     
     
+
+    checkCachedCredentials()
+    
     function checkCachedCredentials() {
 
       var cachedcreds = localStorage.getItem(BROWSER_CACHE_KEY);
@@ -87,8 +90,13 @@
       if(cachedcreds === null) {
         return;
       }
+      $('.form').fadeOut(500);
+      $('.wrapper').addClass('form-success');
 
-      performlogin(cachedcreds.pollroom, cachedcreds.username, cachecreds.password)
+      showLoginMessage("Recovering login... ")
+
+      var cachedcreds_json = JSON.parse(cachedcreds) 
+      performlogin(cachedcreds_json.pollroom, cachedcreds_json.username, cachedcreds_json.password)
     }
 
 
@@ -116,7 +124,7 @@
         showLoginMessage("Enter a Password. Try again. ")
         return;
       }
-
+      showLoginMessage("Logging in as " + username + " ")
       performlogin(pollroom, username, password)
 
     } 
@@ -124,7 +132,6 @@
     function performlogin(pollroom_input, username, password)  {
       pollroom = pollroom_input
       if(pollroom_input == username) {
-        showLoginMessage("Logging in as admin... ")
         adminLogin(pollroom_input, username, password);
       } else {
         // user login
@@ -183,6 +190,8 @@
       $('#maincontainer').empty();
 
       $("#maincontainer").append("<div class=usercardpanel id='cardpanelwhite'> </div>")
+      $("#cardpanelwhite").append("<button onclick=\"clearCache()\"> Logout </button>")
+
       $("#cardpanelwhite").append("<div class=usercardpanel id='cardpanelLeaderboard'> </div>")
       buildLeaderBoard(roomdata.scorecard);
       buildAllPollsLeaderBoard(users, polls,"selections");
@@ -392,6 +401,7 @@
 
     function clearCache() {
       localStorage.clear();
+      window.location.reload();
     }
 
     function cachecreds(pollroom, username, password) {
@@ -401,7 +411,7 @@
         username: username,
         password: password
       };
-      localStorage.setItem(BROWSER_CACHE_KEY, cachedcreds)
+      localStorage.setItem(BROWSER_CACHE_KEY, JSON.stringify(cachedcreds))
 
     }
 
@@ -420,6 +430,7 @@
       var users = roomdata.users
 
       $("#maincontainer").append("<div id=cardpanel> </div>")
+      $("#cardpanel").append("<button onclick=\"clearCache()\"> Logout </button>")
 
       $("#cardpanel").append("<h2> Admin page for Poll Room - " + username + " </h2> ")
 
