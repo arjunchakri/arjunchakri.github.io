@@ -102,7 +102,6 @@ body :-ms-input-placeholder {
 div {
   padding: 20px 0;
   position: relative;
-  z-index: 2;
 }
 div .logininputs {
   -webkit-appearance: none;
