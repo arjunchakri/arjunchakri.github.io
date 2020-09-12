@@ -16,23 +16,34 @@
 	<link rel="manifest" href="https://arjunchakri.github.io/polls/manifest.json">
 
 
-
+  <!-- THIS APP -->
   <link rel="stylesheet" href="./style.css">
+  <!-- THIS APP -->
   <script  src="./script.js"></script>
 
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!-- jQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  
+  <!-- jQuery Modal -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css" />
+  
   <!-- moment.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
 
+  <!-- pdf generator for leaderboard-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.4.1/jspdf.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.10/jspdf.plugin.autotable.js"></script>
+	
 </head>
 <body>
 <!-- partial:index.partial.html -->
 <div class="wrapper">
-  <div id="maincontainer">
-    <div class="container" >
+  <div id="maincontainer" style="z-index: 2;">
+    <div class="container" id="container" >
       <h1 id="headertext">Welcome</h1>
       
-      <div class="form">
+      <div class="form" id="logincontainer">
         <input class="logininputs" id="pollroom" placeholder="Poll Room ID" />
         <input class="logininputs" id="username" placeholder="Username" />
         <input class="logininputs" type="password" id="password" placeholder="Password" />
@@ -54,27 +65,41 @@
 		<li></li>
 	</ul>
 </div>
+
+  <div id="displaymodal" class="modal" style="z-index: 5; color: black; width: 100%; max-width: initial; overflow: scroll;">
+    <p>Test modal for showing leaderboard/selectionsTest modal for showing leaderboard/selectionsTest modal for showing leaderboard/selections</p>
+  </div>
   <script src="https://www.gstatic.com/firebasejs/5.0.3/firebase.js"></script>
 
   <script>
 
     var firebaseConfig = {
-        apiKey: "AIzaSyBDYtoAAiIcBiDr5PiWjChG-SptrtenAcg",
-        authDomain: "pollsapp-a5838.firebaseapp.com",
-        databaseURL: "https://pollsapp-a5838.firebaseio.com",
-        projectId: "pollsapp-a5838",
-        storageBucket: "pollsapp-a5838.appspot.com",
-        messagingSenderId: "667416379012",
-        appId: "1:667416379012:web:c0a4dee2329e3ee17e8cd1",
-        measurementId: "G-0FYRPT20Y2"
+      apiKey: "AIzaSyD5Q11SFWdWxel8DSR8Drs7M2e-KE-GfaY",
+      authDomain: "gaming-e803c.firebaseapp.com",
+      databaseURL: "https://gaming-e803c.firebaseio.com",
+      projectId: "gaming-e803c",
+      storageBucket: "gaming-e803c.appspot.com",
+      messagingSenderId: "626465373805",
+      appId: "1:626465373805:web:1b8ccb6d11bba5da6d4964",
+      measurementId: "G-7T6T3JPX2B"
     };
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
 
     var pollroom = "";
+    var users
+    var polls
+    var roomdata_global
 
     var BROWSER_CACHE_KEY = "pollappkey";
     
+    function showPopupModal() {
+      $("#displaymodal").modal({
+        fadeDuration: 500
+      });
+    }
+
+    checkCachedCredentials()
     
     function checkCachedCredentials() {
 
@@ -83,8 +108,15 @@
       if(cachedcreds === null) {
         return;
       }
+      $('.form').fadeOut(500);
+      $('.wrapper').addClass('form-success');
+      
+      
+      showLoginMessage("Recovering login... ")
+      $("#container").prepend("<button class=loginbutton onclick=\"clearCache()\">Force logout</button><br>");
 
-      performlogin(cachedcreds.pollroom, cachedcreds.username, cachecreds.password)
+      var cachedcreds_json = JSON.parse(cachedcreds) 
+      performlogin(cachedcreds_json.pollroom, cachedcreds_json.username, cachedcreds_json.password)
     }
 
 
@@ -112,7 +144,7 @@
         showLoginMessage("Enter a Password. Try again. ")
         return;
       }
-
+      showLoginMessage("Logging in as " + username + " ")
       performlogin(pollroom, username, password)
 
     } 
@@ -120,7 +152,6 @@
     function performlogin(pollroom_input, username, password)  {
       pollroom = pollroom_input
       if(pollroom_input == username) {
-        showLoginMessage("Logging in as admin... ")
         adminLogin(pollroom_input, username, password);
       } else {
         // user login
@@ -144,8 +175,9 @@
     }
 
     function showUserUI(pollroom, roomdata, username, password) {
-      var users = roomdata.users
-      var polls = roomdata.polls
+      users = roomdata.users
+      polls = roomdata.polls
+      roomdata_global = roomdata
       var userdata = undefined;
       
       if(users != undefined) {
@@ -179,11 +211,19 @@
       $('#maincontainer').empty();
 
       $("#maincontainer").append("<div class=usercardpanel id='cardpanelwhite'> </div>")
-      $("#cardpanelwhite").append("<br> <hr> <br>")
-      $("#cardpanelwhite").append("<br> <hr > <br>")
+      $("#cardpanelwhite").append("<button class=loginbutton onclick=\"clearCache()\"> Logout </button> <br>")
+      $("#cardpanelwhite").append("<button class=loginbutton onclick=\"changePassword('" + username + "', '" + password + "')\"> Change Password </button> <br>")
+
+      $("#cardpanelwhite").append("<button class=loginbutton onclick=\"invokeLeaderBoard()\"> Leaderboard </button> <br>")
+      $("#cardpanelwhite").append("<button class=loginbutton onclick=\"invokeAllPollsLeaderBoard()\"> Room board </button> <br>")
+
+      $("#cardpanelwhite").append("<div class=usercardpanel id='cardpanelLeaderboard'> </div>")
+      // buildLeaderBoard(roomdata.scorecard);
+      // buildAllPollsLeaderBoard(users, polls,"selections");
       $("#maincontainer").append("<div class=usercardpanel id='cardpanel_lower'> </div>")
 
       $("#cardpanelwhite").append("<h1> Open polls for " + username + " </h1> ")
+
       $("#cardpanel_lower").append("<h1> Closed polls </h1> ")
 
       $("#cardpanelwhite").append("<br> <hr> <br>")
@@ -192,7 +232,7 @@
 
         for(var eachpoll in polls) {
 
-          var userpoll_data = users[userdata]["polls"][eachpoll]
+          var userpoll_data = isUndefined(users[userdata]["polls"]) ? undefined : users[userdata]["polls"][eachpoll];
 
           var choices = polls[eachpoll]["choices"]
           var pollendtime = polls[eachpoll]["pollendtime"]
@@ -203,58 +243,160 @@
           var polltimeleft_flag = !moment().isAfter(moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL));
           var useranswered_flag = (typeof userpoll_data  !== 'undefined');
           
-          if(polltimeleft_flag && !useranswered_flag) {
+          if(polltimeleft_flag) {
             // POLL TIME LEFT... 
             var deadline_message = moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL).fromNow()
-            $("#cardpanelwhite").append( "<h1>Pollname : " + eachpoll + " ( expires " + deadline_message +  " ) </h1> <br>")
-            var unique_pollcode = stringToHash(eachpoll)
-            var pollpanelid = "cardpanelwhite-" + unique_pollcode;
+            let unique_pollcode = stringToHash(eachpoll)
+            $("#cardpanelwhite").append( "<h1 id='h1-"+unique_pollcode+"'> + Poll : " + eachpoll + " ( expires " + deadline_message +  " ) </h1> <br>")
+            let pollpanelid = "cardpanelwhite-" + unique_pollcode;
             $("#cardpanelwhite").append( "<div id='" + pollpanelid + "'></div>")
-
+            // $(document).ready(function(){
+            //   $("#h1-"+unique_pollcode).mousedown(function(){
+            //     $("#"+pollpanelid).slideToggle();
+            //   });
+            // });
+            //$("#" + pollpanelid).hide();
             var choices_list = choices.split(",")
             
             //userchoice radio 1
             //addradiobutton
-            $("#" + pollpanelid).append( "Prediction : <br>")
+            $("#" + pollpanelid).append( "Choose your Prediction : Current - <h3 id='pollSelection-"+unique_pollcode+"' style='display:inline'>"+(useranswered_flag ?userpoll_data["value"]:" NONE ")+"</h3><br/>");
             addradio("#" + pollpanelid, "radios-prediction", "radiogroup-prediction", unique_pollcode, choices_list)
             
-            $("#" + pollpanelid).append( "Prediction : <br>")
+            $("#" + pollpanelid).append( "Choose your Confidence: Current - <h3 id='pollConfidence-"+unique_pollcode+"' style='display:inline'>"+(useranswered_flag ? userpoll_data["confidence"]:" NONE ")+"</h3><br/>");
             var prediction_list = ["20", "40", "60", "80"]
 
             addradio("#" + pollpanelid, "radios-confidence", "radiogroup-confidence", unique_pollcode, prediction_list)
 
-            $("#" + pollpanelid).append("<button class=loginbutton onclick=\"submitPollData('" + userdata + "', '" + eachpoll + "','" + unique_pollcode + "')\">Submit</button>")
-
+            $("#" + pollpanelid).append("<button class=loginbutton onclick=\"submitPollData('" + userdata + "', '" + eachpoll + "','" + unique_pollcode + "')\">Submit</button>")      
+           
             $("#" + pollpanelid).append("<br> <hr> <br>")
 
           } else if(useranswered_flag) {
-            $("#cardpanel_lower").append("You predicted - " + userpoll_data["value"] + " with confidence - " + userpoll_data["confidence"] + " for the poll - " + eachpoll + " <br>")
+            $("#cardpanel_lower").append(" 😃 You predicted - " + userpoll_data["value"] + " with confidence - " + userpoll_data["confidence"] + " for the poll - " + eachpoll + " <br>")
           } else {
-            $("#cardpanel_lower").append("You missed predicting for - " + eachpoll + " <br> ")
+            $("#cardpanel_lower").append(" 🙁 Missed predicting for - " + eachpoll + " <br> ")
           }
         }
         
       } else {
         $("#cardpanel").append("NONE <br>")
       }
+
+      $("#cardpanelwhite").append("<br> <hr> <br>")
     }
+
+    function changePassword(username, password) {
+      var newpass = prompt("Please enter a new password.")
+      if(newpass == null) {
+        alert("newpass not provided by user. Cannot proceed with execution.")
+        return;
+      }
+
+      if (newpass.trim().length == 0) {
+        alert("Enter a non-empty password. ERROR")
+        return;
+      }
+      
+      var firebaseReference = firebase.database().ref().child(pollroom).child("users").child(username).child("password");
+
+      firebaseReference.once('value', function (snapshot) {
+        if (snapshot.val() == null) {
+            alert("Couldnt find password. ERROR.")
+        } else {
+          if(snapshot.val() !== stringToHash(password)) {
+            alert("Current password not correct, ERROR.")
+            return;
+          }
+
+          firebaseReference.set(stringToHash(newpass));
+          alert("Password change successful.")
+
+          clearCache()
+        }
+      });
+
+    }
+
+    function invokeLeaderBoard() {
+      buildLeaderBoard(roomdata_global.scorecard);
+    }
+
+    function invokeAllPollsLeaderBoard() {
+      buildAllPollsLeaderBoard(users, polls,"selections");
+    }
+
+    function buildLeaderBoard(scorecard){
+      $("#displaymodal").empty();
+      $("#displaymodal").append("<h1 id='headerLBoard'>LeaderBoard</h1>");
+      $("#displaymodal").append("<br> <hr> <br>")
+
+      $("#displaymodal").append("<div class=usercardpanel id='leaderBoard'> </div>")
+      
+      $("#leaderBoard").append($("<div id='lBoard_table_div'></div>")
+                    .append("<input type='text' placeholder='search...' class = 'userSearch' id='userSearch'></input>")
+                    .append("<button id='downloadPdf' onclick='pdfDownloadLeaderBoard()'>Download pdf</button>")
+                    .append($("<table id='lboard_table'></table>")
+                                  .addClass("lboard_table")
+                                  .append($("<tr></tr>")
+                                    .append($("<th></th>").text("Rank"))
+                                      .append($("<th></th>").text("User Name"))
+                                        .append($("<th></th>").text("Points")))));
+
+      
+      $(document).ready(function(){
+        $("#headerLBoard").mousedown(function(){
+          $("#leaderBoard").slideToggle();
+        });        
+      });
+      
+      $(document).ready(function(){
+        $("#userSearch").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        $("#lboard_table tr").filter(function() {
+          $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+        });
+      });
+
+      if(scorecard && !isUndefined(scorecard)){
+        var allUsersPoints = scorecard.userPoints;
+        console.log("User Points : "+allUsersPoints);
+
+        for(var userPoints in allUsersPoints){
+          $("#lboard_table").append($("<tr></tr>")
+                    .append($("<td></td>").text(allUsersPoints[userPoints].rank))
+                    .append($("<td></td>").text(allUsersPoints[userPoints].user))
+                    .append($("<td></td>").text(allUsersPoints[userPoints].points)));
+        }
+      }
+
+      showPopupModal()
+
+    }
+
+
+    function pdfDownloadLeaderBoard(){
+			  var doc = new jsPDF()
+			  doc.autoTable({ html: "#lboard_table" })
+			  doc.save('leaderboard-table.pdf')
+		}
+
+    function pdfDownloadAllPolls(){
+			  var doc = new jsPDF()
+			  doc.autoTable({ html: "#lboard_table-selections" })
+			  doc.save('polls-table.pdf')
+		}
 
     function submitPollData(userdata, pollid, pollhash) {
       var pollpanelid = "cardpanelwhite-" + pollhash;
 
       var uservalue = $("input[name='radiogroup-prediction-" + pollhash + "']:checked").val();
-      alert(uservalue)
       var userconfidence = $("input[name='radiogroup-confidence-" + pollhash + "']:checked").val();
-      alert(userconfidence)
-
-      if(confirm("Prediction: " + uservalue +", confidence: " + userconfidence + ". Are you sure you want to submit ? THIS IS NOT REVERSIBLE, AND YOU WONT GET A SECOND CHANCE.")){ 
-        saveUserPoll(userdata, pollid, uservalue, userconfidence)
-        $("#" + pollpanelid).hide(500);
-        
-      } else {
-        alert("Action cancelled by user.")
-        return;
-      }
+      saveUserPoll(userdata, pollid, uservalue, userconfidence)
+      $("#pollSelection-"+pollhash).text(uservalue); 
+      $("#pollConfidence-"+pollhash).text(userconfidence);         
+      //  $("#" + pollpanelid).slideToggle();
     }
 
     function saveUserPoll(userdata, pollid, uservalue, userconfidence) {
@@ -324,6 +466,11 @@
 
     function clearCache() {
       localStorage.clear();
+      reloadpage()
+    }
+
+    function reloadpage() {
+      window.location.reload();
     }
 
     function cachecreds(pollroom, username, password) {
@@ -333,7 +480,7 @@
         username: username,
         password: password
       };
-      localStorage.setItem(BROWSER_CACHE_KEY, cachedcreds)
+      localStorage.setItem(BROWSER_CACHE_KEY, JSON.stringify(cachedcreds))
 
     }
 
@@ -352,6 +499,7 @@
       var users = roomdata.users
 
       $("#maincontainer").append("<div id=cardpanel> </div>")
+      $("#cardpanel").append("<button onclick=\"clearCache()\"> Logout </button>")
 
       $("#cardpanel").append("<h2> Admin page for Poll Room - " + username + " </h2> ")
 
@@ -389,10 +537,163 @@
 
     }
 
+    function isUndefined(testParameter){
+      return testParameter === undefined;
+    }
+
+    function rank(userPoints, f) {
+      const sortedUserPoints = userPoints.sort(f)
+      sortedUserPoints.map(x => x.rank = sortedUserPoints.findIndex(s => f(x, s) === 0) + 1) 
+    }
+
+    function buildAllPollsLeaderBoard(users, polls, panelName){
+      $("#displaymodal").empty();
+
+      $("#displaymodal").append("<h1 id='header-"+panelName+"'>Poll Selections</h1>");
+      $("#displaymodal").append("<br> <hr> <br>")
+
+      $("#displaymodal").append("<div class=usercardpanel id='board-"+panelName+"'> </div>")
+      
+      $("#board-"+panelName).append($("<div id='lBoard_table_div-"+panelName+"'></div>")
+                    .append("<input type='text' placeholder='search for a user' class = 'userSearch' id='userSearch-"+panelName+"'></input>")
+                    .append("<button id='downloadPdf' onclick='pdfDownloadAllPolls()'>Download pdf</button>")
+                    .append($("<table id='lboard_table-"+panelName+"'></table>")
+                                  .addClass("lboard_table")
+                                  .append($("<tr></tr>")
+                                  .append($("<th></th>").text("User"))
+                                  .append($("<th></th>").text("Poll"))
+                                 // .append($("<th></th>").text("Poll End Time"))
+                                 // .append($("<th></th>").text("Options"))
+                                  .append($("<th></th>").text("Selection"))
+                                  .append($("<th></th>").text("Poll Result"))
+                                  .append($("<th></th>").text("Points")))));
+                                 // .append($("<th></th>").text("Points Earned")))));
+      
+      $(document).ready(function(){
+        $("#header-"+panelName).mousedown(function(){
+          $("#board-"+panelName).slideToggle();
+        });        
+      });
+      
+      $(document).ready(function(){
+        $("#userSearch-"+panelName).on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        $("#lboard_table-"+panelName+" tr").filter(function() {
+          $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+        });
+      });
+      var userSelections = pastPollsLeaderBoard(users, polls, false, null);
+
+      
+      if(userSelections && !isUndefined(userSelections)){
+        var allUsersPoints = userSelections;
+        console.log("User Selections : "+allUsersPoints);
+
+        for(var userPoints in allUsersPoints){
+          $("#lboard_table-"+panelName).append($("<tr></tr>")
+                    .append($("<td></td>").text(allUsersPoints[userPoints].user))
+                    .append($("<td></td>").text(allUsersPoints[userPoints].pollId))
+                 //   .append($("<td></td>").text(allUsersPoints[userPoints].pollEndTime))
+                 //   .append($("<td></td>").text(allUsersPoints[userPoints].options))
+                    .append($("<td></td>").text(allUsersPoints[userPoints].selection))
+                    .append($("<td></td>").text(allUsersPoints[userPoints].pollAnswer))
+                    .append($("<td></td>").text(allUsersPoints[userPoints].confidence)));
+                   // .append($("<td></td>").text(allUsersPoints[userPoints].confidenceEarned)));
+        }
+      }
+      showPopupModal()
+    }
+
+    function pastPollsLeaderBoard(users, polls, isConsolidatedScorecard, pollId){
+        if(isUndefined(polls)){
+          alert("No polls in this room");
+          return;
+        }
+
+        if(isUndefined(users)){
+          alert("No users in the room");
+          return;
+        }
+
+      var userSelections = [];
+      var userConsolidatedPoints = []
+      var momentVar = isConsolidatedScorecard ? moment(polls[pollId]["pollendtime"]) : moment();
+      for(var user in users) {
+        var totalPoints = 0;
+        var userpoll_data = isUndefined(users[user]["polls"]) ? undefined : users[user]["polls"];
+        if(isUndefined(userpoll_data)){
+          console.log("no poll data available for user : "+user.username);
+        }
+        for(var poll in polls){
+          if(moment(polls[poll]["pollendtime"]).isAfter(momentVar)){
+              continue;
+            }
+            var actualResult = polls[poll]["answer"];
+            console.log("For poll="+poll+", answer="+actualResult);            
+            if(isUndefined(actualResult) || actualResult == null || actualResult.trim() == ""){
+              answer = 'NC';
+            }
+
+          var userPollSelection,selection, confidence;
+          var confidenceEarned = 0;                                                                                                                                    
+          if(!isUndefined(userpoll_data) && !isUndefined(userpoll_data[poll])){
+              userPollSelection = userpoll_data[poll];              
+            selection = userPollSelection.value;
+            confidence = userPollSelection.confidence;                   
+          }else{
+            selection = 'NA';
+            confidence = -100;
+            confidenceEarned = -100;
+          } 
+          
+          console.log("user :"+user+", selection : "+selection+", confidence :"+confidence);
+          if(actualResult != 'NC' && selection != 'NA'){    
+             confidenceEarned = selection == actualResult ?  
+                                 parseInt(confidence): -parseInt(confidence);
+            } 
+          totalPoints +=confidenceEarned;
+          if(!isConsolidatedScorecard){
+            userSelections.push({
+              user : user,
+              selection : selection,
+              confidence : confidence,
+              confidenceEarned : confidenceEarned,
+              options:polls[poll]["choices"],
+              pollAnswer : actualResult,
+              pollId : poll,
+              pollEndTime : polls[poll]["pollendtime"]
+            });
+            }
+        }
+        if(isConsolidatedScorecard){
+            userConsolidatedPoints.push({
+          user : user,
+          points : totalPoints,
+          rank: 0,
+        });
+      }  
+      }  
+      if(isConsolidatedScorecard){
+        rank(userConsolidatedPoints, (user1Points, user2Points) => user2Points.points - user1Points.points);
+        console.log(userConsolidatedPoints); 
+      var scorecard = {
+          userPoints : userConsolidatedPoints,
+        pollid : pollId
+      }
+      firebase.database().ref().child(pollroom).child("scorecard").set(scorecard);
+    }
+      else{
+        userSelections.sort((user1Selection, user2Selection) => 
+        moment(user2Selection.pollEndTime).diff(moment(user1Selection.pollEndTime)) || (user2Selection.confidenceEarned - user1Selection.confidenceEarned));
+        return userSelections;
+    }
+    }
+
     function addPollAnswer(pollid) {
       var userinput = prompt("Please the poll answer ")
       if(userinput == null) {
-        alert("Variable not provided by user. " + variable + ". Cannot proceed with execution.")
+        alert("userinput not provided by user. Cannot proceed with execution.")
         return null;
       }
 
@@ -400,6 +701,24 @@
       firebaseReference.child(pollroom).child("polls").child(pollid).child("answer").set(userinput);
       alert("Poll answer saved. Refresh page to view changes.")
 
+
+      var cachedcreds = localStorage.getItem(BROWSER_CACHE_KEY);
+
+      var firebaseReference = firebaseReference.child(pollroom);
+
+      firebaseReference.once('value', function (snapshot) {
+
+        if (snapshot.val() == null) {
+          alert("Error in retriving dataa.");
+          return
+        }
+        var pollRoom = snapshot.val();
+        pastPollsLeaderBoard(pollRoom.users, pollRoom.polls, true, pollid)
+      }); 
+    }
+    
+    function hasWhiteSpace(str) {
+      return str.indexOf(' ') >= 0;
     }
 
     function addPoll() {
@@ -408,6 +727,10 @@
       var addpollendtime = $("#addpollendtime").val();
       if (addpollid.trim().length == 0) {
         alert("Enter a proper poll id. ERROR ")
+        return;
+      }
+      if (hasWhiteSpace(addpollid)) {
+        alert("Enter a proper poll id, no spaces. ERROR ")
         return;
       }
       if (addchoices.trim().length == 0) {
@@ -434,7 +757,9 @@
       }
       firebaseReference.child(pollroom).child("polls").child(addpollid).set(polldata);
       
-      alert("Poll added. Refresh page to view changes.")
+      alert("Poll added.")
+      reloadpage()
+
     }
 
     function addUser() {
@@ -445,7 +770,6 @@
         alert("Enter a proper password. ERROR ")
         return;
       }
-
       if (addpassword.trim().length == 0) {
         alert("Enter a proper password. ERROR ")
         return;
@@ -455,8 +779,17 @@
       var userdata = {
           password: stringToHash(addpassword)
       }
-      firebaseReference.child(pollroom).child("users").child(addusername).set(userdata);
-      alert("User added. Refresh page to view changes.")
+      firebaseReference.child(pollroom).child("users").child(addusername).once("value", snapshot => {
+        if (snapshot.exists()){
+            alert("User already exists with the same name. Please try a different user name");
+            return;
+        }else{
+           firebaseReference.child(pollroom).child("users").child(addusername).set(userdata);
+           alert("User added. Refresh page to view changes.")
+       }
+
+       reloadpage()
+      });
     }
 
     function createNewRoom(username, password) {
