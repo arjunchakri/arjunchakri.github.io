@@ -74,14 +74,14 @@
   <script>
 
     var firebaseConfig = {
-        apiKey: "AIzaSyBDYtoAAiIcBiDr5PiWjChG-SptrtenAcg",
-        authDomain: "pollsapp-a5838.firebaseapp.com",
-        databaseURL: "https://pollsapp-a5838.firebaseio.com",
-        projectId: "pollsapp-a5838",
-        storageBucket: "pollsapp-a5838.appspot.com",
-        messagingSenderId: "667416379012",
-        appId: "1:667416379012:web:c0a4dee2329e3ee17e8cd1",
-        measurementId: "G-0FYRPT20Y2"
+      apiKey: "AIzaSyD5Q11SFWdWxel8DSR8Drs7M2e-KE-GfaY",
+      authDomain: "gaming-e803c.firebaseapp.com",
+      databaseURL: "https://gaming-e803c.firebaseio.com",
+      projectId: "gaming-e803c",
+      storageBucket: "gaming-e803c.appspot.com",
+      messagingSenderId: "626465373805",
+      appId: "1:626465373805:web:1b8ccb6d11bba5da6d4964",
+      measurementId: "G-7T6T3JPX2B"
     };
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
@@ -250,12 +250,12 @@
             $("#cardpanelwhite").append( "<h1 id='h1-"+unique_pollcode+"'> + Poll : " + eachpoll + " ( expires " + deadline_message +  " ) </h1> <br>")
             let pollpanelid = "cardpanelwhite-" + unique_pollcode;
             $("#cardpanelwhite").append( "<div id='" + pollpanelid + "'></div>")
-            $(document).ready(function(){
-              $("#h1-"+unique_pollcode).mousedown(function(){
-                $("#"+pollpanelid).slideToggle();
-              });
-            });
-            $("#" + pollpanelid).hide();
+            // $(document).ready(function(){
+            //   $("#h1-"+unique_pollcode).mousedown(function(){
+            //     $("#"+pollpanelid).slideToggle();
+            //   });
+            // });
+            //$("#" + pollpanelid).hide();
             var choices_list = choices.split(",")
             
             //userchoice radio 1
@@ -393,18 +393,10 @@
 
       var uservalue = $("input[name='radiogroup-prediction-" + pollhash + "']:checked").val();
       var userconfidence = $("input[name='radiogroup-confidence-" + pollhash + "']:checked").val();
-
-      if(confirm("Prediction: " + uservalue +", confidence: " + userconfidence + ". Are you sure you want to submit ? THIS IS NOT REVERSIBLE POST THE CUT OFF TIME.")){ 
-        saveUserPoll(userdata, pollid, uservalue, userconfidence)
-        $("#pollSelection-"+pollhash).text(uservalue); 
-        $("#pollConfidence-"+pollhash).text(userconfidence);         
-        $("#" + pollpanelid).slideToggle();
-
-        reloadpage()
-      } else {
-        alert("Action cancelled by user.")
-        return;
-      }
+      saveUserPoll(userdata, pollid, uservalue, userconfidence)
+      $("#pollSelection-"+pollhash).text(uservalue); 
+      $("#pollConfidence-"+pollhash).text(userconfidence);         
+      //  $("#" + pollpanelid).slideToggle();
     }
 
     function saveUserPoll(userdata, pollid, uservalue, userconfidence) {
@@ -570,12 +562,12 @@
                                   .append($("<tr></tr>")
                                   .append($("<th></th>").text("User"))
                                   .append($("<th></th>").text("Poll"))
-                                  .append($("<th></th>").text("Poll End Time"))
-                                  .append($("<th></th>").text("Options"))
+                                 // .append($("<th></th>").text("Poll End Time"))
+                                 // .append($("<th></th>").text("Options"))
                                   .append($("<th></th>").text("Selection"))
                                   .append($("<th></th>").text("Poll Result"))
-                                  .append($("<th></th>").text("Confidence"))
-                                  .append($("<th></th>").text("Confidence Earned")))));
+                                  .append($("<th></th>").text("Points")))));
+                                 // .append($("<th></th>").text("Points Earned")))));
       
       $(document).ready(function(){
         $("#header-"+panelName).mousedown(function(){
@@ -602,12 +594,12 @@
           $("#lboard_table-"+panelName).append($("<tr></tr>")
                     .append($("<td></td>").text(allUsersPoints[userPoints].user))
                     .append($("<td></td>").text(allUsersPoints[userPoints].pollId))
-                    .append($("<td></td>").text(allUsersPoints[userPoints].pollEndTime))
-                    .append($("<td></td>").text(allUsersPoints[userPoints].options))
+                 //   .append($("<td></td>").text(allUsersPoints[userPoints].pollEndTime))
+                 //   .append($("<td></td>").text(allUsersPoints[userPoints].options))
                     .append($("<td></td>").text(allUsersPoints[userPoints].selection))
                     .append($("<td></td>").text(allUsersPoints[userPoints].pollAnswer))
-                    .append($("<td></td>").text(allUsersPoints[userPoints].confidence))
-                    .append($("<td></td>").text(allUsersPoints[userPoints].confidenceEarned)));
+                    .append($("<td></td>").text(allUsersPoints[userPoints].confidence)));
+                   // .append($("<td></td>").text(allUsersPoints[userPoints].confidenceEarned)));
         }
       }
       showPopupModal()
