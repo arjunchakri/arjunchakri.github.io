@@ -212,7 +212,7 @@
 
       $("#maincontainer").append("<div class=usercardpanel id='cardpanelwhite'> </div>")
       $("#cardpanelwhite").append("<button class=loginbutton onclick=\"clearCache()\"> Logout </button> <br>")
-      $("#cardpanelwhite").append("<button class=loginbutton onclick=\"changePassword('" + username + "', '" + password + "')\"> Change Password </button> <br>")
+      $("#cardpanelwhite").append("<button class=loginbutton onclick=\"changePassword('" + username + "', '" + password + "', '" + false + "')\"> Change Password </button> <br>")
 
       $("#cardpanelwhite").append("<button class=loginbutton onclick=\"invokeLeaderBoard()\"> Leaderboard </button> <br>")
       $("#cardpanelwhite").append("<button class=loginbutton onclick=\"invokeAllPollsLeaderBoard()\"> Room board </button> <br>")
@@ -281,9 +281,9 @@
             $("#" + pollpanelid).append("<br> <hr> <br>")
 
           } else if(useranswered_flag) {
-            $("#cardpanel_lower").append(" 😃 You predicted - " + userpoll_data["value"] + " with confidence - " + userpoll_data["confidence"] + " for the poll - " + eachpoll + " <br>")
+            $("#cardpanel_lower").append(" 😃 You predicted - " + userpoll_data["value"] + " with confidence - " + userpoll_data["confidence"] + " for the poll - " + eachpoll + "-"+choices+". Poll result :"+answer+ "<br>")
           } else {
-            $("#cardpanel_lower").append(" 🙁 Missed predicting for - " + eachpoll + " <br> ")
+            $("#cardpanel_lower").append(" 🙁 Missed predicting for - " + eachpoll + "-"+choices+". Poll result :"+answer+ "<br> ")
           }
         }
         
@@ -320,7 +320,7 @@
         seconds
       };
     }
-    function changePassword(username, password) {
+    function changePassword(username, password, isAdmin) {
       var newpass = prompt("Please enter a new password.")
       if(newpass == null) {
         alert("newpass not provided by user. Cannot proceed with execution.")
@@ -338,7 +338,7 @@
         if (snapshot.val() == null) {
             alert("Couldnt find password. ERROR.")
         } else {
-          if(snapshot.val() !== stringToHash(password)) {
+          if(!isAdmin && snapshot.val() !== stringToHash(password)) {
             alert("Current password not correct, ERROR.")
             return;
           }
@@ -346,7 +346,9 @@
           firebaseReference.set(stringToHash(newpass));
           alert("Password change successful.")
 
-          clearCache()
+          if(!isAdmin){ 
+            clearCache()
+          }
         }
       });
 
@@ -818,11 +820,13 @@
           password: stringToHash(addpassword)
       }
       firebaseReference.child(pollroom).child("users").child(addusername).once("value", snapshot => {
-        if (snapshot.exists()){
-            var changePassword =  confirm("User already exists. Continuing may reset the users password");
-            if(!changePassword){
+      if (snapshot.exists()){
+            var confirmPassChange =  confirm("User already exists. Continuing may reset the users password");
+            if(!confirmPassChange){
               return;
-          }
+            }
+            changePassword(addusername, addpassword, true);  
+            return;          
         }        
       firebaseReference.child(pollroom).child("users").child(addusername).set(userdata);
       alert("User added (or) password refershed. Refresh page to view changes.")
