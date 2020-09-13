@@ -229,9 +229,15 @@
       $("#cardpanelwhite").append("<br> <hr> <br>")
 
       if(polls != undefined) {
+        const pollsArray = [];
 
-        for(var eachpoll in polls) {
-
+        Object.keys(polls).forEach((key) => {
+          polls[key].poll = key;
+          pollsArray.push(polls[key]);
+        });
+        pollsArray.sort((poll1, poll2) => moment(poll1.pollendtime).diff(moment(poll2.pollendtime)))
+        for(var poll in pollsArray) {
+          var eachpoll = pollsArray[poll].poll;
           var userpoll_data = isUndefined(users[userdata]["polls"]) ? undefined : users[userdata]["polls"][eachpoll];
 
           var choices = polls[eachpoll]["choices"]
@@ -247,7 +253,9 @@
             // POLL TIME LEFT... 
             var deadline_message = moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL).fromNow()
             let unique_pollcode = stringToHash(eachpoll)
-            $("#cardpanelwhite").append( "<h1 id='h1-"+unique_pollcode+"'> + Poll : " + eachpoll + " ( expires " + deadline_message +  " ) </h1> <br>")
+            let clockID = "clock-"+unique_pollcode
+            $("#cardpanelwhite").append( "<h1 id='h1-"+unique_pollcode+"'> + Poll : " + eachpoll + "<span id='"+clockID+"'></span></h1> <br>")
+            initializeClock(clockID, moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL).toDate())
             let pollpanelid = "cardpanelwhite-" + unique_pollcode;
             $("#cardpanelwhite").append( "<div id='" + pollpanelid + "'></div>")
             // $(document).ready(function(){
@@ -260,15 +268,15 @@
             
             //userchoice radio 1
             //addradiobutton
-            $("#" + pollpanelid).append( "Choose your Prediction : Current - <h3 id='pollSelection-"+unique_pollcode+"' style='display:inline'>"+(useranswered_flag ?userpoll_data["value"]:" NONE ")+"</h3><br/>");
+            $("#" + pollpanelid).append( "Choose your Prediction : Current - <h3 id='pollSelection-"+unique_pollcode+"' style='display:inline;font-weight:bolder'>"+(useranswered_flag ?userpoll_data["value"]:" NONE ")+"</h3><br/>");
             addradio("#" + pollpanelid, "radios-prediction", "radiogroup-prediction", unique_pollcode, choices_list)
             
-            $("#" + pollpanelid).append( "Choose your Confidence: Current - <h3 id='pollConfidence-"+unique_pollcode+"' style='display:inline'>"+(useranswered_flag ? userpoll_data["confidence"]:" NONE ")+"</h3><br/>");
+            $("#" + pollpanelid).append( "Choose your Confidence: Current - <h3 id='pollConfidence-"+unique_pollcode+"' style='display:inline;font-weight:bolder'>"+(useranswered_flag ? userpoll_data["confidence"]:" NONE ")+"</h3><br/>");
             var prediction_list = ["20", "40", "60", "80"]
 
             addradio("#" + pollpanelid, "radios-confidence", "radiogroup-confidence", unique_pollcode, prediction_list)
 
-            $("#" + pollpanelid).append("<button class=loginbutton onclick=\"submitPollData('" + userdata + "', '" + eachpoll + "','" + unique_pollcode + "')\">Submit</button>")      
+            $("#" + pollpanelid).append("<button class=loginbutton onclick=\"submitPollData('" + userdata + "', '" + eachpoll + "','" + unique_pollcode + "','"+pollendtime+"')\">Submit</button>")      
            
             $("#" + pollpanelid).append("<br> <hr> <br>")
 
@@ -286,6 +294,32 @@
       $("#cardpanelwhite").append("<br> <hr> <br>")
     }
 
+    function initializeClock(id, endDate){
+      const timeinterval = setInterval(() => {
+        const t = getTimeRemaining(endDate);
+        document.getElementById(id).innerHTML = " : expires in "+t.days + "d " + t.hours + "h "+ t.minutes + "m " + t.seconds + "s ";
+        if (t.total <= 0) {
+          clearInterval(timeinterval);
+          document.getElementById(id).innerHTML = ': expired ';
+        }
+      },1000);
+    }
+
+    function getTimeRemaining(endtime){
+      const total = Date.parse(endtime) - Date.parse(new Date());
+      const seconds = Math.floor( (total/1000) % 60 );
+      const minutes = Math.floor( (total/1000/60) % 60 );
+      const hours = Math.floor( (total/(1000*60*60)) % 24 );
+      const days = Math.floor( total/(1000*60*60*24) );
+
+      return {
+        total,
+        days,
+        hours,
+        minutes,
+        seconds
+      };
+    }
     function changePassword(username, password) {
       var newpass = prompt("Please enter a new password.")
       if(newpass == null) {
@@ -388,11 +422,15 @@
 			  doc.save('polls-table.pdf')
 		}
 
-    function submitPollData(userdata, pollid, pollhash) {
+    function submitPollData(userdata, pollid, pollhash, pollEndTime) {
       var pollpanelid = "cardpanelwhite-" + pollhash;
 
       var uservalue = $("input[name='radiogroup-prediction-" + pollhash + "']:checked").val();
       var userconfidence = $("input[name='radiogroup-confidence-" + pollhash + "']:checked").val();
+      if(moment().isAfter(moment(pollEndTime, moment.HTML5_FMT.DATETIME_LOCAL))){
+        alert("Cut off time for the : "+pollid+" has elapsed. This poll is no longer availabled for selection")
+        return;
+      }
       saveUserPoll(userdata, pollid, uservalue, userconfidence)
       $("#pollSelection-"+pollhash).text(uservalue); 
       $("#pollConfidence-"+pollhash).text(userconfidence);         
@@ -781,13 +819,13 @@
       }
       firebaseReference.child(pollroom).child("users").child(addusername).once("value", snapshot => {
         if (snapshot.exists()){
-            alert("User already exists with the same name. Please try a different user name");
-            return;
-        }else{
-           firebaseReference.child(pollroom).child("users").child(addusername).set(userdata);
-           alert("User added. Refresh page to view changes.")
-       }
-
+            var changePassword =  confirm("User already exists. Continuing may reset the users password");
+            if(!changePassword){
+              return;
+          }
+        }        
+      firebaseReference.child(pollroom).child("users").child(addusername).set(userdata);
+      alert("User added (or) password refershed. Refresh page to view changes.")
        reloadpage()
       });
     }
