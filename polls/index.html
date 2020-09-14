@@ -615,8 +615,8 @@
                                   .append($("<th></th>").text("Poll"))
                                  // .append($("<th></th>").text("Poll End Time"))
                                  // .append($("<th></th>").text("Options"))
-                                  .append($("<th></th>").text("Selection"))
-                                  .append($("<th></th>").text("Poll Result"))
+                                 // .append($("<th></th>").text("Selection"))
+                                 // .append($("<th></th>").text("Poll Result"))
                                   .append($("<th></th>").text("Points")))));
                                  // .append($("<th></th>").text("Points Earned")))));
       
@@ -642,14 +642,15 @@
         console.log("User Selections : "+allUsersPoints);
 
         for(var userPoints in allUsersPoints){
+          var result_value = allUsersPoints[userPoints].confidence + " (" + allUsersPoints[userPoints].selection + ")"
           $("#lboard_table-"+panelName).append($("<tr></tr>")
                     .append($("<td></td>").text(allUsersPoints[userPoints].user))
                     .append($("<td></td>").text(allUsersPoints[userPoints].pollId))
                  //   .append($("<td></td>").text(allUsersPoints[userPoints].pollEndTime))
                  //   .append($("<td></td>").text(allUsersPoints[userPoints].options))
-                    .append($("<td></td>").text(allUsersPoints[userPoints].selection))
-                    .append($("<td></td>").text(allUsersPoints[userPoints].pollAnswer))
-                    .append($("<td></td>").text(allUsersPoints[userPoints].confidence)));
+                 //   .append($("<td></td>").text(allUsersPoints[userPoints].selection))
+                 //   .append($("<td></td>").text(allUsersPoints[userPoints].pollAnswer))
+                    .append($("<td></td>").text(result_value)));
                    // .append($("<td></td>").text(allUsersPoints[userPoints].confidenceEarned)));
         }
       }
