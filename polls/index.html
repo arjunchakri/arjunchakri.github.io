@@ -216,7 +216,7 @@
       addBreakToMobileOnly("#headerpanel")
       $("#headerpanel").append("<a onclick=\"invokeAllPollsLeaderBoard()\"> Room board </a> ")
       addBreakToMobileOnly("#headerpanel")
-      $("#cardpanelwhite").append("<button class=loginbutton onclick=\"changePassword('" + username + "', '" + password + "', '" + false + "')\"> Change Password </button> <br>")
+      $("#headerpanel").append("<a onclick=\"changePassword('" + username + "', '" + password + "','"+false+"')\"> Change Password </a> ")
       addBreakToMobileOnly("#headerpanel")
       $("#headerpanel").append("<a onclick=\"clearCache()\"> Logout </a> <br>")
       addBreakToMobileOnly("#headerpanel")
@@ -643,10 +643,12 @@
         console.log("User Selections : "+allUsersPoints);
 
         for(var userPoints in allUsersPoints){
-          var result_value = allUsersPoints[userPoints].confidence + " (" + allUsersPoints[userPoints].selection + ")"
+          var result_value = allUsersPoints[userPoints].confidenceEarned + " (" + allUsersPoints[userPoints].selection + ")"
+          var poll_Details = allUsersPoints[userPoints].pollId + " (" + allUsersPoints[userPoints].options + ")"
+
           $("#lboard_table-"+panelName).append($("<tr></tr>")
                     .append($("<td></td>").text(allUsersPoints[userPoints].user))
-                    .append($("<td></td>").text(allUsersPoints[userPoints].pollId))
+                    .append($("<td></td>").text(poll_Details))
                  //   .append($("<td></td>").text(allUsersPoints[userPoints].pollEndTime))
                  //   .append($("<td></td>").text(allUsersPoints[userPoints].options))
                  //   .append($("<td></td>").text(allUsersPoints[userPoints].selection))
@@ -693,17 +695,18 @@
           if(!isUndefined(userpoll_data) && !isUndefined(userpoll_data[poll])){
               userPollSelection = userpoll_data[poll];              
             selection = userPollSelection.value;
-            confidence = userPollSelection.confidence;                   
+            confidence = userPollSelection.confidence; 
+            confidenceEarned = 100 + confidence;                  
           }else{
             selection = 'NA';
-            confidence = -100;
-            confidenceEarned = -100;
+            confidence = -200;
+            confidenceEarned = -200;
           } 
           
           console.log("user :"+user+", selection : "+selection+", confidence :"+confidence);
           if(actualResult != 'NC' && selection != 'NA'){    
              confidenceEarned = selection == actualResult ?  
-                                 parseInt(confidence): -parseInt(confidence);
+                                 100 + parseInt(confidence): -100 -parseInt(confidence);
             } 
           totalPoints +=confidenceEarned;
           if(!isConsolidatedScorecard){
@@ -732,7 +735,7 @@
         console.log(userConsolidatedPoints); 
       var scorecard = {
           userPoints : userConsolidatedPoints,
-        pollid : pollId
+          pollid : pollId
       }
       firebase.database().ref().child(pollroom).child("scorecard").set(scorecard);
     }
