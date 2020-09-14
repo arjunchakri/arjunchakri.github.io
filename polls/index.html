@@ -211,13 +211,12 @@
       $('#maincontainer').empty();
 
       $("#maincontainer").append("<div class=usercardpanel id='cardpanelwhite'> </div>")
-      
       $("#cardpanelwhite").append("<div class=\"headercontainer teal borderYtoX\" id='headerpanel'> </div>")
       $("#headerpanel").append("<a onclick=\"invokeLeaderBoard()\"> Leaderboard </a> ")
       addBreakToMobileOnly("#headerpanel")
       $("#headerpanel").append("<a onclick=\"invokeAllPollsLeaderBoard()\"> Room board </a> ")
       addBreakToMobileOnly("#headerpanel")
-      $("#headerpanel").append("<a onclick=\"changePassword('" + username + "', '" + password + "')\"> Change Password </a> ")
+      $("#headerpanel").append("<a onclick=\"changePassword('" + username + "', '" + password + "','"+false+"')\"> Change Password </a> ")
       addBreakToMobileOnly("#headerpanel")
       $("#headerpanel").append("<a onclick=\"clearCache()\"> Logout </a> <br>")
       addBreakToMobileOnly("#headerpanel")
@@ -287,9 +286,9 @@
             $("#" + pollpanelid).append("<br> <hr class=lightseparator > <br>")
 
           } else if(useranswered_flag) {
-            $("#cardpanel_lower").append(" 😃 You predicted - " + userpoll_data["value"] + " with confidence - " + userpoll_data["confidence"] + " for the poll - " + eachpoll + " <br>")
+            $("#cardpanel_lower").append(" 😃 You predicted - " + userpoll_data["value"] + " with confidence - " + userpoll_data["confidence"] + " for the poll - " + eachpoll + "-"+choices+". Poll result :"+answer+ "<br>")
           } else {
-            $("#cardpanel_lower").append(" 🙁 Missed predicting for - " + eachpoll + " <br> ")
+            $("#cardpanel_lower").append(" 🙁 Missed predicting for - " + eachpoll + "-"+choices+". Poll result :"+answer+ "<br> ")
           }
         }
         
@@ -333,7 +332,7 @@
         seconds
       };
     }
-    function changePassword(username, password) {
+    function changePassword(username, password, isAdmin) {
       var newpass = prompt("Please enter a new password.")
       if(newpass == null) {
         alert("newpass not provided by user. Cannot proceed with execution.")
@@ -351,7 +350,7 @@
         if (snapshot.val() == null) {
             alert("Couldnt find password. ERROR.")
         } else {
-          if(snapshot.val() !== stringToHash(password)) {
+          if(!isAdmin && snapshot.val() !== stringToHash(password)) {
             alert("Current password not correct, ERROR.")
             return;
           }
@@ -359,7 +358,9 @@
           firebaseReference.set(stringToHash(newpass));
           alert("Password change successful.")
 
-          clearCache()
+          if(!isAdmin){ 
+            clearCache()
+          }
         }
       });
 
@@ -642,10 +643,12 @@
         console.log("User Selections : "+allUsersPoints);
 
         for(var userPoints in allUsersPoints){
-          var result_value = allUsersPoints[userPoints].confidence + " (" + allUsersPoints[userPoints].selection + ")"
+          var result_value = allUsersPoints[userPoints].confidenceEarned + " (" + allUsersPoints[userPoints].selection + ")"
+          var poll_Details = allUsersPoints[userPoints].pollId + " (" + allUsersPoints[userPoints].options + ")"
+
           $("#lboard_table-"+panelName).append($("<tr></tr>")
                     .append($("<td></td>").text(allUsersPoints[userPoints].user))
-                    .append($("<td></td>").text(allUsersPoints[userPoints].pollId))
+                    .append($("<td></td>").text(poll_Details))
                  //   .append($("<td></td>").text(allUsersPoints[userPoints].pollEndTime))
                  //   .append($("<td></td>").text(allUsersPoints[userPoints].options))
                  //   .append($("<td></td>").text(allUsersPoints[userPoints].selection))
@@ -692,17 +695,18 @@
           if(!isUndefined(userpoll_data) && !isUndefined(userpoll_data[poll])){
               userPollSelection = userpoll_data[poll];              
             selection = userPollSelection.value;
-            confidence = userPollSelection.confidence;                   
+            confidence = userPollSelection.confidence; 
+            confidenceEarned = 100 + confidence;                  
           }else{
             selection = 'NA';
-            confidence = -100;
-            confidenceEarned = -100;
+            confidence = -200;
+            confidenceEarned = -200;
           } 
           
           console.log("user :"+user+", selection : "+selection+", confidence :"+confidence);
           if(actualResult != 'NC' && selection != 'NA'){    
              confidenceEarned = selection == actualResult ?  
-                                 parseInt(confidence): -parseInt(confidence);
+                                 100 + parseInt(confidence): -100 -parseInt(confidence);
             } 
           totalPoints +=confidenceEarned;
           if(!isConsolidatedScorecard){
@@ -731,7 +735,7 @@
         console.log(userConsolidatedPoints); 
       var scorecard = {
           userPoints : userConsolidatedPoints,
-        pollid : pollId
+          pollid : pollId
       }
       firebase.database().ref().child(pollroom).child("scorecard").set(scorecard);
     }
@@ -832,11 +836,13 @@
           password: stringToHash(addpassword)
       }
       firebaseReference.child(pollroom).child("users").child(addusername).once("value", snapshot => {
-        if (snapshot.exists()){
-            var changePassword =  confirm("User already exists. Continuing may reset the users password");
-            if(!changePassword){
+      if (snapshot.exists()){
+            var confirmPassChange =  confirm("User already exists. Continuing may reset the users password");
+            if(!confirmPassChange){
               return;
-          }
+            }
+            changePassword(addusername, addpassword, true);  
+            return;          
         }        
       firebaseReference.child(pollroom).child("users").child(addusername).set(userdata);
       alert("User added (or) password refershed. Refresh page to view changes.")
