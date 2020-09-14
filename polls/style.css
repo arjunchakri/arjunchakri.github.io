@@ -351,7 +351,7 @@ label::before {
 }
 
 .lboard_table th {
-  padding: 20px 15px;
+  padding: 10px 0px;
   text-align: left;
   font-weight: 500;
   font-size: 15px;
@@ -362,7 +362,7 @@ label::before {
 }
 
 .lboard_table td{
-  padding: 15px;
+  padding: 5px;
   text-align: left;
   vertical-align:middle;
   font-weight: 300;
