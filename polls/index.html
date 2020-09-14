@@ -66,7 +66,7 @@
 	</ul>
 </div>
 
-  <div id="displaymodal" class="modal" style="z-index: 5; color: black; width: 100%; max-width: initial; overflow: scroll;">
+  <div id="displaymodal" class="modal" style="z-index: 5; color: black; width: 100%; max-width: initial; background: linear-gradient(to right, #25c481, #25b7c4);">
     <p>Test modal for showing leaderboard/selectionsTest modal for showing leaderboard/selectionsTest modal for showing leaderboard/selections</p>
   </div>
   <script src="https://www.gstatic.com/firebasejs/5.0.3/firebase.js"></script>
@@ -211,22 +211,26 @@
       $('#maincontainer').empty();
 
       $("#maincontainer").append("<div class=usercardpanel id='cardpanelwhite'> </div>")
-      $("#cardpanelwhite").append("<button class=loginbutton onclick=\"clearCache()\"> Logout </button> <br>")
+      $("#cardpanelwhite").append("<div class=\"headercontainer teal borderYtoX\" id='headerpanel'> </div>")
+      $("#headerpanel").append("<a onclick=\"invokeLeaderBoard()\"> Leaderboard </a> ")
+      addBreakToMobileOnly("#headerpanel")
+      $("#headerpanel").append("<a onclick=\"invokeAllPollsLeaderBoard()\"> Room board </a> ")
+      addBreakToMobileOnly("#headerpanel")
       $("#cardpanelwhite").append("<button class=loginbutton onclick=\"changePassword('" + username + "', '" + password + "', '" + false + "')\"> Change Password </button> <br>")
+      addBreakToMobileOnly("#headerpanel")
+      $("#headerpanel").append("<a onclick=\"clearCache()\"> Logout </a> <br>")
+      addBreakToMobileOnly("#headerpanel")
+      //$("#headerpanel").append("<br> <hr> <br>")
 
-      $("#cardpanelwhite").append("<button class=loginbutton onclick=\"invokeLeaderBoard()\"> Leaderboard </button> <br>")
-      $("#cardpanelwhite").append("<button class=loginbutton onclick=\"invokeAllPollsLeaderBoard()\"> Room board </button> <br>")
-
-      $("#cardpanelwhite").append("<div class=usercardpanel id='cardpanelLeaderboard'> </div>")
       // buildLeaderBoard(roomdata.scorecard);
       // buildAllPollsLeaderBoard(users, polls,"selections");
       $("#maincontainer").append("<div class=usercardpanel id='cardpanel_lower'> </div>")
 
-      $("#cardpanelwhite").append("<h1> Open polls for " + username + " </h1> ")
+      $("#cardpanelwhite").append("<h1 class=subheader > Open polls for " + username + " </h1> ")
 
-      $("#cardpanel_lower").append("<h1> Closed polls </h1> ")
+      $("#cardpanel_lower").append("<h1 class=subheader > Closed polls </h1> ")
 
-      $("#cardpanelwhite").append("<br> <hr> <br>")
+      //$("#cardpanelwhite").append("<br> <hr> <br>")
 
       if(polls != undefined) {
         const pollsArray = [];
@@ -254,10 +258,10 @@
             var deadline_message = moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL).fromNow()
             let unique_pollcode = stringToHash(eachpoll)
             let clockID = "clock-"+unique_pollcode
-            $("#cardpanelwhite").append( "<h1 id='h1-"+unique_pollcode+"'> + Poll : " + eachpoll + "<span id='"+clockID+"'></span></h1> <br>")
-            initializeClock(clockID, moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL).toDate())
+            //$("#cardpanelwhite").append( "<h1 id='h1-"+unique_pollcode+"'> " + eachpoll + "</h1> <br>")
             let pollpanelid = "cardpanelwhite-" + unique_pollcode;
-            $("#cardpanelwhite").append( "<div id='" + pollpanelid + "'></div>")
+            $("#cardpanelwhite").append( "<div class=pollpanel id='" + pollpanelid + "'></div>")
+            $("#" + pollpanelid).append( "<h1> " + eachpoll + "</h1> <br>")
             // $(document).ready(function(){
             //   $("#h1-"+unique_pollcode).mousedown(function(){
             //     $("#"+pollpanelid).slideToggle();
@@ -276,9 +280,10 @@
 
             addradio("#" + pollpanelid, "radios-confidence", "radiogroup-confidence", unique_pollcode, prediction_list)
 
-            $("#" + pollpanelid).append("<button class=loginbutton onclick=\"submitPollData('" + userdata + "', '" + eachpoll + "','" + unique_pollcode + "','"+pollendtime+"')\">Submit</button>")      
-           
-            $("#" + pollpanelid).append("<br> <hr> <br>")
+            $("#" + pollpanelid).append("<button class=loginbutton onclick=\"submitPollData('" + userdata + "', '" + eachpoll + "','" + unique_pollcode + "','"+pollendtime+"')\">Submit <br> (<span id='"+clockID+"'></span>) </button>")      
+            initializeClock(clockID, moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL).toDate())
+
+            $("#" + pollpanelid).append("<br> <hr class=lightseparator > <br>")
 
           } else if(useranswered_flag) {
             $("#cardpanel_lower").append(" 😃 You predicted - " + userpoll_data["value"] + " with confidence - " + userpoll_data["confidence"] + " for the poll - " + eachpoll + "-"+choices+". Poll result :"+answer+ "<br>")
@@ -291,16 +296,23 @@
         $("#cardpanel").append("NONE <br>")
       }
 
-      $("#cardpanelwhite").append("<br> <hr> <br>")
+    }
+
+    function addBreakToMobileOnly(object) {
+
+      if(isMobile()) {
+        $(object).append("<div class=separatordiv></div>")
+      }
+
     }
 
     function initializeClock(id, endDate){
       const timeinterval = setInterval(() => {
         const t = getTimeRemaining(endDate);
-        document.getElementById(id).innerHTML = " : expires in "+t.days + "d " + t.hours + "h "+ t.minutes + "m " + t.seconds + "s ";
+        document.getElementById(id).innerHTML = t.days + "d " + t.hours + "h "+ t.minutes + "m " + t.seconds + "s remaining";
         if (t.total <= 0) {
           clearInterval(timeinterval);
-          document.getElementById(id).innerHTML = ': expired ';
+          document.getElementById(id).innerHTML = ' expired ';
         }
       },1000);
     }
@@ -364,13 +376,13 @@
 
     function buildLeaderBoard(scorecard){
       $("#displaymodal").empty();
-      $("#displaymodal").append("<h1 id='headerLBoard'>LeaderBoard</h1>");
+      $("#displaymodal").append("<h1 id='headerLBoard' style=\"color:white \">LeaderBoard</h1>");
       $("#displaymodal").append("<br> <hr> <br>")
 
-      $("#displaymodal").append("<div class=usercardpanel id='leaderBoard'> </div>")
+      $("#displaymodal").append("<div class=popupcardpanel id='leaderBoard'> </div>")
       
       $("#leaderBoard").append($("<div id='lBoard_table_div'></div>")
-                    .append("<input type='text' placeholder='search...' class = 'userSearch' id='userSearch'></input>")
+                    .append("<input type='text' placeholder='search.. ' class = 'logininputs userSearch' style=\"width:auto\" id='userSearch'></input>")
                     .append("<button id='downloadPdf' onclick='pdfDownloadLeaderBoard()'>Download pdf</button>")
                     .append($("<table id='lboard_table'></table>")
                                   .addClass("lboard_table")
@@ -589,13 +601,13 @@
     function buildAllPollsLeaderBoard(users, polls, panelName){
       $("#displaymodal").empty();
 
-      $("#displaymodal").append("<h1 id='header-"+panelName+"'>Poll Selections</h1>");
+      $("#displaymodal").append("<h1 id='header-"+panelName+"' style=\"color:white \">Poll Selections</h1>");
       $("#displaymodal").append("<br> <hr> <br>")
 
-      $("#displaymodal").append("<div class=usercardpanel id='board-"+panelName+"'> </div>")
+      $("#displaymodal").append("<div class=popupcardpanel id='board-"+panelName+"'> </div>")
       
       $("#board-"+panelName).append($("<div id='lBoard_table_div-"+panelName+"'></div>")
-                    .append("<input type='text' placeholder='search for a user' class = 'userSearch' id='userSearch-"+panelName+"'></input>")
+                    .append("<input type='text' placeholder='search for a user/match' class = 'logininputs userSearch' style=\"width:auto\" id='userSearch-"+panelName+"'></input>")
                     .append("<button id='downloadPdf' onclick='pdfDownloadAllPolls()'>Download pdf</button>")
                     .append($("<table id='lboard_table-"+panelName+"'></table>")
                                   .addClass("lboard_table")
@@ -604,8 +616,8 @@
                                   .append($("<th></th>").text("Poll"))
                                  // .append($("<th></th>").text("Poll End Time"))
                                  // .append($("<th></th>").text("Options"))
-                                  .append($("<th></th>").text("Selection"))
-                                  .append($("<th></th>").text("Poll Result"))
+                                 // .append($("<th></th>").text("Selection"))
+                                 // .append($("<th></th>").text("Poll Result"))
                                   .append($("<th></th>").text("Points")))));
                                  // .append($("<th></th>").text("Points Earned")))));
       
@@ -631,14 +643,15 @@
         console.log("User Selections : "+allUsersPoints);
 
         for(var userPoints in allUsersPoints){
+          var result_value = allUsersPoints[userPoints].confidence + " (" + allUsersPoints[userPoints].selection + ")"
           $("#lboard_table-"+panelName).append($("<tr></tr>")
                     .append($("<td></td>").text(allUsersPoints[userPoints].user))
                     .append($("<td></td>").text(allUsersPoints[userPoints].pollId))
                  //   .append($("<td></td>").text(allUsersPoints[userPoints].pollEndTime))
                  //   .append($("<td></td>").text(allUsersPoints[userPoints].options))
-                    .append($("<td></td>").text(allUsersPoints[userPoints].selection))
-                    .append($("<td></td>").text(allUsersPoints[userPoints].pollAnswer))
-                    .append($("<td></td>").text(allUsersPoints[userPoints].confidence)));
+                 //   .append($("<td></td>").text(allUsersPoints[userPoints].selection))
+                 //   .append($("<td></td>").text(allUsersPoints[userPoints].pollAnswer))
+                    .append($("<td></td>").text(result_value)));
                    // .append($("<td></td>").text(allUsersPoints[userPoints].confidenceEarned)));
         }
       }
@@ -866,6 +879,12 @@
             
           return hash; 
       } 
+
+    function isMobile(){
+      var isMobile = (/iphone|ipod|android|ie|blackberry|fennec/).test
+              (navigator.userAgent.toLowerCase());
+      return isMobile;
+     }
 
 
   </script>
