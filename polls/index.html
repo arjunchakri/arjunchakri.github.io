@@ -52,7 +52,7 @@
     </div>
   </div>
 
-	<ul class="bg-bubbles">
+	<ul class="bg-bubbles" style="overflow: hidden;" >
 		<li></li>
 		<li></li>
 		<li></li>
@@ -66,7 +66,7 @@
 	</ul>
 </div>
 
-  <div id="displaymodal" class="modal" style="z-index: 5; color: black; width: 100%; max-width: initial; background: linear-gradient(to right, #25c481, #25b7c4);">
+  <div id="displaymodal" class="modal" style="z-index: 5; color: black; width: 100%; max-width: initial; padding: 0px; background: linear-gradient(to right, #25c481, #25b7c4);">
     <p>Test modal for showing leaderboard/selectionsTest modal for showing leaderboard/selectionsTest modal for showing leaderboard/selections</p>
   </div>
   <script src="https://www.gstatic.com/firebasejs/5.0.3/firebase.js"></script>
@@ -385,13 +385,13 @@
 
     function buildLeaderBoard(scorecard){
       $("#displaymodal").empty();
-      $("#displaymodal").append("<h1 id='headerLBoard' style=\"color:white \">LeaderBoard</h1>");
+      $("#displaymodal").append("<h1 id='headerLBoard' class=\"popupheader\" style=\"color:white \">LeaderBoard</h1>");
       $("#displaymodal").append("<br> <hr> <br>")
 
       $("#displaymodal").append("<div class=popupcardpanel id='leaderBoard'> </div>")
       
       $("#leaderBoard").append($("<div id='lBoard_table_div'></div>")
-                    .append("<input type='text' placeholder='search.. ' class = 'logininputs userSearch' style=\"width:auto\" id='userSearch'></input>")
+                    .append("<input type='text' placeholder='search.. ' class = 'logininputs userSearch' style=\"width:100%; max-width: 500px; box-sizing: border-box;\" id='userSearch'></input>")
                     .append("<button id='downloadPdf' onclick='pdfDownloadLeaderBoard()'>Download pdf</button>")
                     .append($("<table id='lboard_table'></table>")
                                   .addClass("lboard_table")
@@ -647,13 +647,13 @@
     function buildAllPollsLeaderBoard(users, polls, panelName){
       $("#displaymodal").empty();
 
-      $("#displaymodal").append("<h1 id='header-"+panelName+"' style=\"color:white \">Poll Selections</h1>");
+      $("#displaymodal").append("<h1 id='header-"+panelName+"' class=\"popupheader\" style=\"color:white \">Poll Selections</h1>");
       $("#displaymodal").append("<br> <hr> <br>")
 
       $("#displaymodal").append("<div class=popupcardpanel id='board-"+panelName+"'> </div>")
       
       $("#board-"+panelName).append($("<div id='lBoard_table_div-"+panelName+"'></div>")
-                    .append("<input type='text' placeholder='search for a user/match' class = 'logininputs userSearch' style=\"width:auto\" id='userSearch-"+panelName+"'></input>")
+                    .append("<input type='text' placeholder='search for a user/match' class = 'logininputs userSearch' style=\"width:100%; max-width: 500px; box-sizing: border-box;\" id='userSearch-"+panelName+"'></input>")
                     .append("<button id='downloadPdf' onclick='pdfDownloadAllPolls()'>Download pdf</button>")
                     .append($("<table id='lboard_table-"+panelName+"'></table>")
                                   .addClass("lboard_table")

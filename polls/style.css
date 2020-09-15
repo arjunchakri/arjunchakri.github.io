@@ -36,12 +36,18 @@
 
 }
 
+.popupheader {
+  padding-left: 10px;
+  padding-top: 10px;
+
+}
+
 .popupcardpanel {
   height: 90%;
   width: 90%;
   border-radius: 5px;
   margin: auto;
-  padding: 12px;
+  padding: 5px;
 }
 
 .inputcolored::placeholder {
