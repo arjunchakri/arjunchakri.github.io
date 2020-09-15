@@ -281,10 +281,10 @@
             
             //userchoice radio 1
             //addradiobutton
-            $("#" + pollpanelid).append( "Choose your Prediction : Current - <h3 id='pollSelection-"+unique_pollcode+"' style='display:inline;font-weight:bolder'>"+(useranswered_flag ?userpoll_data["value"]:" NONE ")+"</h3><br/>");
+            $("#" + pollpanelid).append( "Choose your Prediction : Current - <h3 id='pollSelection-"+unique_pollcode+"' style='display:inline;font-weight:bolder'>"+(useranswered_flag ?userpoll_data["value"]:" 🙁 ")+"</h3><br/>");
             addradio("#" + pollpanelid, "radios-prediction", "radiogroup-prediction", unique_pollcode, choices_list)
             
-            $("#" + pollpanelid).append( "Choose your Confidence: Current - <h3 id='pollConfidence-"+unique_pollcode+"' style='display:inline;font-weight:bolder'>"+(useranswered_flag ? userpoll_data["confidence"]:" NONE ")+"</h3><br/>");
+            $("#" + pollpanelid).append( "Choose your Confidence: Current - <h3 id='pollConfidence-"+unique_pollcode+"' style='display:inline;font-weight:bolder'>"+(useranswered_flag ? userpoll_data["confidence"]:" 🙁 ")+"</h3><br/>");
             var prediction_list = ["20", "40", "60", "80"]
 
             addradio("#" + pollpanelid, "radios-confidence", "radiogroup-confidence", unique_pollcode, prediction_list)
@@ -318,7 +318,7 @@
     function initializeClock(id, endDate){
       const timeinterval = setInterval(() => {
         const t = getTimeRemaining(endDate);
-        document.getElementById(id).innerHTML = t.days + "d " + t.hours + "h "+ t.minutes + "m " + t.seconds + "s remaining";
+        document.getElementById(id).innerHTML = t.days + "d " + t.hours + "h "+ t.minutes + "m " + t.seconds + "s";
         if (t.total <= 0) {
           clearInterval(timeinterval);
           document.getElementById(id).innerHTML = ' expired ';
@@ -733,7 +733,7 @@
             var actualResult = polls[poll]["answer"];
             console.log("For poll="+poll+", answer="+actualResult);            
             if(isUndefined(actualResult) || actualResult == null || actualResult.trim() == ""){
-              answer = 'NC';
+              actualResult = 'NC';
             }
 
           var userPollSelection,selection, confidence;
@@ -741,7 +741,7 @@
           if(!isUndefined(userpoll_data) && !isUndefined(userpoll_data[poll])){
               userPollSelection = userpoll_data[poll];              
             selection = userPollSelection.value;
-            confidence = userPollSelection.confidence; 
+            confidence = parseInt(userPollSelection.confidence); 
             confidenceEarned = 100 + confidence;                  
           }else{
             selection = 'NA';
@@ -752,7 +752,7 @@
           console.log("user :"+user+", selection : "+selection+", confidence :"+confidence);
           if(actualResult != 'NC' && selection != 'NA'){    
              confidenceEarned = selection == actualResult ?  
-                                 100 + parseInt(confidence): -100 -parseInt(confidence);
+                                 100 + confidence: -100 - confidence;
             } 
           totalPoints +=confidenceEarned;
           if(!isConsolidatedScorecard){
