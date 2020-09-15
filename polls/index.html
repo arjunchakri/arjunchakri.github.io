@@ -92,7 +92,8 @@
     var roomdata_global
 
     var BROWSER_CACHE_KEY = "pollappkey";
-    
+    var BROWSER_CACHE_KEY_ROOMID = "pollapproomkey";
+
     function showPopupModal() {
       $("#displaymodal").modal({
         fadeDuration: 500
@@ -106,6 +107,14 @@
       var cachedcreds = localStorage.getItem(BROWSER_CACHE_KEY);
 
       if(cachedcreds === null) {
+        var cachedroomid = localStorage.getItem(BROWSER_CACHE_KEY_ROOMID);
+
+        if(cachedroomid === null) {
+          return;
+        }
+
+        //prefilling room id, if logged in once
+        $("#pollroom").val(cachedroomid)
         return;
       }
       $('.form').fadeOut(500);
@@ -516,7 +525,7 @@
     }
 
     function clearCache() {
-      localStorage.clear();
+      localStorage.removeItem(BROWSER_CACHE_KEY);
       reloadpage()
     }
 
@@ -532,11 +541,12 @@
         password: password
       };
       localStorage.setItem(BROWSER_CACHE_KEY, JSON.stringify(cachedcreds))
-
+      localStorage.setItem(BROWSER_CACHE_KEY_ROOMID, pollroom)
     }
 
     function showAdminUI(pollroom, roomdata, username, password) {
-      if(roomdata.password != stringToHash(password)) {
+      var hashedpassword = stringToHash(password)
+      if(roomdata.password != hashedpassword) {
         showLoginMessage("Admin password is wrong. Please check")
         return;
       }
@@ -551,6 +561,7 @@
 
       $("#maincontainer").append("<div id=cardpanel> </div>")
       $("#cardpanel").append("<button onclick=\"clearCache()\"> Logout </button>")
+      $("#cardpanel").append("<button onclick=\"exportDB('" + pollroom + "', '" + hashedpassword + "')\"> Download DB </button>")
 
       $("#cardpanel").append("<h2> Admin page for Poll Room - " + username + " </h2> ")
 
@@ -586,6 +597,41 @@
 
       $("#cardpanel").append("<br> To add a new poll - <input class='inputcolored' id=\"addpollid\" placeholder=\"pollname\" /> <input class='inputcolored' id=\"addchoices\" placeholder=\"Choices\" /> <input type=\"datetime-local\" id=\"addpollendtime\" name=\"pollendtime\"> <button onclick=addPoll()>Add poll</button>")
 
+    }
+
+    function exportDB(key, hashedpassword) {
+
+      var firebaseReference = firebase.database().ref().child(key);
+
+      firebaseReference.once('value', function (snapshot) {
+
+          if (snapshot.val() == null) {
+              alert("Poll room not found.")
+            } else {
+
+              if(snapshot.val().password != hashedpassword) {
+                alert("Admin password is wrong. Cannot export")
+                return;
+              }
+              
+              var json_string = JSON.stringify(snapshot.val(), null, "\t")
+
+              var link = document.createElement('a');
+              link.download = key + '-' + getDateString() + '.json';
+              var blob = new Blob([json_string], {type: 'text/plain'});
+              link.href = window.URL.createObjectURL(blob);
+              link.click();
+          }
+
+      });
+    }
+
+    function getDateString() {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = `${date.getMonth() + 1}`.padStart(2, '0');
+      const day =`${date.getDate()}`.padStart(2, '0');
+      return `${year}${month}${day}${date.getTime()}`
     }
 
     function isUndefined(testParameter){
