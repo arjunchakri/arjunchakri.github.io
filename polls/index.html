@@ -221,6 +221,8 @@
 
       $("#maincontainer").append("<div class=usercardpanel id='cardpanelwhite'> </div>")
       $("#cardpanelwhite").append("<div class=\"headercontainer teal borderYtoX\" id='headerpanel'> </div>")
+      $("#headerpanel").append("<a onclick=\"invokeRulesPage()\"> Rules </a> ")
+      addBreakToMobileOnly("#headerpanel")
       $("#headerpanel").append("<a onclick=\"invokeLeaderBoard()\"> Leaderboard </a> ")
       addBreakToMobileOnly("#headerpanel")
       $("#headerpanel").append("<a onclick=\"invokeAllPollsLeaderBoard()\"> Room Board </a> ")
@@ -375,6 +377,34 @@
 
     }
 
+    function invokeRulesPage() {
+      displayRulesPage();
+    }
+
+    function displayRulesPage(){
+      $("#displaymodal").empty();
+      $("#displaymodal").append("<h1 class=\"popupheader\" style=\"color:white \">Rules Page</h1>");
+      $("#displaymodal").append("<div class=popupcardpanel id='rules'> </div>")  
+  
+      $("#rules").append("<ol>"
+        +"<li>This game is purely for Fun. Users are not entitled to use it for any illegal activity.</li>"
+        +"<li>For every correct/incorrect prediction, the user can gain/lose 100 points.</li>"
+        +"<li>Additional points can be gained/lost based on the confidence shown by the user for the selected team."
+        +"<br/>The confidence level ranges from 20-80 points and can be selected while predicting the winner."
+        +"</li>"
+        +"<li>If a user misses predicting for a given match the user would loose 200 points(100 mandatory points + 80 bonus points"
+        +"     + 20 points penality).</li>"
+        +"<li>In case a new user joins the group after start of the tournament, then the user will be deducted 200 points" 
+        +"    for every match he has missed predicting for."
+        +"</li>"   
+        +"<li>The User can change his prediction any time before the start of the match.</li>"
+        +"<li>At the end of the tournament users who are ranked in the bottom 50% bracket would need to give a Gift Voucher of designated cost as decided by the group.</li>"  
+        +"<li>Users cannot leave the group after 5 matches are completed else they will be directly added to the group of people who would be giving the gift voucher 😃 </li>"     
+     +"<ol>");   
+
+      showPopupModal();
+    }
+    
     function invokeLeaderBoard() {
       buildLeaderBoard(roomdata_global.scorecard);
     }
