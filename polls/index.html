@@ -384,7 +384,6 @@
     function displayRulesPage(){
       $("#displaymodal").empty();
       $("#displaymodal").append("<h1 class=\"popupheader\" style=\"color:white \">Rules Page</h1>");
-      $("#displaymodal").append("<br> <hr> <br>")
       $("#displaymodal").append("<div id='rules'> </div>")  
   
       $("#rules").append("<ol>"
@@ -394,9 +393,9 @@
         +"<br/>The confidence level ranges from 20-80 points and can be selected while predicting the winner."
         +"</li>"
         +"<li>If a user misses predicting for a given match the user would loose 200 points(100 mandatory points + 80 bonus points"
-        +"     + 20 points penality).</li>"
+        +" + 20 points penality).</li>"
         +"<li>In case a new user joins the group after start of the tournament, then the user will be deducted 200 points" 
-        +"    for every match he has missed predicting for."
+        +" for every match user has missed predicting for."
         +"</li>"   
         +"<li>The User can change his prediction any time before the start of the match.</li>"
         +"<li>At the end of the tournament users who are ranked in the bottom 50% bracket would need to give a Gift Voucher of designated cost as decided by the group.</li>"  
