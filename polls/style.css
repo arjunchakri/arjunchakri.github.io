@@ -462,12 +462,17 @@ div.borderYtoX a:hover:before, div.borderYtoX a:hover:after
 }
 
 #rules{
-    padding: 20px 5px;
+    height: 90%;
+    width: 90%;
+    margin: auto;
+    padding: 10px 0px;
     text-align: left;
     font-weight: 500;
     font-size: 15px;
-    border-bottom: solid 1px rgba(255,255,255,0.7);
-    border-top: solid 1px rgba(255,255,255,0.7);
     color: white;
-    margin:20px;
+    
+}
+
+#rules li{
+  margin: 10px 0;
 }
