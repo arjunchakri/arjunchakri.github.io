@@ -283,17 +283,22 @@
             
             //userchoice radio 1
             //addradiobutton
-            $("#" + pollpanelid).append( "Choose your Prediction : Current - <h3 id='pollSelection-"+unique_pollcode+"' style='display:inline;font-weight:bolder'>"+(useranswered_flag ?userpoll_data["value"]:" 🙁 ")+"</h3><br/>");
+            $("#" + pollpanelid).append( "Choose your Prediction : Current - <h3 id='pollSelection-"+unique_pollcode+"' style='display:inline;font-weight:bolder;color:green'>"+(useranswered_flag ?userpoll_data["value"]:"NA")+"</h3><br/>");
             addradio("#" + pollpanelid, "radios-prediction", "radiogroup-prediction", unique_pollcode, choices_list)
             
-            $("#" + pollpanelid).append( "Choose Bonus Points: Current - <h3 id='pollConfidence-"+unique_pollcode+"' style='display:inline;font-weight:bolder'>"+(useranswered_flag ? userpoll_data["confidence"]:" 🙁 ")+"</h3><br/>");
+            $("#" + pollpanelid).append( "Choose Bonus Points: Current - <h3 id='pollConfidence-"+unique_pollcode+"' style='display:inline;font-weight:bolder;color:green'>"+(useranswered_flag ? userpoll_data["confidence"]:"NA")+"</h3><br/>");
             var prediction_list = ["20", "40", "60", "80"]
 
             addradio("#" + pollpanelid, "radios-confidence", "radiogroup-confidence", unique_pollcode, prediction_list)
 
-            $("#" + pollpanelid).append("<button class=loginbutton onclick=\"submitPollData('" + userdata + "', '" + eachpoll + "','" + unique_pollcode + "','"+pollendtime+"')\">Submit <br> (<span id='"+clockID+"'></span>) </button>")      
+            var predictButtonLabel = useranswered_flag ? "Re-Predict":"Predict";  
+            var predictButtonID = "predict-"+unique_pollcode;
+            $("#" + pollpanelid).append("<button id='"+predictButtonID+"' class=loginbutton onclick=\"submitPollData('" + userdata + "', '" + eachpoll + "','" + unique_pollcode + "','"+pollendtime+"')\">"+predictButtonLabel+" <br> (<span id='"+clockID+"'></span>) </button>")      
             initializeClock(clockID, moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL).toDate())
-
+            if(useranswered_flag){
+             $("#"+predictButtonID).css("color","green");  
+            }  
+  
             $("#" + pollpanelid).append("<br> <hr class=lightseparator > <br>")
 
           } else if(useranswered_flag) {
@@ -484,9 +489,10 @@
         return;
       }
       saveUserPoll(userdata, pollid, uservalue, userconfidence)
+      alert("You have Predicted "+uservalue+" with Bonus :"+userconfidence);
       $("#pollSelection-"+pollhash).text(uservalue); 
-      $("#pollConfidence-"+pollhash).text(userconfidence);         
-      //  $("#" + pollpanelid).slideToggle();
+      $("#pollConfidence-"+pollhash).text(userconfidence); 
+      $("#predict-"+pollhash).html("Re-Predict"+"<br> (<span id='clock-"+pollhash+"'></span>").css("color","green");         
     }
 
     function saveUserPoll(userdata, pollid, uservalue, userconfidence) {
