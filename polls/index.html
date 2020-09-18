@@ -286,7 +286,7 @@
             $("#" + pollpanelid).append( "Choose your Prediction : Current - <h3 id='pollSelection-"+unique_pollcode+"' style='display:inline;font-weight:bolder'>"+(useranswered_flag ?userpoll_data["value"]:" 🙁 ")+"</h3><br/>");
             addradio("#" + pollpanelid, "radios-prediction", "radiogroup-prediction", unique_pollcode, choices_list)
             
-            $("#" + pollpanelid).append( "Choose your Confidence: Current - <h3 id='pollConfidence-"+unique_pollcode+"' style='display:inline;font-weight:bolder'>"+(useranswered_flag ? userpoll_data["confidence"]:" 🙁 ")+"</h3><br/>");
+            $("#" + pollpanelid).append( "Choose Bonus Points: Current - <h3 id='pollConfidence-"+unique_pollcode+"' style='display:inline;font-weight:bolder'>"+(useranswered_flag ? userpoll_data["confidence"]:" 🙁 ")+"</h3><br/>");
             var prediction_list = ["20", "40", "60", "80"]
 
             addradio("#" + pollpanelid, "radios-confidence", "radiogroup-confidence", unique_pollcode, prediction_list)
@@ -297,7 +297,7 @@
             $("#" + pollpanelid).append("<br> <hr class=lightseparator > <br>")
 
           } else if(useranswered_flag) {
-            $("#cardpanel_lower").append(" 😃 You predicted - " + userpoll_data["value"] + " with confidence - " + userpoll_data["confidence"] + " for the poll - " + eachpoll + "-"+choices+". Poll result :"+answer+ "<br>")
+            $("#cardpanel_lower").append(" 😃 You predicted - " + userpoll_data["value"] + " with Bonus - " + userpoll_data["confidence"] + " for the poll - " + eachpoll + "-"+choices+". Poll result :"+answer+ "<br>")
           } else {
             $("#cardpanel_lower").append(" 🙁 Missed predicting for - " + eachpoll + "-"+choices+". Poll result :"+answer+ "<br> ")
           }
@@ -389,14 +389,13 @@
       $("#rules").append("<ol>"
         +"<li>The Prediction game is purely for Fun. Users are not entitled to use it for any illegal activity.</li>"
         +"<li>For every correct/incorrect prediction, the user can gain/lose 100 points.</li>"
-        +"<li>Additional points can be gained/lost based on the confidence shown by the user for the selected team."
-        +"<br/>The confidence level ranges from 20-80 points and can be selected while predicting the winner."
-        +"</li>"
+        +"<li>Bonus points range from 20-80 points and can be selected while predicting the winner.</li>"
         +"<li>If a user misses predicting for a given match the user would loose 200 points(100 mandatory points + 80 bonus points"
         +" + 20 points penality).</li>"
         +"<li>In case a new user joins the group after start of the tournament, then the user will be deducted 200 points" 
         +" for every match user has missed predicting for."
         +"</li>"   
+        +"<li>The aforesaid Points will be Doubled for the semifinals and Quadrupled for Finals.</li>"
         +"<li>The User can change his prediction any time before the start of the match.</li>"
         +"<li>At the end of the tournament users who are ranked in the bottom 50% bracket would need to give a Gift Voucher of designated cost as decided by the group.</li>"  
         +"<li>Users cannot leave the group after 2 matches are completed else they will be directly added to the group of people who would be giving the gift voucher 😃 </li>"     
