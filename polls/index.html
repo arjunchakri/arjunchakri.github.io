@@ -239,7 +239,7 @@
 
       $("#cardpanelwhite").append("<h1 class=subheader > Open Polls for " + username + " </h1> ")
 
-      $("#cardpanel_lower").append("<h1 class=subheader > Closed Polls </h1> ")
+      $("#cardpanel_lower").append("<h1 class=subheader > Recent Polls </h1> ")
 
       //$("#cardpanelwhite").append("<br> <hr> <br>")
 
@@ -261,9 +261,10 @@
 
           //alert(moment(addpollendtime, moment.HTML5_FMT.DATETIME_LOCAL).fromNow())
           //alert(moment().isAfter(moment(addpollendtime, moment.HTML5_FMT.DATETIME_LOCAL)))
-          var polltimeleft_flag = !moment().isAfter(moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL));
+          var pollMoment = moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL);
+          var polltimeleft_flag = !moment().isAfter(pollMoment);
           var useranswered_flag = (typeof userpoll_data  !== 'undefined');
-          
+          var sameOrPreviousDayPoll = pollMoment.dayOfYear() == moment().dayOfYear() || pollMoment.dayOfYear() == moment().dayOfYear()-1;
           if(polltimeleft_flag) {
             // POLL TIME LEFT... 
             var deadline_message = moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL).fromNow()
@@ -282,14 +283,19 @@
             var choices_list = choices.split(",")
             
             //userchoice radio 1
-            //addradiobutton
+            //addradiobutton            
+            var confidence, pollValue;
+            if(useranswered_flag){
+              confidence = userpoll_data["confidence"];
+              pollValue = userpoll_data["value"];
+            }
             $("#" + pollpanelid).append( "Choose your Prediction : Current - <h3 id='pollSelection-"+unique_pollcode+"' style='display:inline;font-weight:bolder;color:DarkSlateGrey'>"+(useranswered_flag ?userpoll_data["value"]:"NA")+"</h3><br/>");
-            addradio("#" + pollpanelid, "radios-prediction", "radiogroup-prediction", unique_pollcode, choices_list)
+            addradio("#" + pollpanelid, "radios-prediction", "radiogroup-prediction", unique_pollcode, choices_list, pollValue)
             
             $("#" + pollpanelid).append( "Choose Bonus Points: Current - <h3 id='pollConfidence-"+unique_pollcode+"' style='display:inline;font-weight:bolder;color:DarkSlateGrey'>"+(useranswered_flag ? userpoll_data["confidence"]:"NA")+"</h3><br/>");
             var prediction_list = ["20", "40", "60", "80"]
 
-            addradio("#" + pollpanelid, "radios-confidence", "radiogroup-confidence", unique_pollcode, prediction_list)
+            addradio("#" + pollpanelid, "radios-confidence", "radiogroup-confidence", unique_pollcode, prediction_list,confidence)
 
             var predictButtonLabel = useranswered_flag ? "Re-Predict":"Predict";  
             var predictButtonID = "predict-"+unique_pollcode;
@@ -301,9 +307,9 @@
   
             $("#" + pollpanelid).append("<br> <hr class=lightseparator > <br>")
 
-          } else if(useranswered_flag) {
+          } else if(useranswered_flag && sameOrPreviousDayPoll) {
             $("#cardpanel_lower").append(" 😃 You predicted - " + userpoll_data["value"] + " with Bonus - " + userpoll_data["confidence"] + " for the poll - " + eachpoll + "-"+choices+". Poll result :"+answer+ "<br>")
-          } else {
+          } else if(sameOrPreviousDayPoll) {
             $("#cardpanel_lower").append(" 🙁 Missed predicting for - " + eachpoll + "-"+choices+". Poll result :"+answer+ "<br> ")
           }
         }
@@ -508,7 +514,7 @@
       
     }
 
-    function addradio(parentpanel, parentradioid, radioid, unique_pollcode, choices_list) {
+    function addradio(parentpanel, parentradioid, radioid, unique_pollcode, choices_list, selectedVal) {
       $(parentpanel).append("<div class=group id='" + parentradioid + "-" + unique_pollcode + "' > </div>")
       //   <div class="group">
       //   <input type="radio" name="rb" id="rb1" />
@@ -524,7 +530,7 @@
         each_choice = each_choice.trim();
         var checked = "checked"
         $("#" + parentradioid + "-" + unique_pollcode).append("<input type=radio name='" + radioid + "-" + unique_pollcode + "' value='" + each_choice + "' id='choice-" + unique_pollcode + each_choice + "' " + radiochecked + " /> <label for='choice-" + unique_pollcode + each_choice + "'>" + each_choice + "</label>")
-        if(radiochecked != "") {
+        if(radiochecked != "" && (isUndefined(selectedVal)  || selectedVal == each_choice)) {
           radiochecked = "";
         }
       }
