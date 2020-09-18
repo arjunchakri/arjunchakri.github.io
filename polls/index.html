@@ -488,7 +488,7 @@
         alert("Cut off time for the : "+pollid+" has elapsed. This poll is no longer availabled for selection")
         return;
       }
-      if(confirm("You have Predicted "+uservalue+" with Bonus "+userconfidence)){
+      if(confirm("For "+pollid+" you have selected "+uservalue+" with "+userconfidence+" bonus points. Do you want to continue ?")){
         saveUserPoll(userdata, pollid, uservalue, userconfidence)
         $("#pollSelection-"+pollhash).text(uservalue); 
         $("#pollConfidence-"+pollhash).text(userconfidence); 
