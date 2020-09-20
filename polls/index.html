@@ -31,6 +31,12 @@
   <!-- moment.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.31/moment-timezone.min.js"></script>
+
+  
+
+
+
   <!-- pdf generator for leaderboard-->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.4.1/jspdf.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.10/jspdf.plugin.autotable.js"></script>
@@ -90,6 +96,7 @@
     var users
     var polls
     var roomdata_global
+    var offSet = parseInt(330 - moment().utcOffset());
 
     var BROWSER_CACHE_KEY = "pollappkey";
     var BROWSER_CACHE_KEY_ROOMID = "pollapproomkey";
@@ -130,7 +137,6 @@
 
 
     function initializeLogin() {
-      
       $('.form').fadeOut(500);
       $('.wrapper').addClass('form-success');
       
@@ -259,15 +265,18 @@
           var pollendtime = polls[eachpoll]["pollendtime"]
           var answer = polls[eachpoll]["answer"]
 
+          
           //alert(moment(addpollendtime, moment.HTML5_FMT.DATETIME_LOCAL).fromNow())
           //alert(moment().isAfter(moment(addpollendtime, moment.HTML5_FMT.DATETIME_LOCAL)))
-          var pollMoment = moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL);
-          var polltimeleft_flag = !moment().isAfter(pollMoment);
+          var pollMoment = moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL).utcOffset(0);
+          
+          const polltimeleft_flag = getTimeRemaining(pollMoment.toDate()).total > 0;
+
           var useranswered_flag = (typeof userpoll_data  !== 'undefined');
           var sameOrPreviousDayPoll = pollMoment.dayOfYear() == moment().dayOfYear() || pollMoment.dayOfYear() == moment().dayOfYear()-1;
           if(polltimeleft_flag) {
             // POLL TIME LEFT... 
-            var deadline_message = moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL).fromNow()
+            //var deadline_message = moment(pollendtime, moment.HTML5_FMT.DATETIME_LOCAL).fromNow()
             let unique_pollcode = stringToHash(eachpoll)
             let clockID = "clock-"+unique_pollcode
             //$("#cardpanelwhite").append( "<h1 id='h1-"+unique_pollcode+"'> " + eachpoll + "</h1> <br>")
@@ -340,7 +349,7 @@
     }
 
     function getTimeRemaining(endtime){
-      const total = Date.parse(endtime) - Date.parse(new Date());
+      const total = Date.parse(endtime) - Date.parse(new Date(new Date().getTime()+ offSet * 60000));
       const seconds = Math.floor( (total/1000) % 60 );
       const minutes = Math.floor( (total/1000/60) % 60 );
       const hours = Math.floor( (total/(1000*60*60)) % 24 );
@@ -490,7 +499,8 @@
 
       var uservalue = $("input[name='radiogroup-prediction-" + pollhash + "']:checked").val();
       var userconfidence = $("input[name='radiogroup-confidence-" + pollhash + "']:checked").val();
-      if(moment().isAfter(moment(pollEndTime, moment.HTML5_FMT.DATETIME_LOCAL))){
+     // if(moment().utcOffset(offSet).isAfter(moment(pollEndTime, moment.HTML5_FMT.DATETIME_LOCAL))){
+      if(getTimeRemaining(moment(pollEndTime).toDate()).total <= 0) {
         alert("Cut off time for the : "+pollid+" has elapsed. This poll is no longer availabled for selection")
         return;
       }
@@ -508,7 +518,7 @@
       var userpollinputs = {
         value: uservalue,
         confidence: userconfidence,
-        submittime: moment().format(moment.HTML5_FMT.DATETIME_LOCAL)
+        submittime: moment(new Date(new Date().getTime()+ offSet * 60000)).format(moment.HTML5_FMT.DATETIME_LOCAL)
       }
       firebaseReference.child(pollroom).child("users").child(userdata).child("polls").child(pollid).set(userpollinputs);
       
@@ -761,7 +771,7 @@
 
       var userSelections = [];
       var userConsolidatedPoints = []
-      var momentVar = isConsolidatedScorecard ? moment(polls[pollId]["pollendtime"]) : moment();
+      var momentVar = isConsolidatedScorecard ? moment(polls[pollId]["pollendtime"]) : moment(new Date(new Date().getTime()+ offSet * 60000));
       for(var user in users) {
         var totalPoints = 0;
         var userpoll_data = isUndefined(users[user]["polls"]) ? undefined : users[user]["polls"];
