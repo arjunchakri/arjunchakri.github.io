@@ -501,14 +501,14 @@
       var userconfidence = $("input[name='radiogroup-confidence-" + pollhash + "']:checked").val();
      // if(moment().utcOffset(offSet).isAfter(moment(pollEndTime, moment.HTML5_FMT.DATETIME_LOCAL))){
       if(getTimeRemaining(moment(pollEndTime).toDate()).total <= 0) {
-        alert("Cut off time for the : "+pollid+" has elapsed. This poll is no longer availabled for selection")
+        alert("Cut off time for Poll : "+pollid+" has elapsed. This poll is no longer available for selection.")
         return;
       }
       if(confirm("For "+pollid+" you have selected "+uservalue+" with "+userconfidence+" bonus points. Do you want to continue ?")){
         saveUserPoll(userdata, pollid, uservalue, userconfidence)
         $("#pollSelection-"+pollhash).text(uservalue); 
         $("#pollConfidence-"+pollhash).text(userconfidence); 
-        $("#predict-"+pollhash).html("Re-Predict"+"<br> (<span id='clock-"+pollhash+"'></span>").css("color","DarkSlateGrey");         
+        $("#predict-"+pollhash).html("Re-Predict"+"<br> (<span id='clock-"+pollhash+"'></span>)").css("color","DarkSlateGrey");         
       }
     }
 
