@@ -640,7 +640,7 @@
       if(polls != undefined) {
         for(var eachpoll in polls) {
           
-          $("#cardpanel").append( eachpoll + " -- choices: " + polls[eachpoll]["choices"] + " -- pollendtime: " + polls[eachpoll]["pollendtime"] + " -- pollanswer -> " + polls[eachpoll]["answer"] + "<button onclick=addPollAnswer('" + eachpoll + "')>Add answer</button>" + " <br>")
+          $("#cardpanel").append( eachpoll + " -- Poll Type: "+ (isUndefined(polls[eachpoll]["pollType"]) ? "L": polls[eachpoll]["pollType"]) + " -- choices: " + polls[eachpoll]["choices"] + " -- pollendtime: " + polls[eachpoll]["pollendtime"] + " -- pollanswer -> " + polls[eachpoll]["answer"] + "<button onclick=addPollAnswer('" + eachpoll + "')>Add answer</button>" + " <br>")
         
         }
         
@@ -648,7 +648,7 @@
         $("#cardpanel").append("NONE <br>")
       }
 
-      $("#cardpanel").append("<br> To add a new poll - <input class='inputcolored' id=\"addpollid\" placeholder=\"pollname\" /> <input class='inputcolored' id=\"addchoices\" placeholder=\"Choices\" /> <input type=\"datetime-local\" id=\"addpollendtime\" name=\"pollendtime\"> <button onclick=addPoll()>Add poll</button>")
+      $("#cardpanel").append("<br> To add a new poll - <input class='inputcolored' id=\"addpollid\" placeholder=\"pollname\" /> <input class='inputcolored' id=\"addchoices\" placeholder=\"Choices\" /> <input class='inputcolored' id=\"addPollType\" placeholder=\"polltype\" /><input type=\"datetime-local\" id=\"addpollendtime\" name=\"pollendtime\"> <button onclick=addPoll()>Add poll</button>")
 
     }
 
@@ -783,28 +783,34 @@
               continue;
             }
             var actualResult = polls[poll]["answer"];
+            var pollType = polls[poll]["pollType"];
             console.log("For poll="+poll+", answer="+actualResult);            
             if(isUndefined(actualResult) || actualResult == null || actualResult.trim() == ""){
               actualResult = 'NC';
             }
-
+            var mFactor = 1;
+            if(pollType == 'S'){
+              mFactor=2;
+            }else if(pollType == 'F'){
+              mFactor=4;
+            }
           var userPollSelection,selection, confidence;
           var confidenceEarned = 0;                                                                                                                                    
           if(!isUndefined(userpoll_data) && !isUndefined(userpoll_data[poll])){
               userPollSelection = userpoll_data[poll];              
             selection = userPollSelection.value;
             confidence = parseInt(userPollSelection.confidence); 
-            confidenceEarned = 100 + confidence;                  
+            confidenceEarned = (100 + confidence)*mFactor;                  
           }else{
             selection = 'NA';
-            confidence = -200;
-            confidenceEarned = -200;
+            confidence = (-200)*mFactor;
+            confidenceEarned = (-200) * mFactor;
           } 
           
           console.log("user :"+user+", selection : "+selection+", confidence :"+confidence);
           if(actualResult != 'NC' && selection != 'NA'){    
              confidenceEarned = selection == actualResult ?  
-                                 100 + confidence: -100 - confidence;
+                                 (100 + confidence)*mFactor: (-100 - confidence)*mFactor;
             } 
           totalPoints +=confidenceEarned;
           if(!isConsolidatedScorecard){
@@ -879,6 +885,8 @@
       var addpollid = $("#addpollid").val();
       var addchoices = $("#addchoices").val();
       var addpollendtime = $("#addpollendtime").val();
+      var addpolltype = $("#addPollType").val();
+
       if (addpollid.trim().length == 0) {
         alert("Enter a proper poll id. ERROR ")
         return;
@@ -895,8 +903,13 @@
         alert("Multiple choices should be given, comma separated. ERROR ")
         return;
       }
-      if (addpollendtime.trim().length == 0) {
-        alert("Enter a proper poll time. ERROR ")
+      if (addpollendtime.trim().length == 0 ) {
+        alert("Enter a proper poll time.  ERROR ")
+        return;
+      }
+
+      if (addpolltype.trim().length == 0 || (addpolltype.trim().toUpperCase() !='S' &&  addpolltype.trim().toUpperCase() !='F')) {
+        alert("Poll type can only take values S or F. ERROR ")
         return;
       }
       //moment.HTML5_FMT.DATETIME_LOCAL
@@ -907,6 +920,7 @@
       var polldata = {
         choices: addchoices,
         pollendtime: addpollendtime,
+        pollType:addpolltype.trim().toUpperCase(),
         answer: ""
       }
       firebaseReference.child(pollroom).child("polls").child(addpollid).set(polldata);
