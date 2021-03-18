@@ -4,29 +4,35 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WebRTC</title>
+    <title>Video</title>
+  
+	<!-- Toasts https://izitoast.marcelodolza.com/ -->
+	<script src="https://arjunchakri.github.io/js/iziToast.min.js"></script>
+	<link rel='stylesheet' href='https://arjunchakri.github.io/js/iziToast.min.css' />
+
   </head>
   <body>
-    <h2>1. Start your Webcam</h2>
+    <h2>1. Video stream</h2>
     <div class="videos">
       <span>
         <h3>Local Stream</h3>
-        <video id="webcamVideo" muted autoplay playsinline></video>
+        <video id="webcamVideo" muted autoplay playsinline controls></video>
       </span>
       <span>
         <h3>Remote Stream</h3>
-        <video id="remoteVideo" autoplay playsinline></video>
+        <video id="remoteVideo" autoplay playsinline controls></video>
       </span>
-
-
     </div>
 
     <button id="webcamButton">Start webcam</button>
+    <button id="screenshareButton">Share screen (PC Only)</button>
+	
     <h2>2. Create a new Call</h2>
     <button id="callButton" disabled>Create Call</button>
 
     <h2>3. Join a Call</h2>
-    <p>Answer the call from a different browser window or device</p>
+    <p>To join a call, enter the "Call key" here.</p>
+    <p>To host a call, click on Create call and share the "Call key".</p>
     
     <input id="callInput" />
     <button id="answerButton" disabled>Answer</button>
@@ -72,6 +78,7 @@
 
 		// HTML elements
 		const webcamButton = document.getElementById('webcamButton');
+		const screenshareButton = document.getElementById('screenshareButton');
 		const webcamVideo = document.getElementById('webcamVideo');
 		const callButton = document.getElementById('callButton');
 		const callInput = document.getElementById('callInput');
@@ -80,9 +87,21 @@
 		const hangupButton = document.getElementById('hangupButton');
 
 		// 1. Setup media sources
-
+		screenshareButton.onclick = async() => {
+			localStream = await navigator.mediaDevices.getDisplayMedia( {audio: true, video: true} );
+			
+			initateStreaming(localStream);
+		}
+		
 		webcamButton.onclick = async () => {
+
 		  localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+		  initateStreaming(localStream);
+		  
+		}  
+		
+		function initateStreaming(localSource) {
+		 
 		  remoteStream = new MediaStream();
 
 		  // Push tracks from local stream to peer connection
@@ -194,10 +213,10 @@
 	
 	<style>
 	
-		@import url('https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap');
+		@import url('https://fonts.googleapis.com/css?family=Ubuntu');
 
 		body {
-		  font-family: 'Syne Mono', monospace;
+		  font-family: 'Ubuntu', sans-serif;
 		  -webkit-font-smoothing: antialiased;
 		  -moz-osx-font-smoothing: grayscale;
 		  text-align: center;
