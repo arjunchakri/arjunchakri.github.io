@@ -96,11 +96,12 @@
 		webcamButton.onclick = async () => {
 
 		  localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+		  
 		  initateStreaming(localStream);
 		  
 		}  
 		
-		function initateStreaming(localSource) {
+		function initateStreaming(localStream) {
 		 
 		  remoteStream = new MediaStream();
 
