@@ -61,7 +61,7 @@
 
 <body style="text-align:center">
 
-    <h1 id="message">hello:)</h1>
+    <h1 id="message" style="color: #00655a;" >hello:)</h1>
     <script>
         //checking if url has an embedded message
         var url_string = window.location.href;
@@ -71,7 +71,7 @@
         if (param !== "") {
             sendEmailToMe(param);
         } else {
-            displayMessage("Input the link in url<br>" + "(arjunchakri.github.io/savelink?[your-link])");
+            displayMessage("Input the link to be saved in url, as<br>" + "(arjunchakri.github.io/savelink?[your-link])");
         }
 
         function displayMessage(message) {
