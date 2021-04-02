@@ -1,0 +1,84 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Project everything</title>
+
+
+</head>
+
+<body>
+
+
+
+	<video width="500px" ></video>
+	
+	<!-- Init -->
+	<script type="text/javascript">
+	init()
+	
+	let recorder, stream;
+	
+	const video = document.querySelector("video");
+
+	async function init() {
+		
+		stream = await navigator.mediaDevices.getDisplayMedia(
+            {audio: false, video: true}
+		);
+		
+		video.srcObject = stream;
+		video.play()
+		
+		recorder = new MediaRecorder(stream);
+		
+		const chunks = [];
+		recorder.ondataavailable = e => chunks.push(e.data);
+		recorder.onstop = e => {
+				
+				var saveprompt = confirm("Do you want to save the video file?") 
+				
+				if(!saveprompt) {
+					return;
+				}
+			    const blob = new Blob(chunks, {
+					type: 'video/webm; codecs=vp9'
+				});
+				saveFile(blob, `vid-${Date.now()}.webm`);
+				
+		};
+
+	  recorder.start();
+		
+	}
+	
+	
+	function saveFile(blob, filename) {
+	  if (window.navigator.msSaveOrOpenBlob) {
+		window.navigator.msSaveOrOpenBlob(blob, filename);
+	  } else {
+		const a = document.createElement('a');
+		document.body.appendChild(a);
+		const url = window.URL.createObjectURL(blob);
+		a.href = url;
+		a.download = filename;
+		a.click();
+		setTimeout(() => {
+		  window.URL.revokeObjectURL(url);
+		  document.body.removeChild(a);
+		}, 0)
+	  }
+	}
+	
+	
+	</script>
+
+
+
+</body>
+
+</html>
