@@ -285,3 +285,7 @@ nav {
 .scrollToTop i {
     font-size: 50px;
 }
+
+.card a {
+    color: white;
+}
