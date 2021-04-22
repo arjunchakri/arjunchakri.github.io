@@ -61,6 +61,12 @@
 		}
 		return false;
 	}
+	
+	function openLinkDelay (url) {
+		setTimeout( function() { 
+			window.open(url, '_blank').focus();
+		}, 500 );
+	}
 	// -->
 	</script>
 	<div class="preloader red container-fluid row">
@@ -76,8 +82,8 @@
 				<div class="nav-wrapper">
 					<div class="container"> <a internal href="index.html" class="brand-logo"><i class="mdi-communication-chat"></i> Arjun</a>
 						<ul id="nav-mobile" class="right side-nav">
-							<li><a internal href="index.html">Home</a> </li>
-							<li><a href="https://www.facebook.com/arjunchakri" target="_blank">Facebook</a> </li>
+							<li><a href="#" onclick="openLinkDelay('https://www.linkedin.com/in/arjunchakravarthy/')" ><i class="fab fa-linkedin" style="font-size: inherit;color: #white;"> </i> &nbsp; Linkedin </a> </li>
+
 						</ul> <a class="button-collapse" href="#" data-activates="nav-mobile"><i class="mdi-navigation-menu"></i></a> </div>
 				</div>
 			</nav>
