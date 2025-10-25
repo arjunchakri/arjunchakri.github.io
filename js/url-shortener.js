@@ -5,13 +5,46 @@
 
 class URLShortener {
     constructor() {
-        this.mappings = urlMappings || {};
+        this.mappings = {};
+        this.firebaseManager = null;
+        this.useFirebase = typeof FirebaseURLManager !== 'undefined';
         this.init();
     }
 
-    init() {
-        // Check for URL parameters and path when page loads
-        this.checkForRedirection();
+    async init() {
+        try {
+            // Always start with static mappings as the primary cache
+            this.mappings = urlMappings || {};
+            console.log('URL Shortener: Loaded static mappings as primary cache');
+            
+            // Initialize Firebase manager for fallback lookups
+            if (this.useFirebase) {
+                this.firebaseManager = new FirebaseURLManager();
+                console.log('URL Shortener: Firebase manager initialized for fallback lookups');
+            }
+            
+            // Check for URL parameters and path when page loads
+            this.checkForRedirection();
+            
+        } catch (error) {
+            console.error('URL Shortener initialization error:', error);
+            // Ensure we at least have static mappings
+            this.mappings = urlMappings || {};
+            this.checkForRedirection();
+        }
+    }
+
+    async waitForFirebase() {
+        return new Promise((resolve) => {
+            const checkFirebase = () => {
+                if (this.firebaseManager && this.firebaseManager.initialized) {
+                    resolve();
+                } else {
+                    setTimeout(checkFirebase, 100);
+                }
+            };
+            checkFirebase();
+        });
     }
 
     /**
@@ -64,13 +97,47 @@ class URLShortener {
      * Redirect to the URL mapped to the given key
      * @param {string} key - The shortcut key
      */
-    redirect(key) {
+    async redirect(key) {
         const lowerKey = key.toLowerCase();
-        const targetUrl = this.mappings[lowerKey];
+        let targetUrl = null;
+        let source = 'static';
+
+        // Step 1: Check static mappings first (fastest)
+        targetUrl = this.mappings[lowerKey];
+        
+        if (targetUrl) {
+            console.log(`URL found in static mappings: ${lowerKey} -> ${targetUrl}`);
+            source = 'static';
+        } else if (this.firebaseManager && this.firebaseManager.initialized) {
+            // Step 2: Only check Firebase if not found in static mappings
+            try {
+                console.log(`Key '${lowerKey}' not found in static mappings, checking Firebase...`);
+                targetUrl = await this.firebaseManager.getMapping(lowerKey);
+                
+                if (targetUrl) {
+                    console.log(`URL found in Firebase: ${lowerKey} -> ${targetUrl}`);
+                    source = 'firebase';
+                    
+                    // Cache it locally for future use (optional optimization)
+                    this.mappings[lowerKey] = targetUrl;
+                } else {
+                    console.log(`Key '${lowerKey}' not found in Firebase either`);
+                }
+            } catch (error) {
+                console.error('Error fetching mapping from Firebase:', error);
+            }
+        } else {
+            console.log(`Key '${lowerKey}' not found in static mappings, Firebase not available`);
+        }
 
         if (targetUrl) {
-            // Show loading message
-            this.showRedirectMessage(key, targetUrl);
+            // Track usage if Firebase is available (for both static and Firebase mappings)
+            if (this.firebaseManager && this.firebaseManager.initialized) {
+                this.firebaseManager.incrementUsage(lowerKey);
+            }
+            
+            // Show loading message with source info
+            this.showRedirectMessage(key, targetUrl, source);
             
             // Delay redirect slightly to show the message
             setTimeout(() => {
@@ -102,17 +169,22 @@ class URLShortener {
      * Show redirect message to user
      * @param {string} key - The shortcut key used
      * @param {string} url - Target URL
+     * @param {string} source - Source of the mapping ('static' or 'firebase')
      */
-    showRedirectMessage(key, url) {
+    showRedirectMessage(key, url, source = '') {
         const pathMethod = window.location.pathname !== '/' && window.location.pathname !== '/index.html';
         const urlExample = pathMethod ? `/${key}` : `?key=${key}`;
+        
+        // Add source indicator for debugging (only in development)
+        const sourceIndicator = (source && console.log) ? 
+            `<small style="opacity: 0.7; font-size: 0.8em;">${source === 'static' ? '📄 Static' : '☁️ Firebase'}</small>` : '';
         
         const message = `
             <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
                         background: #f44336; color: white; padding: 20px; border-radius: 8px; 
                         box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 10000; text-align: center;
                         font-family: 'Roboto', sans-serif;">
-                <h4 style="margin: 0 0 10px 0;">Redirecting...</h4>
+                <h4 style="margin: 0 0 10px 0;">Redirecting... ${sourceIndicator}</h4>
                 <p style="margin: 0;">Shortcut: <strong>${urlExample}</strong></p>
                 <p style="margin: 5px 0 0 0; font-size: 0.9em; opacity: 0.9;">
                     Taking you to: ${this.formatUrlForDisplay(url)}
@@ -176,10 +248,26 @@ class URLShortener {
 
     /**
      * Get all available shortcuts (for admin/debug purposes)
-     * @returns {Array} - Array of available keys
+     * @returns {Promise<Array>} - Array of available keys from both sources
      */
-    getAvailableKeys() {
-        return Object.keys(this.mappings);
+    async getAvailableKeys() {
+        const staticKeys = Object.keys(this.mappings);
+        
+        if (this.firebaseManager && this.firebaseManager.initialized) {
+            try {
+                const firebaseMappings = await this.firebaseManager.getMappings();
+                const firebaseKeys = Object.keys(firebaseMappings);
+                
+                // Combine and deduplicate keys
+                const allKeys = [...new Set([...staticKeys, ...firebaseKeys])];
+                return allKeys.sort();
+            } catch (error) {
+                console.error('Error getting Firebase keys:', error);
+                return staticKeys.sort();
+            }
+        }
+        
+        return staticKeys.sort();
     }
 
     /**
@@ -203,9 +291,26 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Debug function - can be called from browser console
-function showAvailableKeys() {
+async function showAvailableKeys() {
     if (window.urlShortener) {
+        console.log('📄 Static mappings:');
         console.table(window.urlShortener.mappings);
+        
+        if (window.urlShortener.firebaseManager && window.urlShortener.firebaseManager.initialized) {
+            try {
+                const firebaseMappings = await window.urlShortener.firebaseManager.getMappings();
+                console.log('☁️ Firebase mappings:');
+                console.table(firebaseMappings);
+                
+                const allKeys = await window.urlShortener.getAvailableKeys();
+                console.log(`🔗 Total available shortcuts: ${allKeys.length}`);
+                console.log('All keys:', allKeys);
+            } catch (error) {
+                console.error('Error loading Firebase mappings:', error);
+            }
+        } else {
+            console.log('Firebase not available, showing static mappings only');
+        }
     } else {
         console.log('URL Shortener not initialized');
     }

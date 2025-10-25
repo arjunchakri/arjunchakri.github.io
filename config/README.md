@@ -1,6 +1,6 @@
 # URL Shortener Feature
 
-This website now includes a URL shortener feature that allows you to create short links using query parameters.
+This website now includes a powerful URL shortener feature with Firebase backend for dynamic management of short links.
 
 ## How to Use
 
@@ -50,6 +50,7 @@ The following shortcuts are pre-configured:
 
 ### Adding New Shortcuts
 
+**Option 1: Static Config (Fast, requires file edit)**
 1. Open `config/url-mappings.js`
 2. Add your new mapping to the `urlMappings` object:
 
@@ -61,6 +62,11 @@ const urlMappings = {
     'anchor': '#section-name'
 };
 ```
+
+**Option 2: Dynamic Admin (Easy, real-time)**
+1. Visit `/config/admin.html`
+2. Use the admin interface to add shortcuts instantly
+3. No file editing required!
 
 ### URL Types Supported
 
@@ -175,3 +181,70 @@ To update or add new shortcuts:
 3. Save the file - changes take effect immediately
 
 No server restart required since this is a static implementation using client-side JavaScript.
+
+## Firebase Management
+
+### **Admin Interface**
+
+Access the admin interface at `/config/admin.html` to:
+
+- ✅ **Add new shortcuts** dynamically
+- ✅ **Edit existing shortcuts** 
+- ✅ **Delete shortcuts** you no longer need
+- ✅ **View usage statistics** for each shortcut
+- ✅ **Test shortcuts** before sharing
+- ✅ **Real-time updates** via Firebase
+
+### **Migration from Static Config**
+
+If you're upgrading from the static configuration:
+
+1. Visit `/config/migrate.html`
+2. Click "Start Migration" to transfer static mappings to Firebase
+3. All existing shortcuts will be preserved
+4. Future management will be done via the admin interface
+
+### **Features**
+
+- **Hybrid Storage**: Static mappings for speed + Firebase for dynamic management
+- **Performance Optimized**: Checks static config first, Firebase as fallback
+- **Real-time Management**: Add, edit, delete shortcuts instantly via admin
+- **Usage Tracking**: See how many times each shortcut is used
+- **Statistics Dashboard**: Overview of total shortcuts and usage
+- **Intelligent Caching**: Firebase mappings cached locally after first lookup
+- **Mobile Friendly**: Admin interface works on all devices
+- **Backup & Sync**: Your shortcuts are safely stored in Firebase
+
+### **How the Hybrid System Works**
+
+The URL shortener uses a **two-tier lookup system** for optimal performance:
+
+1. **🏃‍♂️ Static First**: Checks `url-mappings.js` first (instant, no network)
+2. **☁️ Firebase Fallback**: If not found, queries Firebase database
+3. **💾 Smart Caching**: Firebase results cached locally for future speed
+
+**Benefits:**
+- ⚡ **Lightning Fast**: Static mappings load instantly
+- 🔄 **Always Current**: Dynamic mappings via Firebase stay up-to-date  
+- 📊 **Full Analytics**: Usage tracking for all shortcuts
+- 🛡️ **Reliable**: Falls back gracefully if Firebase is unavailable
+
+**Example Flow:**
+```
+User visits: yoursite.com/linkedin
+1. ✅ Check static config → Found! Redirect immediately
+2. ❌ Not in static → Check Firebase → Found! Cache & redirect
+3. ❌ Not anywhere → Show "not found" message
+```
+
+### **Database Structure**
+
+Firebase stores data in this structure:
+```
+urlShortener/
+  mappings/
+    linkedin: { url: "https://linkedin.com/in/...", createdAt: timestamp }
+    resume: { url: "res/resume.pdf", updatedAt: timestamp }
+  stats/
+    linkedin: { count: 45, firstUsed: timestamp, lastUsed: timestamp }
+```

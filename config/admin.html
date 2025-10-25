@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>URL Shortener Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Materialize CSS from CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <style>
+        body {
+            background: #f5f5f5;
+        }
+        .admin-header {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            padding: 2rem 0;
+            color: white;
+            margin-bottom: 2rem;
+        }
+        .mapping-card {
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        .mapping-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        .usage-badge {
+            background: #ff9800;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        .add-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            display: none;
+        }
+        .success-message {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            display: none;
+        }
+        .stats-row {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="admin-header">
+        <div class="container">
+            <div class="row">
+                <div class="col s12">
+                    <h3><i class="material-icons left">link</i>URL Shortener Admin</h3>
+                    <p>Manage your shortcut links dynamically with Firebase</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Messages -->
+        <div id="error-message" class="error-message"></div>
+        <div id="success-message" class="success-message"></div>
+        
+        <!-- Loading -->
+        <div id="loading" class="loading">
+            <div class="preloader-wrapper big active">
+                <div class="spinner-layer spinner-blue-only">
+                    <div class="circle-clipper left">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="gap-patch">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="circle-clipper right">
+                        <div class="circle"></div>
+                    </div>
+                </div>
+            </div>
+            <p>Loading URL mappings...</p>
+        </div>
+
+        <!-- Add New Mapping Form -->
+        <div class="add-form">
+            <h5><i class="material-icons left">add</i>Add New Shortcut</h5>
+            <div class="row">
+                <form id="add-mapping-form">
+                    <div class="col s12 m6">
+                        <div class="input-field">
+                            <input id="shortcut-key" type="text" class="validate" required>
+                            <label for="shortcut-key">Shortcut Key</label>
+                            <span class="helper-text">e.g., linkedin, github, resume</span>
+                        </div>
+                    </div>
+                    <div class="col s12 m6">
+                        <div class="input-field">
+                            <input id="target-url" type="url" class="validate" required>
+                            <label for="target-url">Target URL</label>
+                            <span class="helper-text">Full URL including http:// or relative path</span>
+                        </div>
+                    </div>
+                    <div class="col s12">
+                        <button class="btn waves-effect waves-light red" type="submit">
+                            <i class="material-icons left">add</i>Add Shortcut
+                        </button>
+                        <button class="btn waves-effect waves-light grey" type="button" id="clear-form">
+                            <i class="material-icons left">clear</i>Clear
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="row" id="stats-overview" style="display: none;">
+            <div class="col s12">
+                <div class="card stats-row">
+                    <div class="card-content">
+                        <span class="card-title">
+                            <i class="material-icons left">assessment</i>Statistics Overview
+                        </span>
+                        <div class="row">
+                            <div class="col s4 center">
+                                <h4 id="total-shortcuts">0</h4>
+                                <p>Total Shortcuts</p>
+                            </div>
+                            <div class="col s4 center">
+                                <h4 id="total-usage">0</h4>
+                                <p>Total Usage</p>
+                            </div>
+                            <div class="col s4 center">
+                                <h4 id="most-used">-</h4>
+                                <p>Most Used</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Existing Mappings -->
+        <div class="row">
+            <div class="col s12">
+                <h5><i class="material-icons left">list</i>Existing Shortcuts</h5>
+                <div id="mappings-container">
+                    <!-- Mappings will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Section -->
+        <div class="row">
+            <div class="col s12">
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title">
+                            <i class="material-icons left">play_arrow</i>Test Shortcut
+                        </span>
+                        <div class="input-field inline">
+                            <input id="test-key" type="text" placeholder="Enter shortcut key">
+                            <label for="test-key">Test Key</label>
+                        </div>
+                        <button class="btn waves-effect waves-light blue" id="test-shortcut">
+                            <i class="material-icons left">open_in_new</i>Test
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase and Dependencies -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    
+    <!-- jQuery and Materialize from CDN for reliability -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    
+    <!-- URL Shortener Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="admin-interface.js"></script>
+</body>
+</html>

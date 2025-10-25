@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>URL Shortener Migration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 1rem 0;
+        }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        .error { background: #ffebee; color: #c62828; }
+        .loading { background: #fff3e0; color: #f57c00; }
+        button {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #d32f2f; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; }
+        .status { margin: 1rem 0; padding: 1rem; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🔗 URL Shortener Migration to Firebase</h1>
+    
+    <div class="card">
+        <h2>Migration Process</h2>
+        <p>This tool will migrate your static URL mappings to Firebase, enabling dynamic management through the admin interface.</p>
+        
+        <h3>What this does:</h3>
+        <ul>
+            <li>Reads existing mappings from <code>url-mappings.js</code></li>
+            <li>Uploads them to Firebase Realtime Database</li>
+            <li>Preserves all existing shortcuts</li>
+            <li>Enables dynamic management via admin interface</li>
+        </ul>
+        
+        <button id="migrate-btn" onclick="runMigration()">Start Migration</button>
+    </div>
+
+    <div id="status" class="status" style="display: none;"></div>
+
+    <div id="results" class="card" style="display: none;">
+        <h3>Migration Results</h3>
+        <div id="results-content"></div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    
+    <!-- Configuration Scripts -->
+    <script src="url-mappings.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+        let firebaseManager;
+
+        function updateStatus(message, type = 'loading') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = message;
+            statusDiv.style.display = 'block';
+        }
+
+        function showResults(results) {
+            const resultsDiv = document.getElementById('results');
+            const content = document.getElementById('results-content');
+            
+            let html = '<h4>Migrated Mappings:</h4><pre>';
+            html += JSON.stringify(results, null, 2);
+            html += '</pre>';
+            
+            html += `<p><strong>Total mappings migrated:</strong> ${Object.keys(results).length}</p>`;
+            html += '<p>✅ Migration completed successfully!</p>';
+            html += '<p><a href="admin.html">Go to Admin Interface</a> to manage your shortcuts.</p>';
+            
+            content.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+
+        async function runMigration() {
+            const btn = document.getElementById('migrate-btn');
+            btn.disabled = true;
+            btn.textContent = 'Migrating...';
+
+            try {
+                updateStatus('🔄 Initializing Firebase connection...', 'loading');
+                
+                // Initialize Firebase manager
+                firebaseManager = new FirebaseURLManager();
+                
+                // Wait for Firebase to initialize
+                await new Promise(resolve => {
+                    const checkInit = () => {
+                        if (firebaseManager.initialized) {
+                            resolve();
+                        } else {
+                            setTimeout(checkInit, 100);
+                        }
+                    };
+                    checkInit();
+                });
+
+                updateStatus('📂 Reading existing mappings...', 'loading');
+                
+                // Check if urlMappings exists
+                if (typeof urlMappings === 'undefined') {
+                    throw new Error('Static URL mappings not found. Please ensure url-mappings.js is loaded.');
+                }
+
+                updateStatus('☁️ Uploading to Firebase...', 'loading');
+                
+                // Initialize default mappings in Firebase
+                await firebaseManager.initializeDefaultMappings(urlMappings);
+                
+                updateStatus('✅ Migration completed successfully!', 'success');
+                
+                // Show results
+                showResults(urlMappings);
+                
+                btn.textContent = 'Migration Complete';
+                
+            } catch (error) {
+                console.error('Migration failed:', error);
+                updateStatus(`❌ Migration failed: ${error.message}`, 'error');
+                btn.disabled = false;
+                btn.textContent = 'Retry Migration';
+            }
+        }
+
+        // Auto-check Firebase connection on load
+        window.addEventListener('load', () => {
+            updateStatus('Ready to migrate. Click "Start Migration" to begin.', 'loading');
+        });
+    </script>
+</body>
+</html>

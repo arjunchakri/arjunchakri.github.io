@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dependency Test - URL Shortener</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 2rem; 
+            background: #f5f5f5; 
+        }
+        .test-card { 
+            background: white; 
+            padding: 1rem; 
+            margin: 1rem 0; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+        }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+        .warning { color: #ff9800; }
+        pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 URL Shortener Dependency Test</h1>
+    
+    <div class="test-card">
+        <h2>Dependency Check Results:</h2>
+        <div id="test-results">Loading...</div>
+    </div>
+
+    <div class="test-card">
+        <h2>Firebase Connection Test:</h2>
+        <button onclick="testFirebase()" style="padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Test Firebase Connection
+        </button>
+        <div id="firebase-results" style="margin-top: 1rem;"></div>
+    </div>
+
+    <!-- Load all the same dependencies as admin.html -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+        function checkDependency(name, condition) {
+            return `<p class="${condition ? 'success' : 'error'}">
+                ${condition ? '✅' : '❌'} ${name}: ${condition ? 'Loaded' : 'Not Found'}
+            </p>`;
+        }
+
+        function runTests() {
+            let results = '<h3>Script Loading Test:</h3>';
+            
+            // Check basic dependencies
+            results += checkDependency('jQuery ($)', typeof $ !== 'undefined');
+            results += checkDependency('Firebase', typeof firebase !== 'undefined');
+            results += checkDependency('Materialize (M)', typeof M !== 'undefined');
+            results += checkDependency('FirebaseURLManager', typeof FirebaseURLManager !== 'undefined');
+            
+            // Check Firebase components
+            if (typeof firebase !== 'undefined') {
+                results += checkDependency('Firebase Database', typeof firebase.database !== 'undefined');
+                results += checkDependency('Firebase Apps', firebase.apps && firebase.apps.length > 0);
+            }
+
+            // Show results
+            document.getElementById('test-results').innerHTML = results;
+        }
+
+        async function testFirebase() {
+            const resultsDiv = document.getElementById('firebase-results');
+            resultsDiv.innerHTML = '<p>🔄 Testing Firebase connection...</p>';
+
+            try {
+                if (typeof FirebaseURLManager === 'undefined') {
+                    throw new Error('FirebaseURLManager not available');
+                }
+
+                const manager = new FirebaseURLManager();
+                
+                // Wait for initialization
+                await new Promise(resolve => {
+                    const checkInit = () => {
+                        if (manager.initialized) {
+                            resolve();
+                        } else {
+                            setTimeout(checkInit, 100);
+                        }
+                    };
+                    checkInit();
+                });
+
+                // Try to get mappings
+                const mappings = await manager.getMappings();
+                
+                resultsDiv.innerHTML = `
+                    <p class="success">✅ Firebase connection successful!</p>
+                    <p>Found ${Object.keys(mappings).length} mappings in database.</p>
+                    <pre>${JSON.stringify(mappings, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <p class="error">❌ Firebase connection failed:</p>
+                    <p class="error">${error.message}</p>
+                    <pre>${error.stack}</pre>
+                `;
+            }
+        }
+
+        // Run tests when page loads
+        window.addEventListener('load', () => {
+            setTimeout(runTests, 1000); // Wait for scripts to load
+        });
+    </script>
+</body>
+</html>
