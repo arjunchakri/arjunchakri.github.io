@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Redirecting...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f44336;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+        .loading {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <script>
+        // GitHub Pages 404 to Index Redirect
+        // This handles direct path shortcuts like yoursite.com/linkedin
+        
+        (function() {
+            // Extract the path from the URL (remove leading slash)
+            const path = window.location.pathname.substring(1);
+            
+            // Remove any trailing slashes or file extensions
+            const cleanPath = path.replace(/\/$/, '').replace(/\.html$/, '');
+            
+            // If we have a path and it's not empty, redirect to index with key parameter
+            if (cleanPath && cleanPath !== 'index') {
+                const baseUrl = window.location.origin;
+                const newUrl = baseUrl + '/index.html?key=' + encodeURIComponent(cleanPath);
+                
+                // Add some visual feedback before redirect
+                setTimeout(function() {
+                    window.location.href = newUrl;
+                }, 800);
+                
+            } else {
+                // No specific path, just go to homepage
+                setTimeout(function() {
+                    window.location.href = '/index.html';
+                }, 800);
+            }
+        })();
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>🔗 URL Shortener</h2>
+        <div class="loading"></div>
+        <p>Processing your shortcut...</p>
+        <small>Redirecting in a moment</small>
+    </div>
+</body>
+</html>
