@@ -2,66 +2,226 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Video</title>
-  
-	<!-- Toasts https://izitoast.marcelodolza.com/ -->
+    <title>NAC Video Call</title>
+    
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+	<!-- Toasts -->
 	<script src="https://arjunchakri.github.io/js/iziToast.min.js"></script>
 	<link rel='stylesheet' href='https://arjunchakri.github.io/js/iziToast.min.css' />
 
   </head>
   <body>
-    <h2>1. Video stream</h2>
-    <div class="videos">
-      <span>
-        <h3>Local Stream</h3>
-        <video id="webcamVideo" muted autoplay playsinline controls></video>
-      </span>
-      <span>
-        <h3>Remote Stream</h3>
-        <video id="remoteVideo" autoplay playsinline controls></video>
-      </span>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+      <div class="loading-content">
+        <div class="logo">
+          <i class="material-icons">videocam</i>
+          <h2>NAC Video</h2>
+        </div>
+        <div class="loading-spinner"></div>
+        <p>Initializing your meeting...</p>
+      </div>
     </div>
 
-    <button id="webcamButton">Start webcam</button>
-    <button id="screenshareButton">Share screen (PC Only)</button>
-	
-    <h2>2. Create a new Call</h2>
-    <button id="callButton" disabled>Create Call</button>
+    <!-- Main App -->
+    <div id="app" class="app hidden">
+      <!-- Header -->
+      <header class="app-header">
+        <div class="header-content">
+          <div class="logo-section">
+            <i class="material-icons">videocam</i>
+            <span>NAC Video</span>
+          </div>
+          <div class="meeting-info">
+            <span id="meetingTitle">Ready to connect</span>
+            <span id="participantCount" class="participant-count"></span>
+          </div>
+          <div class="header-actions">
+            <button id="settingsBtn" class="icon-btn" title="Settings">
+              <i class="material-icons">settings</i>
+            </button>
+          </div>
+        </div>
+      </header>
 
-    <h2>3. Join a Call</h2>
-    <p>To join a call, enter the "Call key" here.</p>
-    <p>To host a call, click on Create call and share the "Call key".</p>
-    
-    <input id="callInput" />
-    <button id="answerButton" disabled>Answer</button>
+      <!-- Pre-call Screen -->
+      <div id="precallScreen" class="precall-screen">
+        <div class="precall-content">
+          <div class="preview-section">
+            <div class="video-preview">
+              <video id="previewVideo" muted autoplay playsinline></video>
+              <div class="preview-overlay">
+                <div class="preview-controls">
+                  <button id="togglePreviewVideo" class="control-btn active">
+                    <i class="material-icons">videocam</i>
+                  </button>
+                  <button id="togglePreviewAudio" class="control-btn active">
+                    <i class="material-icons">mic</i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="join-section">
+            <h1>Ready to join?</h1>
+            <p>Choose how you'd like to connect</p>
+            
+            <div class="join-options">
+              <div class="create-meeting">
+                <h3>Start a new meeting</h3>
+                <button id="createMeetingBtn" class="primary-btn">
+                  <i class="material-icons">video_call</i>
+                  Create Meeting
+                </button>
+              </div>
+              
+              <div class="join-meeting">
+                <h3>Join with a code</h3>
+                <div class="input-group">
+                  <input 
+                    id="meetingCodeInput" 
+                    type="text" 
+                    placeholder="Enter meeting code"
+                    maxlength="12"
+                  />
+                  <button id="joinMeetingBtn" class="secondary-btn" disabled>
+                    Join
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <h2>4. Hangup</h2>
+      <!-- Call Screen -->
+      <div id="callScreen" class="call-screen hidden">
+        <!-- Video Grid -->
+        <div class="video-grid">
+          <!-- Remote Video (Main) -->
+          <div id="remoteVideoContainer" class="video-container remote-video">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <div class="video-overlay">
+              <div class="participant-info">
+                <span class="participant-name">Remote Participant</span>
+                <div class="connection-status">
+                  <i class="material-icons">signal_wifi_4_bar</i>
+                </div>
+              </div>
+            </div>
+            <div class="video-placeholder">
+              <div class="avatar">
+                <i class="material-icons">person</i>
+              </div>
+              <p>Waiting for participant...</p>
+            </div>
+          </div>
 
-    <button id="hangupButton" disabled>Hangup</button>
+          <!-- Local Video (Picture-in-Picture) -->
+          <div id="localVideoContainer" class="video-container local-video">
+            <video id="localVideo" muted autoplay playsinline></video>
+            <div class="video-overlay">
+              <div class="participant-info">
+                <span class="participant-name">You</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-	<!-- The core Firebase JS SDK is always required and must be listed first -->
-	<script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-app.js"></script>
-	
-	<script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-firestore.js"></script>
+        <!-- Meeting Info Bar -->
+        <div class="meeting-info-bar">
+          <div class="meeting-details">
+            <span id="meetingCode" class="meeting-code"></span>
+            <button id="copyCodeBtn" class="copy-btn" title="Copy meeting code">
+              <i class="material-icons">content_copy</i>
+            </button>
+          </div>
+          <div class="meeting-time">
+            <i class="material-icons">schedule</i>
+            <span id="callTimer">00:00</span>
+          </div>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="controls-bar">
+          <div class="controls-left">
+            <button id="toggleAudio" class="control-btn active" title="Mute/Unmute">
+              <i class="material-icons">mic</i>
+            </button>
+            <button id="toggleVideo" class="control-btn active" title="Turn camera on/off">
+              <i class="material-icons">videocam</i>
+            </button>
+          </div>
+          
+          <div class="controls-center">
+            <button id="shareScreen" class="control-btn" title="Share screen">
+              <i class="material-icons">screen_share</i>
+            </button>
+            <button id="chatToggle" class="control-btn" title="Chat">
+              <i class="material-icons">chat</i>
+            </button>
+            <button id="moreOptions" class="control-btn" title="More options">
+              <i class="material-icons">more_vert</i>
+            </button>
+          </div>
+          
+          <div class="controls-right">
+            <button id="hangupBtn" class="control-btn hangup" title="End call">
+              <i class="material-icons">call_end</i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Panel -->
+      <div id="chatPanel" class="chat-panel hidden">
+        <div class="chat-header">
+          <h3>Meeting Chat</h3>
+          <button id="closeChatBtn" class="icon-btn">
+            <i class="material-icons">close</i>
+          </button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          <!-- Messages will be added here -->
+        </div>
+        <div class="chat-input">
+          <input id="chatInput" type="text" placeholder="Send a message...">
+          <button id="sendChatBtn" class="icon-btn">
+            <i class="material-icons">send</i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+	<!-- Firebase SDK -->
+	<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
 	
     <script>
-		
+		// Firebase Configuration
 		const firebaseConfig = {
-			 apiKey: "AIzaSyBUg39W58dnUBCSF2eMrFqY2p888dDCmMA",
-			authDomain: "theonewithhosting.firebaseapp.com",
-			projectId: "theonewithhosting",
-			storageBucket: "theonewithhosting.appspot.com",
-			messagingSenderId: "522386944774",
-			appId: "1:522386944774:web:8630f7fd3193674629a487"
+			apiKey: "AIzaSyCibTNoAZEu37Lih8PM5I5neXXpUUmKA_A",
+			authDomain: "arjunchakri-commonutil-db-dnd.firebaseapp.com",
+			databaseURL: "https://arjunchakri-commonutil-db-dnd-default-rtdb.firebaseio.com",
+			projectId: "arjunchakri-commonutil-db-dnd",
+			storageBucket: "arjunchakri-commonutil-db-dnd.firebasestorage.app",
+			messagingSenderId: "427544663337",
+			appId: "1:427544663337:web:7d76d4095003960d6a9338",
+			measurementId: "G-J5NS09W79T"
 		};
 
 		if (!firebase.apps.length) {
 		  firebase.initializeApp(firebaseConfig);
 		}
-		const firestore = firebase.firestore();
+		const database = firebase.database();
 
+		// WebRTC Configuration
 		const servers = {
 		  iceServers: [
 			{
@@ -72,172 +232,1109 @@
 		};
 
 		// Global State
-		const pc = new RTCPeerConnection(servers);
+		let pc = null;
 		let localStream = null;
 		let remoteStream = null;
+		let isHost = false;
+		let currentMeetingId = null;
+		let callTimer = null;
+		let callStartTime = null;
+		let isAudioEnabled = true;
+		let isVideoEnabled = true;
+		let isScreenSharing = false;
 
-		// HTML elements
-		const webcamButton = document.getElementById('webcamButton');
-		const screenshareButton = document.getElementById('screenshareButton');
-		const webcamVideo = document.getElementById('webcamVideo');
-		const callButton = document.getElementById('callButton');
-		const callInput = document.getElementById('callInput');
-		const answerButton = document.getElementById('answerButton');
-		const remoteVideo = document.getElementById('remoteVideo');
-		const hangupButton = document.getElementById('hangupButton');
+		// App State
+		let currentScreen = 'loading'; // loading, precall, call
 
-		// 1. Setup media sources
-		screenshareButton.onclick = async() => {
-			localStream = await navigator.mediaDevices.getDisplayMedia( {audio: true, video: true} );
-			
-			initateStreaming(localStream);
-		}
-		
-		webcamButton.onclick = async () => {
-
-		  localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-		  
-		  initateStreaming(localStream);
-		  
-		}  
-		
-		function initateStreaming(localStream) {
-		 
-		  remoteStream = new MediaStream();
-
-		  // Push tracks from local stream to peer connection
-		  localStream.getTracks().forEach((track) => {
-			pc.addTrack(track, localStream);
-		  });
-
-		  // Pull tracks from remote stream, add to video stream
-		  pc.ontrack = (event) => {
-			event.streams[0].getTracks().forEach((track) => {
-			  remoteStream.addTrack(track);
-			});
-		  };
-
-		  webcamVideo.srcObject = localStream;
-		  remoteVideo.srcObject = remoteStream;
-
-		  callButton.disabled = false;
-		  answerButton.disabled = false;
-		  webcamButton.disabled = true;
-		};
-
-		// 2. Create an offer
-		callButton.onclick = async () => {
-		  // Reference Firestore collections for signaling
-		  const callDoc = firestore.collection('calls').doc();
-		  const offerCandidates = callDoc.collection('offerCandidates');
-		  const answerCandidates = callDoc.collection('answerCandidates');
-
-		  callInput.value = callDoc.id;
-
-		  // Get candidates for caller, save to db
-		  pc.onicecandidate = (event) => {
-			event.candidate && offerCandidates.add(event.candidate.toJSON());
-		  };
-
-		  // Create offer
-		  const offerDescription = await pc.createOffer();
-		  await pc.setLocalDescription(offerDescription);
-
-		  const offer = {
-			sdp: offerDescription.sdp,
-			type: offerDescription.type,
-		  };
-
-		  await callDoc.set({ offer });
-
-		  // Listen for remote answer
-		  callDoc.onSnapshot((snapshot) => {
-			const data = snapshot.data();
-			if (!pc.currentRemoteDescription && data?.answer) {
-			  const answerDescription = new RTCSessionDescription(data.answer);
-			  pc.setRemoteDescription(answerDescription);
+		// Initialize App
+		class VideoCallApp {
+			constructor() {
+				this.init();
 			}
-		  });
 
-		  // When answered, add candidate to peer connection
-		  answerCandidates.onSnapshot((snapshot) => {
-			snapshot.docChanges().forEach((change) => {
-			  if (change.type === 'added') {
-				const candidate = new RTCIceCandidate(change.doc.data());
-				pc.addIceCandidate(candidate);
-			  }
-			});
-		  });
+			async init() {
+				try {
+					// Initialize UI
+					this.setupEventListeners();
+					
+					// Check URL for meeting code
+					const urlParams = new URLSearchParams(window.location.search);
+					const meetingCode = urlParams.get('room') || urlParams.get('code');
+					
+					if (meetingCode) {
+						document.getElementById('meetingCodeInput').value = meetingCode;
+					}
 
-		  hangupButton.disabled = false;
-		};
+					// Initialize preview
+					await this.initializePreview();
+					
+					// Show pre-call screen
+					this.showScreen('precall');
+					
+				} catch (error) {
+					console.error('Failed to initialize app:', error);
+					this.showError('Failed to initialize. Please refresh and try again.');
+				}
+			}
 
-		// 3. Answer the call with the unique ID
-		answerButton.onclick = async () => {
-		  const callId = callInput.value;
-		  const callDoc = firestore.collection('calls').doc(callId);
-		  const answerCandidates = callDoc.collection('answerCandidates');
-		  const offerCandidates = callDoc.collection('offerCandidates');
+			setupEventListeners() {
+				// Pre-call controls
+				document.getElementById('createMeetingBtn').onclick = () => this.createMeeting();
+				document.getElementById('joinMeetingBtn').onclick = () => this.joinMeeting();
+				document.getElementById('meetingCodeInput').oninput = (e) => {
+					document.getElementById('joinMeetingBtn').disabled = !e.target.value.trim();
+				};
+				document.getElementById('meetingCodeInput').onkeypress = (e) => {
+					if (e.key === 'Enter' && e.target.value.trim()) {
+						this.joinMeeting();
+					}
+				};
 
-		  pc.onicecandidate = (event) => {
-			event.candidate && answerCandidates.add(event.candidate.toJSON());
-		  };
+				// Preview controls
+				document.getElementById('togglePreviewVideo').onclick = () => this.togglePreviewVideo();
+				document.getElementById('togglePreviewAudio').onclick = () => this.togglePreviewAudio();
 
-		  const callData = (await callDoc.get()).data();
+				// Call controls
+				document.getElementById('toggleAudio').onclick = () => this.toggleAudio();
+				document.getElementById('toggleVideo').onclick = () => this.toggleVideo();
+				document.getElementById('shareScreen').onclick = () => this.toggleScreenShare();
+				document.getElementById('hangupBtn').onclick = () => this.hangup();
+				document.getElementById('copyCodeBtn').onclick = () => this.copyMeetingCode();
+				document.getElementById('chatToggle').onclick = () => this.toggleChat();
+				document.getElementById('closeChatBtn').onclick = () => this.toggleChat();
+				document.getElementById('sendChatBtn').onclick = () => this.sendChatMessage();
+				document.getElementById('chatInput').onkeypress = (e) => {
+					if (e.key === 'Enter') this.sendChatMessage();
+				};
+			}
 
-		  const offerDescription = callData.offer;
-		  await pc.setRemoteDescription(new RTCSessionDescription(offerDescription));
+			async initializePreview() {
+				try {
+					localStream = await navigator.mediaDevices.getUserMedia({ 
+						video: true, 
+						audio: true 
+					});
+					
+					document.getElementById('previewVideo').srcObject = localStream;
+				} catch (error) {
+					console.error('Failed to access camera/microphone:', error);
+					this.showError('Camera/microphone access required');
+				}
+			}
 
-		  const answerDescription = await pc.createAnswer();
-		  await pc.setLocalDescription(answerDescription);
+			showScreen(screen) {
+				// Hide all screens
+				document.getElementById('loadingScreen').classList.add('hidden');
+				document.getElementById('precallScreen').classList.add('hidden');
+				document.getElementById('callScreen').classList.add('hidden');
 
-		  const answer = {
-			type: answerDescription.type,
-			sdp: answerDescription.sdp,
-		  };
+				// Show requested screen
+				document.getElementById('app').classList.remove('hidden');
+				
+				if (screen === 'precall') {
+					document.getElementById('precallScreen').classList.remove('hidden');
+				} else if (screen === 'call') {
+					document.getElementById('callScreen').classList.remove('hidden');
+				}
+				
+				currentScreen = screen;
+			}
 
-		  await callDoc.update({ answer });
+			generateMeetingCode() {
+				return Math.random().toString(36).substring(2, 8).toUpperCase();
+			}
 
-		  offerCandidates.onSnapshot((snapshot) => {
-			snapshot.docChanges().forEach((change) => {
-			  console.log(change);
-			  if (change.type === 'added') {
-				let data = change.doc.data();
-				pc.addIceCandidate(new RTCIceCandidate(data));
-			  }
-			});
-		  });
-		};
+			async createMeeting() {
+				try {
+					isHost = true;
+					currentMeetingId = this.generateMeetingCode();
+					
+					await this.initializePeerConnection();
+					await this.createOffer();
+					
+					// Update UI
+					document.getElementById('meetingCode').textContent = currentMeetingId;
+					document.getElementById('meetingTitle').textContent = `Meeting: ${currentMeetingId}`;
+					
+					// Update URL
+					const newUrl = new URL(window.location);
+					newUrl.searchParams.set('room', currentMeetingId);
+					window.history.pushState({}, '', newUrl);
+					
+					this.showScreen('call');
+					this.startCallTimer();
+					
+					this.showSuccess(`Meeting created! Code: ${currentMeetingId}`);
+					
+				} catch (error) {
+					console.error('Failed to create meeting:', error);
+					this.showError('Failed to create meeting. Please try again.');
+				}
+			}
+
+			async joinMeeting() {
+				try {
+					const meetingCode = document.getElementById('meetingCodeInput').value.trim().toUpperCase();
+					if (!meetingCode) return;
+
+					isHost = false;
+					currentMeetingId = meetingCode;
+					
+					await this.initializePeerConnection();
+					await this.joinCall(meetingCode);
+					
+					// Update UI
+					document.getElementById('meetingCode').textContent = meetingCode;
+					document.getElementById('meetingTitle').textContent = `Meeting: ${meetingCode}`;
+					
+					this.showScreen('call');
+					this.startCallTimer();
+					
+				} catch (error) {
+					console.error('Failed to join meeting:', error);
+					this.showError('Failed to join meeting. Please check the code.');
+				}
+			}
+
+			async initializePeerConnection() {
+				pc = new RTCPeerConnection(servers);
+				remoteStream = new MediaStream();
+
+				// Add local tracks to peer connection
+				if (localStream) {
+					localStream.getTracks().forEach((track) => {
+						pc.addTrack(track, localStream);
+					});
+				}
+
+				// Handle remote tracks
+				pc.ontrack = (event) => {
+					event.streams[0].getTracks().forEach((track) => {
+						remoteStream.addTrack(track);
+					});
+					document.getElementById('remoteVideo').srcObject = remoteStream;
+					this.showRemoteVideo();
+				};
+
+				// Set local video
+				document.getElementById('localVideo').srcObject = localStream;
+
+				// Handle connection state changes
+				pc.onconnectionstatechange = () => {
+					console.log('Connection state:', pc.connectionState);
+					if (pc.connectionState === 'connected') {
+						this.showSuccess('Connected successfully!');
+					} else if (pc.connectionState === 'disconnected') {
+						this.showError('Connection lost');
+					}
+				};
+			}
+
+			async createOffer() {
+				const meetingRef = database.ref(`meetings/${currentMeetingId}`);
+				
+				// Handle ICE candidates
+				pc.onicecandidate = (event) => {
+					if (event.candidate) {
+						meetingRef.child('offerCandidates').push(event.candidate.toJSON());
+					}
+				};
+
+				// Create and set offer
+				const offer = await pc.createOffer();
+				await pc.setLocalDescription(offer);
+
+				// Save offer to database
+				await meetingRef.child('offer').set({
+					sdp: offer.sdp,
+					type: offer.type,
+				});
+
+				// Listen for answer
+				meetingRef.child('answer').on('value', async (snapshot) => {
+					const answer = snapshot.val();
+					if (answer && !pc.currentRemoteDescription) {
+						await pc.setRemoteDescription(new RTCSessionDescription(answer));
+					}
+				});
+
+				// Listen for answer candidates
+				meetingRef.child('answerCandidates').on('child_added', (snapshot) => {
+					const candidate = snapshot.val();
+					if (candidate) {
+						pc.addIceCandidate(new RTCIceCandidate(candidate));
+					}
+				});
+			}
+
+			async joinCall(meetingCode) {
+				const meetingRef = database.ref(`meetings/${meetingCode}`);
+
+				// Check if meeting exists
+				const meetingSnapshot = await meetingRef.child('offer').once('value');
+				if (!meetingSnapshot.exists()) {
+					throw new Error('Meeting not found');
+				}
+
+				// Handle ICE candidates
+				pc.onicecandidate = (event) => {
+					if (event.candidate) {
+						meetingRef.child('answerCandidates').push(event.candidate.toJSON());
+					}
+				};
+
+				// Get and set remote offer
+				const offer = meetingSnapshot.val();
+				await pc.setRemoteDescription(new RTCSessionDescription(offer));
+
+				// Create and set answer
+				const answer = await pc.createAnswer();
+				await pc.setLocalDescription(answer);
+
+				// Save answer to database
+				await meetingRef.child('answer').set({
+					sdp: answer.sdp,
+					type: answer.type,
+				});
+
+				// Listen for offer candidates
+				meetingRef.child('offerCandidates').on('child_added', (snapshot) => {
+					const candidate = snapshot.val();
+					if (candidate) {
+						pc.addIceCandidate(new RTCIceCandidate(candidate));
+					}
+				});
+			}
+
+			togglePreviewVideo() {
+				const video = localStream?.getVideoTracks()[0];
+				if (video) {
+					video.enabled = !video.enabled;
+					isVideoEnabled = video.enabled;
+					this.updateButtonState('togglePreviewVideo', isVideoEnabled);
+				}
+			}
+
+			togglePreviewAudio() {
+				const audio = localStream?.getAudioTracks()[0];
+				if (audio) {
+					audio.enabled = !audio.enabled;
+					isAudioEnabled = audio.enabled;
+					this.updateButtonState('togglePreviewAudio', isAudioEnabled);
+				}
+			}
+
+			toggleAudio() {
+				const audio = localStream?.getAudioTracks()[0];
+				if (audio) {
+					audio.enabled = !audio.enabled;
+					isAudioEnabled = audio.enabled;
+					this.updateButtonState('toggleAudio', isAudioEnabled);
+					
+					const icon = isAudioEnabled ? 'mic' : 'mic_off';
+					document.querySelector('#toggleAudio i').textContent = icon;
+				}
+			}
+
+			toggleVideo() {
+				const video = localStream?.getVideoTracks()[0];
+				if (video) {
+					video.enabled = !video.enabled;
+					isVideoEnabled = video.enabled;
+					this.updateButtonState('toggleVideo', isVideoEnabled);
+					
+					const icon = isVideoEnabled ? 'videocam' : 'videocam_off';
+					document.querySelector('#toggleVideo i').textContent = icon;
+				}
+			}
+
+			async toggleScreenShare() {
+				try {
+					if (!isScreenSharing) {
+						const screenStream = await navigator.mediaDevices.getDisplayMedia({
+							video: true,
+							audio: true
+						});
+						
+						// Replace video track
+						const videoTrack = screenStream.getVideoTracks()[0];
+						const sender = pc.getSenders().find(s => 
+							s.track && s.track.kind === 'video'
+						);
+						
+						if (sender) {
+							await sender.replaceTrack(videoTrack);
+						}
+						
+						// Update local stream
+						const oldVideoTrack = localStream.getVideoTracks()[0];
+						localStream.removeTrack(oldVideoTrack);
+						localStream.addTrack(videoTrack);
+						
+						// Handle screen share end
+						videoTrack.onended = () => {
+							this.stopScreenShare();
+						};
+						
+						isScreenSharing = true;
+						document.querySelector('#shareScreen i').textContent = 'stop_screen_share';
+						this.showSuccess('Screen sharing started');
+						
+					} else {
+						await this.stopScreenShare();
+					}
+				} catch (error) {
+					console.error('Screen share failed:', error);
+					this.showError('Screen sharing failed');
+				}
+			}
+
+			async stopScreenShare() {
+				try {
+					// Get camera stream back
+					const cameraStream = await navigator.mediaDevices.getUserMedia({
+						video: true,
+						audio: true
+					});
+					
+					const videoTrack = cameraStream.getVideoTracks()[0];
+					const sender = pc.getSenders().find(s => 
+						s.track && s.track.kind === 'video'
+					);
+					
+					if (sender) {
+						await sender.replaceTrack(videoTrack);
+					}
+					
+					// Update local stream
+					const oldVideoTrack = localStream.getVideoTracks()[0];
+					localStream.removeTrack(oldVideoTrack);
+					localStream.addTrack(videoTrack);
+					
+					isScreenSharing = false;
+					document.querySelector('#shareScreen i').textContent = 'screen_share';
+					this.showSuccess('Screen sharing stopped');
+					
+				} catch (error) {
+					console.error('Failed to stop screen share:', error);
+				}
+			}
+
+			hangup() {
+				// Close peer connection
+				if (pc) {
+					pc.close();
+					pc = null;
+				}
+
+				// Stop local stream
+				if (localStream) {
+					localStream.getTracks().forEach(track => track.stop());
+					localStream = null;
+				}
+
+				// Clean up database
+				if (currentMeetingId) {
+					database.ref(`meetings/${currentMeetingId}`).remove();
+				}
+
+				// Stop timer
+				if (callTimer) {
+					clearInterval(callTimer);
+					callTimer = null;
+				}
+
+				// Reset UI and redirect
+				this.showSuccess('Call ended');
+				setTimeout(() => {
+					window.location.href = window.location.pathname;
+				}, 1500);
+			}
+
+			copyMeetingCode() {
+				const code = currentMeetingId;
+				const url = `${window.location.origin}${window.location.pathname}?room=${code}`;
+				
+				navigator.clipboard.writeText(url).then(() => {
+					this.showSuccess('Meeting link copied to clipboard!');
+				}).catch(() => {
+					// Fallback
+					const textArea = document.createElement('textarea');
+					textArea.value = url;
+					document.body.appendChild(textArea);
+					textArea.select();
+					document.execCommand('copy');
+					document.body.removeChild(textArea);
+					this.showSuccess('Meeting link copied!');
+				});
+			}
+
+			toggleChat() {
+				const chatPanel = document.getElementById('chatPanel');
+				chatPanel.classList.toggle('hidden');
+			}
+
+			sendChatMessage() {
+				const input = document.getElementById('chatInput');
+				const message = input.value.trim();
+				if (!message) return;
+
+				// Add to chat
+				this.addChatMessage('You', message, true);
+				
+				// Send via database (for real implementation)
+				if (currentMeetingId) {
+					database.ref(`meetings/${currentMeetingId}/chat`).push({
+						sender: 'You',
+						message: message,
+						timestamp: Date.now()
+					});
+				}
+
+				input.value = '';
+			}
+
+			addChatMessage(sender, message, isLocal = false) {
+				const chatMessages = document.getElementById('chatMessages');
+				const messageDiv = document.createElement('div');
+				messageDiv.className = `chat-message ${isLocal ? 'local' : 'remote'}`;
+				messageDiv.innerHTML = `
+					<div class="message-sender">${sender}</div>
+					<div class="message-content">${message}</div>
+					<div class="message-time">${new Date().toLocaleTimeString()}</div>
+				`;
+				chatMessages.appendChild(messageDiv);
+				chatMessages.scrollTop = chatMessages.scrollHeight;
+			}
+
+			startCallTimer() {
+				callStartTime = Date.now();
+				callTimer = setInterval(() => {
+					const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+					const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+					const seconds = (elapsed % 60).toString().padStart(2, '0');
+					document.getElementById('callTimer').textContent = `${minutes}:${seconds}`;
+				}, 1000);
+			}
+
+			showRemoteVideo() {
+				document.querySelector('.video-placeholder').style.display = 'none';
+				document.getElementById('remoteVideo').style.display = 'block';
+			}
+
+			updateButtonState(buttonId, isActive) {
+				const button = document.getElementById(buttonId);
+				if (isActive) {
+					button.classList.add('active');
+				} else {
+					button.classList.remove('active');
+				}
+			}
+
+			showSuccess(message) {
+				iziToast.success({
+					title: 'Success',
+					message: message,
+					position: 'topRight'
+				});
+			}
+
+			showError(message) {
+				iziToast.error({
+					title: 'Error',
+					message: message,
+					position: 'topRight'
+				});
+			}
+		}
+
+		// Initialize the app when DOM is loaded
+		document.addEventListener('DOMContentLoaded', () => {
+			new VideoCallApp();
+		});
 
 	
 	</script>
 	
 	<style>
-	
-		@import url('https://fonts.googleapis.com/css?family=Ubuntu');
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
 
 		body {
-		  font-family: 'Ubuntu', sans-serif;
-		  -webkit-font-smoothing: antialiased;
-		  -moz-osx-font-smoothing: grayscale;
-		  text-align: center;
-		  color: #2c3e50;
-		  margin: 80px 10px;
+			font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+			background: #202124;
+			color: #ffffff;
+			overflow: hidden;
 		}
 
-		video {
-		  width: 40vw;
-		  height: 30vw;
-		  margin: 2rem;
-		  background: #2c3e50;
+		.hidden {
+			display: none !important;
 		}
 
-		.videos {
-		  display: flex;
-		  align-items: center;
-		  justify-content: center;
+		/* Loading Screen */
+		.loading-screen {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: #202124;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 1000;
 		}
-	
+
+		.loading-content {
+			text-align: center;
+		}
+
+		.logo {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin-bottom: 2rem;
+		}
+
+		.logo i {
+			font-size: 3rem;
+			margin-right: 1rem;
+			color: #1a73e8;
+		}
+
+		.logo h2 {
+			font-size: 2rem;
+			font-weight: 400;
+		}
+
+		.loading-spinner {
+			width: 40px;
+			height: 40px;
+			border: 3px solid rgba(26, 115, 232, 0.3);
+			border-top: 3px solid #1a73e8;
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+			margin: 1rem auto;
+		}
+
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
+
+		/* App Layout */
+		.app {
+			width: 100vw;
+			height: 100vh;
+			display: flex;
+			flex-direction: column;
+		}
+
+		/* Header */
+		.app-header {
+			background: #2d2f31;
+			padding: 0.75rem 1.5rem;
+			border-bottom: 1px solid #3c4043;
+		}
+
+		.header-content {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			max-width: 1200px;
+			margin: 0 auto;
+		}
+
+		.logo-section {
+			display: flex;
+			align-items: center;
+			font-size: 1.125rem;
+			font-weight: 500;
+		}
+
+		.logo-section i {
+			margin-right: 0.5rem;
+			color: #1a73e8;
+		}
+
+		.meeting-info {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+		}
+
+		.participant-count {
+			font-size: 0.875rem;
+			color: #9aa0a6;
+		}
+
+		/* Pre-call Screen */
+		.precall-screen {
+			flex: 1;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 2rem;
+		}
+
+		.precall-content {
+			display: flex;
+			gap: 4rem;
+			max-width: 1000px;
+			width: 100%;
+			align-items: center;
+		}
+
+		.preview-section {
+			flex: 1;
+		}
+
+		.video-preview {
+			position: relative;
+			width: 100%;
+			max-width: 480px;
+			aspect-ratio: 16/9;
+			background: #3c4043;
+			border-radius: 12px;
+			overflow: hidden;
+		}
+
+		.video-preview video {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
+		.preview-overlay {
+			position: absolute;
+			bottom: 1rem;
+			left: 50%;
+			transform: translateX(-50%);
+		}
+
+		.preview-controls {
+			display: flex;
+			gap: 0.75rem;
+		}
+
+		.control-btn {
+			width: 48px;
+			height: 48px;
+			border-radius: 50%;
+			border: none;
+			background: rgba(60, 64, 67, 0.8);
+			color: #ffffff;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.control-btn:hover {
+			background: rgba(60, 64, 67, 1);
+			transform: scale(1.05);
+		}
+
+		.control-btn.active {
+			background: #1a73e8;
+		}
+
+		.control-btn.hangup {
+			background: #ea4335;
+		}
+
+		.control-btn.hangup:hover {
+			background: #d33b2c;
+		}
+
+		.join-section {
+			flex: 1;
+			text-align: center;
+		}
+
+		.join-section h1 {
+			font-size: 2.5rem;
+			font-weight: 400;
+			margin-bottom: 0.5rem;
+		}
+
+		.join-section > p {
+			color: #9aa0a6;
+			margin-bottom: 3rem;
+		}
+
+		.join-options {
+			display: flex;
+			flex-direction: column;
+			gap: 2rem;
+		}
+
+		.create-meeting, .join-meeting {
+			padding: 2rem;
+			background: #2d2f31;
+			border-radius: 12px;
+			border: 1px solid #3c4043;
+		}
+
+		.create-meeting h3, .join-meeting h3 {
+			font-size: 1.25rem;
+			font-weight: 500;
+			margin-bottom: 1rem;
+		}
+
+		.primary-btn, .secondary-btn {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 0.5rem;
+			padding: 0.75rem 1.5rem;
+			border: none;
+			border-radius: 6px;
+			font-size: 1rem;
+			font-weight: 500;
+			cursor: pointer;
+			transition: all 0.2s ease;
+			min-width: 140px;
+		}
+
+		.primary-btn {
+			background: #1a73e8;
+			color: #ffffff;
+		}
+
+		.primary-btn:hover {
+			background: #1557b0;
+		}
+
+		.secondary-btn {
+			background: #3c4043;
+			color: #ffffff;
+		}
+
+		.secondary-btn:hover {
+			background: #5f6368;
+		}
+
+		.secondary-btn:disabled {
+			background: #2d2f31;
+			color: #5f6368;
+			cursor: not-allowed;
+		}
+
+		.input-group {
+			display: flex;
+			gap: 0.75rem;
+			align-items: center;
+		}
+
+		.input-group input {
+			flex: 1;
+			padding: 0.75rem 1rem;
+			background: #3c4043;
+			border: 1px solid #5f6368;
+			border-radius: 6px;
+			color: #ffffff;
+			font-size: 1rem;
+		}
+
+		.input-group input:focus {
+			outline: none;
+			border-color: #1a73e8;
+		}
+
+		/* Call Screen */
+		.call-screen {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			position: relative;
+		}
+
+		.video-grid {
+			flex: 1;
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.video-container {
+			position: relative;
+			background: #202124;
+			border-radius: 12px;
+			overflow: hidden;
+		}
+
+		.remote-video {
+			width: 100%;
+			height: 100%;
+			max-width: calc(100vw - 2rem);
+			max-height: calc(100vh - 200px);
+		}
+
+		.local-video {
+			position: absolute;
+			bottom: 1rem;
+			right: 1rem;
+			width: 240px;
+			height: 180px;
+			z-index: 10;
+			border: 2px solid #3c4043;
+		}
+
+		.video-container video {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
+		.video-overlay {
+			position: absolute;
+			bottom: 0.75rem;
+			left: 0.75rem;
+			background: rgba(0, 0, 0, 0.6);
+			padding: 0.5rem 0.75rem;
+			border-radius: 6px;
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+
+		.participant-name {
+			font-size: 0.875rem;
+			font-weight: 500;
+		}
+
+		.connection-status i {
+			font-size: 1rem;
+			color: #34a853;
+		}
+
+		.video-placeholder {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			text-align: center;
+			color: #9aa0a6;
+		}
+
+		.avatar {
+			width: 80px;
+			height: 80px;
+			background: #3c4043;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin: 0 auto 1rem;
+		}
+
+		.avatar i {
+			font-size: 2rem;
+		}
+
+		/* Meeting Info Bar */
+		.meeting-info-bar {
+			position: absolute;
+			top: 1rem;
+			left: 50%;
+			transform: translateX(-50%);
+			background: rgba(45, 47, 49, 0.9);
+			backdrop-filter: blur(10px);
+			border-radius: 24px;
+			padding: 0.5rem 1rem;
+			display: flex;
+			align-items: center;
+			gap: 1rem;
+		}
+
+		.meeting-details {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+
+		.meeting-code {
+			font-family: 'Monaco', 'Menlo', monospace;
+			background: #3c4043;
+			padding: 0.25rem 0.5rem;
+			border-radius: 4px;
+			font-size: 0.875rem;
+		}
+
+		.copy-btn {
+			background: none;
+			border: none;
+			color: #9aa0a6;
+			cursor: pointer;
+			padding: 0.25rem;
+			border-radius: 4px;
+		}
+
+		.copy-btn:hover {
+			background: #3c4043;
+		}
+
+		.meeting-time {
+			display: flex;
+			align-items: center;
+			gap: 0.25rem;
+			font-size: 0.875rem;
+			color: #9aa0a6;
+		}
+
+		/* Controls Bar */
+		.controls-bar {
+			position: absolute;
+			bottom: 1rem;
+			left: 50%;
+			transform: translateX(-50%);
+			background: rgba(45, 47, 49, 0.9);
+			backdrop-filter: blur(10px);
+			border-radius: 24px;
+			padding: 0.75rem 1rem;
+			display: flex;
+			align-items: center;
+			gap: 1rem;
+		}
+
+		.controls-left, .controls-center, .controls-right {
+			display: flex;
+			gap: 0.75rem;
+			align-items: center;
+		}
+
+		/* Chat Panel */
+		.chat-panel {
+			position: absolute;
+			right: 0;
+			top: 0;
+			width: 320px;
+			height: 100%;
+			background: #2d2f31;
+			border-left: 1px solid #3c4043;
+			display: flex;
+			flex-direction: column;
+			z-index: 100;
+		}
+
+		.chat-header {
+			padding: 1rem;
+			border-bottom: 1px solid #3c4043;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.chat-messages {
+			flex: 1;
+			padding: 1rem;
+			overflow-y: auto;
+		}
+
+		.chat-message {
+			margin-bottom: 1rem;
+			padding: 0.75rem;
+			background: #3c4043;
+			border-radius: 8px;
+		}
+
+		.chat-message.local {
+			background: #1a73e8;
+			margin-left: 2rem;
+		}
+
+		.chat-message.remote {
+			margin-right: 2rem;
+		}
+
+		.message-sender {
+			font-size: 0.75rem;
+			color: #9aa0a6;
+			margin-bottom: 0.25rem;
+		}
+
+		.message-content {
+			font-size: 0.875rem;
+		}
+
+		.message-time {
+			font-size: 0.75rem;
+			color: #9aa0a6;
+			margin-top: 0.25rem;
+		}
+
+		.chat-input {
+			padding: 1rem;
+			border-top: 1px solid #3c4043;
+			display: flex;
+			gap: 0.5rem;
+		}
+
+		.chat-input input {
+			flex: 1;
+			padding: 0.5rem;
+			background: #3c4043;
+			border: 1px solid #5f6368;
+			border-radius: 6px;
+			color: #ffffff;
+		}
+
+		.icon-btn {
+			background: none;
+			border: none;
+			color: #9aa0a6;
+			cursor: pointer;
+			padding: 0.5rem;
+			border-radius: 4px;
+		}
+
+		.icon-btn:hover {
+			background: #3c4043;
+			color: #ffffff;
+		}
+
+		/* Responsive Design */
+		@media (max-width: 768px) {
+			.precall-content {
+				flex-direction: column;
+				gap: 2rem;
+			}
+
+			.local-video {
+				width: 120px;
+				height: 90px;
+				bottom: 0.5rem;
+				right: 0.5rem;
+			}
+
+			.meeting-info-bar {
+				position: relative;
+				top: auto;
+				left: auto;
+				transform: none;
+				margin: 1rem;
+				justify-content: center;
+			}
+
+			.controls-bar {
+				position: relative;
+				bottom: auto;
+				left: auto;
+				transform: none;
+				margin: 1rem;
+				justify-content: center;
+			}
+
+			.chat-panel {
+				width: 100%;
+			}
+		}
 	</style>
 	
   </body>
