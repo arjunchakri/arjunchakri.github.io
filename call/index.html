@@ -42,9 +42,6 @@
             <span id="participantCount" class="participant-count"></span>
           </div>
           <div class="header-actions">
-            <button id="diagnosticsBtn" class="icon-btn" title="Connection Diagnostics">
-              <i class="material-icons">network_check</i>
-            </button>
             <button id="settingsBtn" class="icon-btn" title="Settings">
               <i class="material-icons">settings</i>
             </button>
@@ -230,26 +227,6 @@
 			{
 			  urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'],
 			},
-			{
-			  urls: 'turn:relay1.expressturn.com:3478',
-			  credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-			  username: 'ef4e74b6e78b349fd4e80e'
-			},
-			{
-			  urls: 'turn:openrelay.metered.ca:80',
-			  credential: 'openrelayproject',
-			  username: 'openrelayproject'
-			},
-			{
-			  urls: 'turn:openrelay.metered.ca:443',
-			  credential: 'openrelayproject',
-			  username: 'openrelayproject'
-			},
-			{
-			  urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-			  credential: 'openrelayproject',
-			  username: 'openrelayproject'
-			}
 		  ],
 		  iceCandidatePoolSize: 10,
 		};
@@ -280,9 +257,6 @@
 					// Initialize UI
 					this.setupEventListeners();
 					
-					// Test network connectivity
-					await this.testNetworkConnectivity();
-					
 					// Check URL for meeting code
 					const urlParams = new URLSearchParams(window.location.search);
 					const meetingCode = urlParams.get('room') || urlParams.get('code');
@@ -300,46 +274,6 @@
 				} catch (error) {
 					console.error('Failed to initialize app:', error);
 					this.showError('Failed to initialize. Please refresh and try again.');
-				}
-			}
-
-			async testNetworkConnectivity() {
-				try {
-					console.log('Testing network connectivity...');
-					
-					// Test STUN server connectivity
-					const stunTest = new RTCPeerConnection({
-						iceServers: [{ urls: 'stun:stun1.l.google.com:19302' }]
-					});
-					
-					// Create a data channel to force ICE gathering
-					stunTest.createDataChannel('test');
-					
-					const offer = await stunTest.createOffer();
-					await stunTest.setLocalDescription(offer);
-					
-					// Wait for ICE gathering to complete or timeout
-					const gatheringComplete = new Promise((resolve) => {
-						const timeout = setTimeout(() => {
-							console.log('STUN test timeout');
-							resolve(false);
-						}, 5000);
-						
-						stunTest.onicegatheringstatechange = () => {
-							if (stunTest.iceGatheringState === 'complete') {
-								clearTimeout(timeout);
-								console.log('STUN servers accessible');
-								resolve(true);
-							}
-						};
-					});
-					
-					await gatheringComplete;
-					stunTest.close();
-					
-				} catch (error) {
-					console.warn('Network connectivity test failed:', error);
-					this.showError('Network connectivity issues detected. Calls may not work properly.');
 				}
 			}
 
@@ -372,7 +306,6 @@
 				document.getElementById('chatInput').onkeypress = (e) => {
 					if (e.key === 'Enter') this.sendChatMessage();
 				};
-				document.getElementById('diagnosticsBtn').onclick = () => this.showDiagnostics();
 			}
 
 			async initializePreview() {
@@ -493,30 +426,6 @@
 						this.showSuccess('Connected successfully!');
 					} else if (pc.connectionState === 'disconnected') {
 						this.showError('Connection lost');
-					} else if (pc.connectionState === 'failed') {
-						this.showError('Connection failed - trying to reconnect...');
-						this.handleConnectionFailure();
-					}
-				};
-
-				// Handle ICE connection state changes
-				pc.oniceconnectionstatechange = () => {
-					console.log('ICE connection state:', pc.iceConnectionState);
-					if (pc.iceConnectionState === 'failed') {
-						console.log('ICE connection failed, attempting restart...');
-						pc.restartIce();
-					}
-				};
-
-				// Handle ICE gathering state changes
-				pc.onicegatheringstatechange = () => {
-					console.log('ICE gathering state:', pc.iceGatheringState);
-				};
-
-				// Log ICE candidates for debugging
-				pc.onicecandidate = (event) => {
-					if (event.candidate) {
-						console.log('ICE candidate:', event.candidate);
 					}
 				};
 			}
@@ -527,10 +436,7 @@
 				// Handle ICE candidates
 				pc.onicecandidate = (event) => {
 					if (event.candidate) {
-						console.log('Adding offer ICE candidate:', event.candidate);
 						meetingRef.child('offerCandidates').push(event.candidate.toJSON());
-					} else {
-						console.log('All ICE candidates have been sent');
 					}
 				};
 
@@ -553,15 +459,10 @@
 				});
 
 				// Listen for answer candidates
-				meetingRef.child('answerCandidates').on('child_added', async (snapshot) => {
+				meetingRef.child('answerCandidates').on('child_added', (snapshot) => {
 					const candidate = snapshot.val();
-					if (candidate && pc.remoteDescription) {
-						try {
-							console.log('Adding remote ICE candidate (offer):', candidate);
-							await pc.addIceCandidate(new RTCIceCandidate(candidate));
-						} catch (error) {
-							console.error('Error adding ICE candidate:', error);
-						}
+					if (candidate) {
+						pc.addIceCandidate(new RTCIceCandidate(candidate));
 					}
 				});
 			}
@@ -578,10 +479,7 @@
 				// Handle ICE candidates
 				pc.onicecandidate = (event) => {
 					if (event.candidate) {
-						console.log('Adding answer ICE candidate:', event.candidate);
 						meetingRef.child('answerCandidates').push(event.candidate.toJSON());
-					} else {
-						console.log('All ICE candidates have been sent');
 					}
 				};
 
@@ -600,15 +498,10 @@
 				});
 
 				// Listen for offer candidates
-				meetingRef.child('offerCandidates').on('child_added', async (snapshot) => {
+				meetingRef.child('offerCandidates').on('child_added', (snapshot) => {
 					const candidate = snapshot.val();
-					if (candidate && pc.remoteDescription) {
-						try {
-							console.log('Adding remote ICE candidate (answer):', candidate);
-							await pc.addIceCandidate(new RTCIceCandidate(candidate));
-						} catch (error) {
-							console.error('Error adding ICE candidate:', error);
-						}
+					if (candidate) {
+						pc.addIceCandidate(new RTCIceCandidate(candidate));
 					}
 				});
 			}
@@ -852,67 +745,6 @@
 					message: message,
 					position: 'topRight'
 				});
-			}
-
-			async handleConnectionFailure() {
-				console.log('Handling connection failure...');
-				try {
-					// Try to restart ICE
-					if (pc && pc.iceConnectionState === 'failed') {
-						console.log('Restarting ICE...');
-						pc.restartIce();
-					}
-				} catch (error) {
-					console.error('Failed to restart ICE:', error);
-					this.showError('Connection failed. Please try refreshing the page.');
-				}
-			}
-
-			async showDiagnostics() {
-				let diagnosticsInfo = 'Connection Diagnostics:\n\n';
-				
-				// WebRTC Support
-				diagnosticsInfo += `WebRTC Support: ${!!window.RTCPeerConnection ? '✓' : '✗'}\n`;
-				
-				// Media Devices Support
-				diagnosticsInfo += `Media Devices: ${!!navigator.mediaDevices ? '✓' : '✗'}\n`;
-				
-				if (pc) {
-					diagnosticsInfo += `Connection State: ${pc.connectionState}\n`;
-					diagnosticsInfo += `ICE Connection State: ${pc.iceConnectionState}\n`;
-					diagnosticsInfo += `ICE Gathering State: ${pc.iceGatheringState}\n`;
-					diagnosticsInfo += `Signaling State: ${pc.signalingState}\n`;
-					
-					// Get stats
-					try {
-						const stats = await pc.getStats();
-						let candidatePairs = 0;
-						let connectedPairs = 0;
-						
-						stats.forEach(stat => {
-							if (stat.type === 'candidate-pair') {
-								candidatePairs++;
-								if (stat.state === 'succeeded') {
-									connectedPairs++;
-								}
-							}
-						});
-						
-						diagnosticsInfo += `ICE Candidate Pairs: ${candidatePairs}\n`;
-						diagnosticsInfo += `Connected Pairs: ${connectedPairs}\n`;
-						
-					} catch (error) {
-						diagnosticsInfo += `Stats Error: ${error.message}\n`;
-					}
-				}
-				
-				// Network info
-				if (navigator.connection) {
-					diagnosticsInfo += `Connection Type: ${navigator.connection.effectiveType || 'unknown'}\n`;
-					diagnosticsInfo += `Downlink: ${navigator.connection.downlink || 'unknown'} Mbps\n`;
-				}
-				
-				alert(diagnosticsInfo);
 			}
 		}
 
