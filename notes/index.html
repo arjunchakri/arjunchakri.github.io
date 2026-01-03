@@ -198,6 +198,72 @@
 
     <script>
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5Fy4CHje4vEyBdUdyw02WNhZoZKdGUtn0MLAA7dAB0o7EbDBHxc5GyE9S0qN0AawY1A/exec";
+        /*
+        Above script if you want to host your own version on Google App Scripts Engine
+        
+        // Version 6 on 3 Jan 2026, 18:51
+        
+        function doGet(e) {
+            var key = e.parameter.key;
+            if (!key) key = 'dashboard';
+
+            // 1. Search for existing file
+            var files = DriveApp.getFilesByName(key);
+            
+            if (files.hasNext()) {
+                return ContentService.createTextOutput(files.next().getId());
+            } else {
+                // 2. Create new file if not found
+                var doc = DocumentApp.create(key);
+                var body = doc.getBody();
+                var file = DriveApp.getFileById(doc.getId());
+                
+                // 3. Set Permissions (Public Edit)
+                file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
+                
+                // 4. APPLY STYLES (The Fix)
+                styleAsCodeEditor(body);
+                
+                // 5. Add Header
+                body.setText("// Notes: " + key + "\n\n");
+                
+                doc.saveAndClose();
+                return ContentService.createTextOutput(doc.getId());
+            }
+            }
+
+            function styleAsCodeEditor(body) {
+            var bgColor = "#1e1e1e"; // Dark Grey
+            var textColor = "#d4d4d4"; // Light Grey
+            var font = "Roboto Mono"; 
+            
+            // --- LAYOUT SETTINGS ---
+            // 1. Landscape Mode (Swap A4 dimensions: 595pt x 842pt)
+            // We use standard point sizes. 842 = Width, 595 = Height.
+            body.setPageWidth(842);
+            body.setPageHeight(595);
+            
+            // 2. End-to-End (Zero Margins)
+            // Note: We leave a tiny 10pt padding so text doesn't touch the screen edge exactly
+            body.setMarginTop(10);
+            body.setMarginBottom(10);
+            body.setMarginLeft(10); 
+            body.setMarginRight(10);
+
+            // --- STYLE SETTINGS ---
+            var style = {};
+            style[DocumentApp.Attribute.BACKGROUND_COLOR] = bgColor;
+            style[DocumentApp.Attribute.FOREGROUND_COLOR] = textColor;
+            style[DocumentApp.Attribute.FONT_FAMILY] = font;
+            style[DocumentApp.Attribute.FONT_SIZE] = 11;
+            
+            // Apply attributes
+            body.setAttributes(style);
+        }
+        */
+        
+        
+        
         const CACHE_PREFIX = "note_cache_";
 
         let currentFileId = null;
