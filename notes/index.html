@@ -2,242 +2,332 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Roboto:wght@300;400;500&display=swap">
     <link href="https://arjunchakri.github.io/favicon.png" rel="icon" sizes="16x16">
-    <title>Notes Utility</title>
+
+    <link rel="preconnect" href="https://docs.google.com">
+    <link rel="preconnect" href="https://script.google.com">
+
+    <title>Terminal Notes</title>
     <style>
-        /* --- Global Styles --- */
-        body, html { 
-            margin: 0; padding: 0; height: 100%; width: 100%; 
-            overflow: hidden; 
-            /* Use Roboto if available, else nice system fonts */
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background-color: #f9f9f9;
-            color: #333;
+        /* --- GLOBAL --- */
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            overflow: hidden;
+            font-family: 'Roboto', sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
         }
 
-        /* --- Viewer (Iframe) --- */
-        #viewer { 
-            width: 100vw; height: 100vh; border: none; 
-            display: none; position: absolute; top: 0; left: 0;
+        /* --- THE "SOFT EXPANSION" TRANSITION --- */
+        .view-section {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+
+            /* Initial State: Hidden & Slightly Smaller */
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+
+            /* Start at 98% scale (roughly size of terminal) */
+            transform: scale(0.98);
+
+            /* Minimalist Easing: Starts quick, lands soft */
+            transition:
+                opacity 0.5s ease-in-out,
+                transform 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+                visibility 0.5s step-end;
+
+            will-change: transform, opacity;
         }
 
-        /* --- MATERIAL DESIGN LOADING SCREEN --- */
-        #loader { 
-            display: flex; flex-direction: column; 
-            height: 100vh; justify-content: center; align-items: center; 
-            background: #ffffff; z-index: 20; position: absolute; top: 0; left: 0; width: 100%;
+        .view-section.active {
+            /* Active State: Visible & Full Screen */
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+
+            transform: scale(1);
+
+            transition:
+                opacity 0.5s ease-in-out,
+                transform 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+                visibility 0s step-start;
         }
 
-        /* The container for the SVG */
-        .md-loader-container {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 24px;
+        /* --- TERMINAL WINDOW STYLES --- */
+        .terminal-container {
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            background: #0d1117;
+            z-index: 20;
         }
 
-        /* The SVG element itself, rotating linearly */
-        .circular-loader {
-            animation: rotate 2s linear infinite;
-            height: 100%;
-            transform-origin: center center;
-            width: 100%;
+        .terminal-window {
+            width: 90%; max-width: 600px;
+            /* Glassmorphism for the window only */
+            background: rgba(22, 27, 34, 0.6);
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            font-family: 'Fira Code', 'Courier New', monospace;
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
 
-        /* The circle path inside the SVG, animating the stroke */
-        .loader-path {
-            /* Material Blue 500 (#2196F3) or Google Blue (#1a73e8) */
-            stroke: #1a73e8; 
-            stroke-dasharray: 1, 200;
-            stroke-dashoffset: 0;
-            animation: dash 1.5s ease-in-out infinite;
-            stroke-linecap: round;
-        }
-
-        /* Keyframes for rotating the whole SVG */
-        @keyframes rotate {
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Keyframes for expanding and contracting the stroke */
-        @keyframes dash {
-            0% {
-                stroke-dasharray: 1, 200;
-                stroke-dashoffset: 0;
-            }
-            50% {
-                stroke-dasharray: 89, 200;
-                stroke-dashoffset: -35px;
-            }
-            100% {
-                stroke-dasharray: 89, 200;
-                stroke-dashoffset: -124px;
-            }
-        }
-
-        /* Material Typography for Loader */
-        #loader h2 { font-weight: 400; margin: 0; font-size: 1.25rem; letter-spacing: 0.02em; }
-        #loader p { color: #757575; margin-top: 8px; font-size: 0.9rem; }
-
-
-        /* --- Dashboard (Instructions) --- */
-        #dashboard {
-            display: none; /* Hidden unless on root URL */
-            height: 100vh;
-            flex-direction: column;
-            justify-content: center;
+        .terminal-header {
+            background: rgba(22, 27, 34, 0.95);
+            padding: 10px 15px;
+            border-bottom: 1px solid #30363d;
+            display: flex; gap: 8px;
             align-items: center;
-            text-align: center;
-            background: #fff;
-            padding: 20px;
         }
-        .dash-container { max-width: 600px; }
-        h1 { margin-bottom: 10px; font-weight: 700; font-size: 2.5rem; letter-spacing: -1px; }
-        p.subtitle { color: #666; margin-bottom: 40px; font-size: 1.1rem; line-height: 1.6; }
-        
-        .step { margin: 20px 0; font-size: 1rem; color: #444; }
-        code { background: #eee; padding: 4px 8px; border-radius: 4px; font-family: monospace; color: #d63384; }
+        .header-title { margin-left: auto; margin-right: auto; font-size: 0.75rem; color: #8b949e; letter-spacing: 1px;}
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .red { background: #ff5f56; }
+        .yellow { background: #ffbd2e; }
+        .green { background: #27c93f; }
 
-        /* Input Box for Quick Jump */
-        .input-group { margin-top: 40px; display: flex; gap: 10px; justify-content: center; }
-        input { padding: 12px; font-size: 1rem; border: 2px solid #ddd; border-radius: 6px; width: 250px; outline: none; transition: border 0.3s; }
-        input:focus { border-color: #333; }
-        button.go-btn { padding: 12px 24px; font-size: 1rem; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; }
-        button.go-btn:hover { background: #000; }
+        .terminal-body {
+            padding: 25px;
+            color: #c9d1d9;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            min-height: 160px;
+        }
 
-        /* --- Toggle Button --- */
+        /* --- DASHBOARD CONTENT --- */
+        .comment { color: #8b949e; font-style: italic; display: block; margin-bottom: 4px; }
+        .keyword { color: #ff7b72; }
+        .string { color: #a5d6ff; }
+        .obj { color: #79c0ff; }
+
+        .command-prompt { display: flex; align-items: center; margin-top: 25px; border-top: 1px solid #30363d; padding-top: 20px;}
+        .prompt-symbol { color: #7ee787; margin-right: 12px; font-weight: bold; }
+
+        input.cli-input {
+            background: transparent;
+            border: none;
+            color: #c9d1d9;
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            width: 100%;
+            outline: none;
+            caret-color: #58a6ff;
+        }
+        input.cli-input::placeholder { color: #484f58; opacity: 0.5; }
+
+        /* --- LOADER CONTENT --- */
+        .log-line { margin: 4px 0; display: block; }
+        .success { color: #3fb950; }
+        .warn { color: #d29922; }
+        .cmd { color: #c9d1d9; }
+        .cursor {
+            display: inline-block; width: 8px; height: 16px;
+            background: #58a6ff; animation: blink 1s step-end infinite;
+            vertical-align: middle; margin-left: 5px;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* --- VIEWER & UTILS --- */
+        #viewer {
+            border: none;
+            /* Match background to body to prevent white flash during transition */
+            background: #0d1117;
+            z-index: 10;
+        }
+
         #toggle-btn {
-            position: fixed; bottom: 20px; right: 20px; z-index: 30;
-            padding: 10px 15px; background: #222; color: #fff;
-            border: none; border-radius: 5px; cursor: pointer;
-            font-size: 0.8rem; opacity: 0.3; transition: opacity 0.3s;
-            display: none;
+            position: fixed; bottom: 20px; right: 20px; z-index: 50;
+            padding: 8px 12px; background: #222; color: #fff;
+            border: 1px solid #444; border-radius: 4px; cursor: pointer;
+            font-family: 'Fira Code', monospace; font-size: 0.75rem;
+            opacity: 0; transition: opacity 0.5s; pointer-events: none;
         }
-        #toggle-btn:hover { opacity: 1; }
+        #toggle-btn.visible { opacity: 0.6; pointer-events: auto; }
+        #toggle-btn.visible:hover { opacity: 1; }
+
+        .cache-reset { position: fixed; bottom: 10px; left: 10px; color: #444; font-size: 10px; cursor: pointer; z-index: 100; font-family: 'Fira Code', monospace; text-decoration: none; opacity: 0.3; transition: opacity 0.2s;}
+        .cache-reset:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
 
-    <div id="dashboard">
-        <div class="dash-container">
-            <h1>Notes Utility</h1>
-            <p class="subtitle">A serverless, URL-driven note taking tool.<br>Backed by Google Docs. Stored in Drive.</p>
-            
-            <div class="step">1. Append <code>?topic_name</code> to the URL to create a note.</div>
-            <div class="step">2. Example: <code>/notes?java_prep</code></div>
-            <div class="step">3. Works in Incognito. No login required.</div>
-
-            <div class="input-group">
-                <input type="text" id="topicInput" placeholder="Enter topic (e.g., project_x)" onkeypress="handleEnter(event)">
-                <button class="go-btn" onclick="goToTopic()">Open Note</button>
+    <div id="dashboard" class="view-section terminal-container">
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <div class="dot red"></div>
+                <div class="dot yellow"></div>
+                <div class="dot green"></div>
+                <span class="header-title">notes — 80x24</span>
+            </div>
+            <div class="terminal-body">
+                <div><span class="keyword">require</span>(<span class="string">'./arjunchakri_notes_v2'</span>);</div>
+                <br>
+                <div class="comment">// Zero Login. Zero Setup. Minimalist notes.</div>
+                <div class="comment">// Accessible from anywhere.</div>
+                <br>
+                <div class="command-prompt">
+                    <span class="prompt-symbol">➜</span>
+                    <input type="text" id="topicInput" class="cli-input" placeholder="Name of your note" autocomplete="off" spellcheck="false" onkeypress="handleEnter(event)">
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="loader" style="display:none;">
-        <div class="md-loader-container">
-            <svg class="circular-loader" viewBox="25 25 50 50">
-                <circle class="loader-path" cx="50" cy="50" r="20" fill="none" stroke-width="4" />
-            </svg>
+    <div id="loader" class="view-section terminal-container">
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <div class="dot red"></div>
+                <div class="dot yellow"></div>
+                <div class="dot green"></div>
+                <span class="header-title">boot_sequence</span>
+            </div>
+            <div class="terminal-body" id="term-logs">
+                <span class="log-line">> init process...</span>
+                <span class="cursor"></span>
+            </div>
         </div>
-        <h2 id="status">Initializing...</h2>
-        <p id="substatus">Please wait</p>
     </div>
 
-    <button id="toggle-btn" onclick="toggleViewMode()">Show Toolbar</button>
-    <iframe id="viewer"></iframe>
+    <button id="toggle-btn" onclick="toggleViewMode()">Toggle Mode</button>
+    <a href="#" class="cache-reset" onclick="resetCache()">[RESET_CACHE]</a>
+
+    <iframe id="viewer" class="view-section"></iframe>
 
     <script>
-        // ================= CONFIGURATION =================
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5Fy4CHje4vEyBdUdyw02WNhZoZKdGUtn0MLAA7dAB0o7EbDBHxc5GyE9S0qN0AawY1A/exec"; 
-        // =================================================
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5Fy4CHje4vEyBdUdyw02WNhZoZKdGUtn0MLAA7dAB0o7EbDBHxc5GyE9S0qN0AawY1A/exec";
+        const CACHE_PREFIX = "note_cache_";
 
         let currentFileId = null;
         let isMinimalMode = true;
 
-        // --- Helper: Parse URL ---
-        function getNoteKey() {
-            const queryString = window.location.search;
-            if (!queryString || queryString.length <= 1) return null; // No key found
-            return decodeURIComponent(queryString.substring(1));
+        // --- Logger Logic ---
+        function log(msg, type = "") {
+            const container = document.getElementById('term-logs');
+            const cursor = document.querySelector('.cursor');
+            const line = document.createElement('span');
+            line.className = "log-line " + type;
+            line.innerText = "> " + msg;
+            container.insertBefore(line, cursor);
+            container.scrollTop = container.scrollHeight;
         }
 
-        // --- Helper: UI Logic ---
+        async function runBootSequence(key, isCached) {
+            const container = document.getElementById('term-logs');
+            container.innerHTML = '<span class="log-line">> init process...</span><span class="cursor"></span>';
+
+            await wait(200);
+            log(`target: ${key}`, "cmd");
+
+            await wait(300);
+            if(isCached) {
+                log("cache hit: [MEMORY]", "success");
+                log("expanding workspace...", "warn");
+            } else {
+                log("querying upstream...", "cmd");
+                log("handshake: drive_api", "cmd");
+            }
+        }
+
+        function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        // --- Core View Switching ---
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById(viewId);
+            if(target) target.classList.add('active');
+
+            if(viewId === 'dashboard') {
+                setTimeout(() => document.getElementById('topicInput').focus(), 100);
+            }
+        }
+
+        function getNoteKey() {
+            const qs = window.location.search;
+            return (qs && qs.length > 1) ? decodeURIComponent(qs.substring(1)) : null;
+        }
+
+        function loadViewer(fileId) {
+            currentFileId = fileId;
+            const iframe = document.getElementById('viewer');
+            const toggleBtn = document.getElementById('toggle-btn');
+
+            iframe.src = `https://docs.google.com/document/d/${fileId}/edit?rm=minimal`;
+
+            iframe.onload = async () => {
+                log("rendering gui...", "cmd");
+                await wait(500);
+                log("SESSION ESTABLISHED.", "success");
+                await wait(200);
+
+                // Trigger the soft transformation
+                switchView('viewer');
+
+                setTimeout(() => toggleBtn.classList.add('visible'), 600);
+            };
+        }
+
+        // --- Main Execution ---
+        const noteKey = getNoteKey();
+
+        if (!noteKey) {
+            document.title = "Terminal Notes";
+            switchView('dashboard');
+        } else {
+            document.title = `./${noteKey}`;
+            switchView('loader');
+
+            const cachedId = localStorage.getItem(CACHE_PREFIX + noteKey);
+
+            if (cachedId) {
+                runBootSequence(noteKey, true);
+                loadViewer(cachedId);
+            } else {
+                runBootSequence(noteKey, false);
+
+                fetch(`${APPS_SCRIPT_URL}?key=${encodeURIComponent(noteKey)}`)
+                    .then(r => r.text())
+                    .then(async fileId => {
+                        if (fileId.includes("Error") || fileId.length < 5) throw new Error(fileId);
+
+                        await wait(400);
+                        log("id recv: " + fileId.substring(0,8)+"...", "success");
+                        log("permissions: [WRITE]", "warn");
+
+                        localStorage.setItem(CACHE_PREFIX + noteKey, fileId);
+                        loadViewer(fileId);
+                    })
+                    .catch(err => {
+                        log("FATAL: " + err.message, "error"); // Red text if error defined in CSS
+                        console.error(err);
+                    });
+            }
+        }
+
+        // --- Utils ---
         function toggleViewMode() {
             if (!currentFileId) return;
             const iframe = document.getElementById('viewer');
-            const btn = document.getElementById('toggle-btn');
-            
             isMinimalMode = !isMinimalMode;
-
-            if (isMinimalMode) {
-                iframe.src = `https://docs.google.com/document/d/${currentFileId}/edit?rm=minimal`;
-                btn.innerText = "Show Toolbar";
-            } else {
-                iframe.src = `https://docs.google.com/document/d/${currentFileId}/edit`;
-                btn.innerText = "Minimal Mode";
-            }
+            iframe.src = `https://docs.google.com/document/d/${currentFileId}/edit${isMinimalMode ? '?rm=minimal' : ''}`;
         }
 
         function goToTopic() {
             const input = document.getElementById('topicInput');
-            const val = input.value.trim();
-            if(val) {
-                // Reload page with new query
-                window.location.search = `?${val}`;
-            }
+            let val = input.value.trim();
+            if(val.startsWith("./")) val = val.substring(2);
+            if(val) window.location.search = `?${val}`;
         }
 
         function handleEnter(e) {
             if (e.key === 'Enter') goToTopic();
         }
 
-        // --- MAIN EXECUTION ---
-        const noteKey = getNoteKey();
-        const dashboard = document.getElementById('dashboard');
-        const loader = document.getElementById('loader');
-        const iframe = document.getElementById('viewer');
-        const toggleBtn = document.getElementById('toggle-btn');
-        const statusText = document.getElementById('status');
-        const subStatus = document.getElementById('substatus');
-
-        if (!noteKey) {
-            // Case A: User is at root (/notes) -> Show Dashboard
-            dashboard.style.display = "flex";
-            document.title = "Notes Dashboard";
-        } else {
-            // Case B: User has a key (/notes?term) -> Load Note
-            loader.style.display = "flex"; // Show loader manually
-            document.title = `${noteKey}`;
-            statusText.innerText = `Opening: ${noteKey}`;
-            subStatus.innerText = "Connecting to Drive...";
-
-            fetch(`${APPS_SCRIPT_URL}?key=${encodeURIComponent(noteKey)}`)
-                .then(response => response.text())
-                .then(fileId => {
-                    if (fileId.includes("Error") || fileId.length < 5) {
-                        throw new Error("Invalid ID returned: " + fileId);
-                    }
-
-                    currentFileId = fileId;
-                    subStatus.innerText = "Loading editor...";
-                    
-                    // Initial Load
-                    iframe.src = `https://docs.google.com/document/d/${fileId}/edit?rm=minimal`;
-                    
-                    iframe.onload = () => {
-                        loader.style.display = "none";
-                        iframe.style.display = "block";
-                        toggleBtn.style.display = "block";
-                    };
-                })
-                .catch(err => {
-                    statusText.innerText = "Connection Failed";
-                    subStatus.innerText = "Could not find note.";
-                    subStatus.style.color = "#d32f2f"; // Material Red
-                    console.error(err);
-                });
+        function resetCache() {
+            localStorage.clear();
+            location.reload();
         }
     </script>
 </body>
