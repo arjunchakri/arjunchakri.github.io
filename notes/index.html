@@ -3,141 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
     <link href="https://arjunchakri.github.io/favicon.png" rel="icon" sizes="16x16">
-    <link rel="apple-touch-icon" href="https://arjunchakri.github.io/notes/icon/ios_iconA.png">
-    <link rel="apple-touch-startup-image" href="https://arjunchakri.github.io/favicon.png" >
-    
-    <title>Loading Note...</title>
+    <title>Notes Utility</title>
     <style>
-        /* Reset and Layout */
+        /* --- Global Styles --- */
         body, html { 
-            margin: 0; 
-            padding: 0; 
-            height: 100%; 
-            width: 100%; 
+            margin: 0; padding: 0; height: 100%; width: 100%; 
             overflow: hidden; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        /* The Iframe (Hidden initially) */
-        #viewer { 
-            width: 100vw; 
-            height: 100vh; 
-            border: none; 
-            display: none; 
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-
-        /* The Loading Screen */
-        #loader { 
-            display: flex; 
-            flex-direction: column;
-            height: 100vh; 
-            justify-content: center; 
-            align-items: center; 
-            background: #ffffff; 
+            /* Use Roboto if available, else nice system fonts */
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: #f9f9f9;
             color: #333;
-            z-index: 10;
         }
 
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+        /* --- Viewer (Iframe) --- */
+        #viewer { 
+            width: 100vw; height: 100vh; border: none; 
+            display: none; position: absolute; top: 0; left: 0;
         }
 
-        h2 { font-weight: 400; margin: 0; }
-        p { color: #888; margin-top: 5px; font-size: 0.9rem; }
+        /* --- MATERIAL DESIGN LOADING SCREEN --- */
+        #loader { 
+            display: flex; flex-direction: column; 
+            height: 100vh; justify-content: center; align-items: center; 
+            background: #ffffff; z-index: 20; position: absolute; top: 0; left: 0; width: 100%;
+        }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
+        /* The container for the SVG */
+        .md-loader-container {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 24px;
+        }
+
+        /* The SVG element itself, rotating linearly */
+        .circular-loader {
+            animation: rotate 2s linear infinite;
+            height: 100%;
+            transform-origin: center center;
+            width: 100%;
+        }
+
+        /* The circle path inside the SVG, animating the stroke */
+        .loader-path {
+            /* Material Blue 500 (#2196F3) or Google Blue (#1a73e8) */
+            stroke: #1a73e8; 
+            stroke-dasharray: 1, 200;
+            stroke-dashoffset: 0;
+            animation: dash 1.5s ease-in-out infinite;
+            stroke-linecap: round;
+        }
+
+        /* Keyframes for rotating the whole SVG */
+        @keyframes rotate {
             100% { transform: rotate(360deg); }
         }
+
+        /* Keyframes for expanding and contracting the stroke */
+        @keyframes dash {
+            0% {
+                stroke-dasharray: 1, 200;
+                stroke-dashoffset: 0;
+            }
+            50% {
+                stroke-dasharray: 89, 200;
+                stroke-dashoffset: -35px;
+            }
+            100% {
+                stroke-dasharray: 89, 200;
+                stroke-dashoffset: -124px;
+            }
+        }
+
+        /* Material Typography for Loader */
+        #loader h2 { font-weight: 400; margin: 0; font-size: 1.25rem; letter-spacing: 0.02em; }
+        #loader p { color: #757575; margin-top: 8px; font-size: 0.9rem; }
+
+
+        /* --- Dashboard (Instructions) --- */
+        #dashboard {
+            display: none; /* Hidden unless on root URL */
+            height: 100vh;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: #fff;
+            padding: 20px;
+        }
+        .dash-container { max-width: 600px; }
+        h1 { margin-bottom: 10px; font-weight: 700; font-size: 2.5rem; letter-spacing: -1px; }
+        p.subtitle { color: #666; margin-bottom: 40px; font-size: 1.1rem; line-height: 1.6; }
+        
+        .step { margin: 20px 0; font-size: 1rem; color: #444; }
+        code { background: #eee; padding: 4px 8px; border-radius: 4px; font-family: monospace; color: #d63384; }
+
+        /* Input Box for Quick Jump */
+        .input-group { margin-top: 40px; display: flex; gap: 10px; justify-content: center; }
+        input { padding: 12px; font-size: 1rem; border: 2px solid #ddd; border-radius: 6px; width: 250px; outline: none; transition: border 0.3s; }
+        input:focus { border-color: #333; }
+        button.go-btn { padding: 12px 24px; font-size: 1rem; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        button.go-btn:hover { background: #000; }
+
+        /* --- Toggle Button --- */
+        #toggle-btn {
+            position: fixed; bottom: 20px; right: 20px; z-index: 30;
+            padding: 10px 15px; background: #222; color: #fff;
+            border: none; border-radius: 5px; cursor: pointer;
+            font-size: 0.8rem; opacity: 0.3; transition: opacity 0.3s;
+            display: none;
+        }
+        #toggle-btn:hover { opacity: 1; }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div class="spinner"></div>
+    <div id="dashboard">
+        <div class="dash-container">
+            <h1>Notes Utility</h1>
+            <p class="subtitle">A serverless, URL-driven note taking tool.<br>Backed by Google Docs. Stored in Drive.</p>
+            
+            <div class="step">1. Append <code>?topic_name</code> to the URL to create a note.</div>
+            <div class="step">2. Example: <code>/notes?java_prep</code></div>
+            <div class="step">3. Works in Incognito. No login required.</div>
+
+            <div class="input-group">
+                <input type="text" id="topicInput" placeholder="Enter topic (e.g., project_x)" onkeypress="handleEnter(event)">
+                <button class="go-btn" onclick="goToTopic()">Open Note</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="loader" style="display:none;">
+        <div class="md-loader-container">
+            <svg class="circular-loader" viewBox="25 25 50 50">
+                <circle class="loader-path" cx="50" cy="50" r="20" fill="none" stroke-width="4" />
+            </svg>
+        </div>
         <h2 id="status">Initializing...</h2>
         <p id="substatus">Please wait</p>
     </div>
 
+    <button id="toggle-btn" onclick="toggleViewMode()">Show Toolbar</button>
     <iframe id="viewer"></iframe>
 
     <script>
         // ================= CONFIGURATION =================
-        // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW:
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5Fy4CHje4vEyBdUdyw02WNhZoZKdGUtn0MLAA7dAB0o7EbDBHxc5GyE9S0qN0AawY1A/exec"; 
-        
-        // Name of your repository. 
-        // If your URL is username.github.io/notes/, this should be 'notes'
-        const REPO_NAME = "notes"; 
         // =================================================
 
-        function getNoteKey() {
-            // 1. Get the full path (e.g. /notes/dsa_heap)
-            const path = window.location.pathname;
-            
-            // 2. Remove trailing slashes
-            const cleanPath = path.replace(/\/$/, "");
-            
-            // 3. Extract the last segment
-            const segments = cleanPath.split('/');
-            const lastSegment = segments[segments.length - 1];
+        let currentFileId = null;
+        let isMinimalMode = true;
 
-            // 4. Check if we are at the root (just /notes/)
-            // If the last segment is the repo name, user didn't type a note name.
-            if (lastSegment.toLowerCase() === REPO_NAME.toLowerCase() || lastSegment === "") {
-                return "dashboard"; // Default file name
-            }
-            
-            return decodeURIComponent(lastSegment);
+        // --- Helper: Parse URL ---
+        function getNoteKey() {
+            const queryString = window.location.search;
+            if (!queryString || queryString.length <= 1) return null; // No key found
+            return decodeURIComponent(queryString.substring(1));
         }
 
-        // --- Main Execution ---
+        // --- Helper: UI Logic ---
+        function toggleViewMode() {
+            if (!currentFileId) return;
+            const iframe = document.getElementById('viewer');
+            const btn = document.getElementById('toggle-btn');
+            
+            isMinimalMode = !isMinimalMode;
+
+            if (isMinimalMode) {
+                iframe.src = `https://docs.google.com/document/d/${currentFileId}/edit?rm=minimal`;
+                btn.innerText = "Show Toolbar";
+            } else {
+                iframe.src = `https://docs.google.com/document/d/${currentFileId}/edit`;
+                btn.innerText = "Minimal Mode";
+            }
+        }
+
+        function goToTopic() {
+            const input = document.getElementById('topicInput');
+            const val = input.value.trim();
+            if(val) {
+                // Reload page with new query
+                window.location.search = `?${val}`;
+            }
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') goToTopic();
+        }
+
+        // --- MAIN EXECUTION ---
         const noteKey = getNoteKey();
+        const dashboard = document.getElementById('dashboard');
+        const loader = document.getElementById('loader');
+        const iframe = document.getElementById('viewer');
+        const toggleBtn = document.getElementById('toggle-btn');
         const statusText = document.getElementById('status');
         const subStatus = document.getElementById('substatus');
-        const iframe = document.getElementById('viewer');
-        const loader = document.getElementById('loader');
 
-        // Update UI immediately
-        document.title = `${noteKey}`;
-        statusText.innerText = `Opening: ${noteKey}`;
-        subStatus.innerText = "Connecting to Drive...";
+        if (!noteKey) {
+            // Case A: User is at root (/notes) -> Show Dashboard
+            dashboard.style.display = "flex";
+            document.title = "Notes Dashboard";
+        } else {
+            // Case B: User has a key (/notes?term) -> Load Note
+            loader.style.display = "flex"; // Show loader manually
+            document.title = `${noteKey}`;
+            statusText.innerText = `Opening: ${noteKey}`;
+            subStatus.innerText = "Connecting to Drive...";
 
-        // Fetch the Doc ID
-        fetch(`${APPS_SCRIPT_URL}?key=${encodeURIComponent(noteKey)}`)
-            .then(response => response.text())
-            .then(fileId => {
-                if (fileId.includes("Error") || fileId.length < 10) {
-                    throw new Error("Invalid ID returned");
-                }
+            fetch(`${APPS_SCRIPT_URL}?key=${encodeURIComponent(noteKey)}`)
+                .then(response => response.text())
+                .then(fileId => {
+                    if (fileId.includes("Error") || fileId.length < 5) {
+                        throw new Error("Invalid ID returned: " + fileId);
+                    }
 
-                subStatus.innerText = "Loading editor...";
-                
-                // Load Google Doc in Minimal Mode
-                iframe.src = `https://docs.google.com/document/d/${fileId}/edit?rm=minimal`;
-                
-                // When iframe finishes loading, hide the loader
-                iframe.onload = () => {
-                    loader.style.display = "none";
-                    iframe.style.display = "block";
-                };
-            })
-            .catch(err => {
-                statusText.innerText = "Connection Failed";
-                subStatus.innerText = "Check your internet or Script URL.";
-                subStatus.style.color = "red";
-                console.error(err);
-            });
+                    currentFileId = fileId;
+                    subStatus.innerText = "Loading editor...";
+                    
+                    // Initial Load
+                    iframe.src = `https://docs.google.com/document/d/${fileId}/edit?rm=minimal`;
+                    
+                    iframe.onload = () => {
+                        loader.style.display = "none";
+                        iframe.style.display = "block";
+                        toggleBtn.style.display = "block";
+                    };
+                })
+                .catch(err => {
+                    statusText.innerText = "Connection Failed";
+                    subStatus.innerText = "Could not find note.";
+                    subStatus.style.color = "#d32f2f"; // Material Red
+                    console.error(err);
+                });
+        }
     </script>
 </body>
 </html>
