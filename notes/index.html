@@ -1,317 +1,143 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <title>NAC Notes</title>
-    <meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://arjunchakri.github.io/favicon.png" rel="icon" sizes="16x16">
-
-    
     <link rel="apple-touch-icon" href="https://arjunchakri.github.io/notes/icon/ios_iconA.png">
     <link rel="apple-touch-startup-image" href="https://arjunchakri.github.io/favicon.png" >
     
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <link href="https://arjunchakri.github.io/favicon.png" sizes="2048x2732" rel="apple-touch-startup-image" />
-    <link href="https://arjunchakri.github.io/favicon.png" sizes="1668x2224" rel="apple-touch-startup-image" />
-    <link href="https://arjunchakri.github.io/favicon.png" sizes="1536x2048" rel="apple-touch-startup-image" />
-    <link href="https://arjunchakri.github.io/favicon.png" sizes="1125x2436" rel="apple-touch-startup-image" />
-    <link href="https://arjunchakri.github.io/favicon.png" sizes="1242x2208" rel="apple-touch-startup-image" />
-    <link href="https://arjunchakri.github.io/favicon.png" sizes="750x1334" rel="apple-touch-startup-image" />
-    <link href="https://arjunchakri.github.io/favicon.png" sizes="640x1136" rel="apple-touch-startup-image" />
-    
-    <meta name="viewport" content="width = device-width, minimum-scale = 1.0 , initial-scale = 1,user-scalable=yes">
+    <title>Loading Note...</title>
+    <style>
+        /* Reset and Layout */
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            height: 100%; 
+            width: 100%; 
+            overflow: hidden; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
-    
-    <link rel="manifest" href="https://arjunchakri.github.io/notes/manifest.json">
+        /* The Iframe (Hidden initially) */
+        #viewer { 
+            width: 100vw; 
+            height: 100vh; 
+            border: none; 
+            display: none; 
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/css/materialize.min.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
+        /* The Loading Screen */
+        #loader { 
+            display: flex; 
+            flex-direction: column;
+            height: 100vh; 
+            justify-content: center; 
+            align-items: center; 
+            background: #ffffff; 
+            color: #333;
+            z-index: 10;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        h2 { font-weight: 400; margin: 0; }
+        p { color: #888; margin-top: 5px; font-size: 0.9rem; }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
-<style>
-    * {
-        font-family: 'Ubuntu', sans-serif;
-    }
-</style>
+<body>
 
-<body style="text-align:center;">
-    <div class="center-align" id=inputscreen style="top:30%">
-        -YET TO BE TESTED-
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <span style="font-size: 20px">Enter a notes name(case-insensitive) :</span>
-        <!-- <input id='notesname' style="margin:10px;padding: 5px;"> -->
-        <br>
-        <center>
-            <div style="width: 300px;">
-                <div class="input-field">
-                    <i class="material-icons prefix">edit</i>
-                    <input id="notesname" type="text">
-                    <label for="notesname">notesname</label>
-                </div>
-            </div>
-        </center>
-        <a class="waves-effect waves-light btn" id="select" onclick="openNotes(document.getElementById('notesname').value)">
-            <i class="material-icons right">forward</i>Open notes</a>
-
-        <!-- <input type=button value=Select id="select" style="margin:10px;padding: 5px;" onclick="openNotes(document.getElementById('notesname').value)"> -->
-
-        <script>
-            $('#notesname').keypress(function (e) {
-                if (e.keyCode == 13)
-                    $('#select').click();
-            });
-        </script>
-        <br>
-        <br>
-        <br>Your notes-content, along with the changes will be live to others, who opens the same notes.
-        <br>
-        <br>To share your notes, share it as
-        <span style="color:blue">https://arjunchakri.github.io/notes/?name=(your-notes-name)</span> (excluding paranthesis)
+    <div id="loader">
+        <div class="spinner"></div>
+        <h2 id="status">Initializing...</h2>
+        <p id="substatus">Please wait</p>
     </div>
 
-    <div id=loadingscreen style="display:none">
-        fetching your notes...
-        <br>
-        <img style="height:30%;width:30%" src="loader.gif">
-        <br>
-        <span id='loadingstatus'></span>
-        <br>
-    </div>
+    <iframe id="viewer"></iframe>
 
-    <div id=shownotes style="display:none">
-        <ul id="slide-out" class="sidenav">
-            <li>
-                <a href="#" onclick="backupNotes()">
-                    <i class="material-icons">save</i>Backup notes(as snapshot)</a>
-            </li>
-            <li>
-                <a href="#!" onclick="window.open('https://arjunchakri.github.io/notes/backups?'+globalNotename,'_blank');">
-                    <i class="material-icons">history</i>Open backups</a>
-                </a>
-            </li>
-            <li>
-                <div class="divider"></div>
-            </li>
-            <li>
-                <a class="waves-effect" href="#" onclick="downloadFile()">
-                    <i class="material-icons">cloud_download</i>Download your notes</a>
-            </li>
+    <script>
+        // ================= CONFIGURATION =================
+        // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW:
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5Fy4CHje4vEyBdUdyw02WNhZoZKdGUtn0MLAA7dAB0o7EbDBHxc5GyE9S0qN0AawY1A/exec"; 
+        
+        // Name of your repository. 
+        // If your URL is username.github.io/notes/, this should be 'notes'
+        const REPO_NAME = "notes"; 
+        // =================================================
 
-            <li>
-                <div class="divider"></div>
-            </li>
-            <li>
-                <a class="subheader">Want to upload a file? </a>
-            </li>
-            <li>
-                <a class="waves-effect" href="https://script.google.com/macros/s/AKfycbwRTLzPP_1CFZshaDW0iqS6DKGlbKHaxcPZpjh7x0dAxadM3Po/exec"
-                    onclick="return popitup('https://script.google.com/macros/s/AKfycbwRTLzPP_1CFZshaDW0iqS6DKGlbKHaxcPZpjh7x0dAxadM3Po/exec');">
-                    <i class="material-icons">cloud_upload</i>Upload file</a>
-            </li>
+        function getNoteKey() {
+            // 1. Get the full path (e.g. /notes/dsa_heap)
+            const path = window.location.pathname;
+            
+            // 2. Remove trailing slashes
+            const cleanPath = path.replace(/\/$/, "");
+            
+            // 3. Extract the last segment
+            const segments = cleanPath.split('/');
+            const lastSegment = segments[segments.length - 1];
 
-            <li>
-                <a class="waves-effect" href="../folder-temp.html" target="_blank">
-                    <i class="material-icons">cloud_done</i>View files</a>
-
-            </li>
-        </ul>
-        <!-- <a href="#" data-target="slide-out" style="float:left;margin:10px;" class="sidenav-trigger">
-            <i class="material-icons">menu</i>
-        </a> -->
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                var elems = document.querySelectorAll('.sidenav');
-                var instances = M.Sidenav.init(elems, options);
-            });
-            $(document).ready(function () {
-                $('.sidenav').sidenav();
-            });
-        </script>
-
-        <div>
-            <div style="margin:10px;">
-                Notesname :
-                <span id='notesheader'>!default</span>
-                <span style="float: right; margin-right:50px;">
-                    <span id='syncedmessage'></span>
-                    <i class="material-icons">cloud_done</i>
-                </span>
-            </div>
-            <!-- <input type="button" onclick="window.open('https://arjunchakri.github.io/notes/backups?'+globalNotename,'_blank');" value="View backups"
-            style="float:right"> -->
-            <!-- <input type="button" id="backupbutton" onclick="backupNotes()" value="Backup notes" style="float:right"> -->
-            <textarea style="margin-left:3%;margin-top:25px;width: 95vw;height: 85vh;padding:10px; background-color:#455A64; color:white; 
-        border-radius: 10px; border: none;overflow: auto;outline: none; display: block;position: absolute;
-        box-shadow: 100px;" id='notes'></textarea>
-        </div>
-
-        <div class="fixed-action-btn">
-            <a class="btn-floating btn-large red sidenav-trigger pulse" data-target="slide-out">
-                <i class="large material-icons">menu</i>
-            </a>
-        </div>
-
-        <script src="https://www.gstatic.com/firebasejs/5.0.3/firebase.js"></script>
-        <script>
-            var globalNotename = "";
-            var config = {
-                apiKey: "AIzaSyD7U4K1qxPtIkWioazc17uZduncx-fAUmE",
-                authDomain: "collaborativenotes-afd92.firebaseapp.com",
-                databaseURL: "https://collaborativenotes-afd92.firebaseio.com",
-                projectId: "collaborativenotes-afd92",
-                storageBucket: "collaborativenotes-afd92.appspot.com",
-                messagingSenderId: "671782576619"
-            };
-            firebase.initializeApp(config);
-
-            //checking if url has an embedded notesname
-            var url_string = window.location.href;
-            var url = new URL(url_string);
-            var a = url.searchParams.toString();
-            var param = a.substring(0, a.length - 1);
-            if (param !== "") {
-                M.toast({ html: 'Opening notes - ' + param });
-                openNotes(param);
+            // 4. Check if we are at the root (just /notes/)
+            // If the last segment is the repo name, user didn't type a note name.
+            if (lastSegment.toLowerCase() === REPO_NAME.toLowerCase() || lastSegment === "") {
+                return "dashboard"; // Default file name
             }
+            
+            return decodeURIComponent(lastSegment);
+        }
 
+        // --- Main Execution ---
+        const noteKey = getNoteKey();
+        const statusText = document.getElementById('status');
+        const subStatus = document.getElementById('substatus');
+        const iframe = document.getElementById('viewer');
+        const loader = document.getElementById('loader');
 
-            function getTimestamp() {
-                var currentdate = new Date();
-                var datetime = "Date: " + currentdate.getDate() + "-"
-                    + (currentdate.getMonth() + 1) + "-"
-                    + currentdate.getFullYear() + " Time: "
-                    + currentdate.getHours() + "-"
-                    + currentdate.getMinutes() + "-"
-                    + currentdate.getSeconds();
-                return datetime;
-            }
+        // Update UI immediately
+        document.title = `${noteKey}`;
+        statusText.innerText = `Opening: ${noteKey}`;
+        subStatus.innerText = "Connecting to Drive...";
 
-            function backupNotes() {
-                var filename = globalNotename + "-" + getTimestamp();
-                M.toast({ html: 'Backing up notes : ' + filename });
-
-                var firebaseReference = firebase.database().ref().child(globalNotename).child('backups');
-                firebaseReference.once('value', function (snapshot) {
-                    var msg = snapshot.val();
-                    firebase.database().ref().child(globalNotename).child('backups').child(filename).set(document.getElementById('notes').value);
-                    // if(snapshot.val() == null){
-                    //     var backupInitArray = [{
-                    //         backupname : filename,
-                    //         notes: document.getElementById('notes').value
-                    //     }];
-                    //     firebase.database().ref().child(globalNotename).child('backups').set(backupInitArray);W
-                    // }
-                    // else{
-
-                    // }
-                    //firebase.database().ref().child(globalNotename).child('backups').set(backupData);
-                    M.toast({ html: 'Backup completed.' });
-                });
-            }
-
-            function openNotes(notesnameFromInput) {
-                document.getElementById("loadingscreen").style.display = "block";
-                document.getElementById("inputscreen").style.display = "none";
-                var notesname = notesnameFromInput.toLowerCase();
-                globalNotename = notesname;
-                document.getElementById("notesheader").innerHTML = notesname;
-                var firebaseReference = firebase.database().ref().child(notesname);
-                firebaseReference.once('value', function (snapshot) {
-                    var msg = snapshot.val();
-                    if (snapshot.val() == null) {
-                        M.toast({ html: 'Notes not found. Creating new notes. ' });
-                        createNote(notesname);
-                        document.getElementById("notes").value = "";
-                        showNotes();
-                        startListener(notesname);
-                        startWriter(notesname);
-                    } else {
-                        M.toast({ html: 'Notes found.' });
-                        var jsonStr = JSON.stringify(snapshot.val());
-                        var json = JSON.parse(jsonStr);
-                        document.getElementById("notes").value = json.notes;
-                        showNotes();
-                        startListener(notesname);
-                        startWriter(notesname);
-                    }
-                });
-            }
-
-            function createNote(notesname) {
-                var firebaseReference = firebase.database().ref();
-                var notesData = {
-                    notes: ""
+        // Fetch the Doc ID
+        fetch(`${APPS_SCRIPT_URL}?key=${encodeURIComponent(noteKey)}`)
+            .then(response => response.text())
+            .then(fileId => {
+                if (fileId.includes("Error") || fileId.length < 10) {
+                    throw new Error("Invalid ID returned");
                 }
-                firebaseReference.child(notesname).set(notesData);
-            }
 
-            function showNotes() {
-                document.getElementById("inputscreen").style.display = "none";
-                document.getElementById("loadingscreen").style.display = "none"
-                document.getElementById("shownotes").style.display = "block";
-                $('#shownotes').slideDown(1000);
-            }
-
-            //database listener
-            function startListener(notesname) {
-                var data = firebase.database().ref().child(notesname).child("notes");
-                data.on('value', function (snapshot) {
-                    var msg = snapshot.val();
-                    document.getElementById("notes").value = msg;
-                });
-            }
-
-            //database writer
-            document.getElementById("notes").addEventListener('input', function () {
-                document.getElementById("syncedmessage").innerHTML = "Syncing...";
-                var firebaseReference1 = firebase.database().ref().child(globalNotename).child("notes");
-                firebaseReference1.set(document.getElementById("notes").value, function (error) {
-                    if (error) {
-                        document.getElementById("syncedmessage").innerHTML = "Sync failed";
-                    } else {
-                        document.getElementById("syncedmessage").innerHTML = "Synced to cloud";
-                    }
-                }
-                );
+                subStatus.innerText = "Loading editor...";
+                
+                // Load Google Doc in Minimal Mode
+                iframe.src = `https://docs.google.com/document/d/${fileId}/edit?rm=minimal`;
+                
+                // When iframe finishes loading, hide the loader
+                iframe.onload = () => {
+                    loader.style.display = "none";
+                    iframe.style.display = "block";
+                };
+            })
+            .catch(err => {
+                statusText.innerText = "Connection Failed";
+                subStatus.innerText = "Check your internet or Script URL.";
+                subStatus.style.color = "red";
+                console.error(err);
             });
-
-
-            var field = document.querySelector('[id="notesname"]');
-            field.addEventListener('keypress', function (event) {
-                var key = event.keyCode;
-                if (key === 32) {
-                    event.preventDefault();
-                }
-            });
-            function popitup(url) {
-                newwindow = window.open(url, 'name', 'height=200,width=400');
-                if (window.focus) { newwindow.focus() }
-                return false;
-            }
-            function downloadFile() {
-                filename = document.getElementById('notesname').value;
-                text = document.getElementById('notes').value;
-
-                var element = document.createElement('a');
-                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-                element.setAttribute('download', filename);
-
-                element.style.display = 'none';
-                document.body.appendChild(element);
-
-                element.click();
-
-                document.body.removeChild(element);
-            }
-        </script>
-
+    </script>
 </body>
-
 </html>
