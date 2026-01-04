@@ -62,21 +62,33 @@ class URLShortener {
      * @returns {string|null} - The shortcut key or null if not found
      */
     extractKey() {
-        // First, check for direct path (e.g., /linkedin, /github)
+        // Skip URL shortener when running locally (file:// protocol)
+        if (window.location.protocol === 'file:') {
+            console.log('URL Shortener: Skipping - running locally');
+            return null;
+        }
+        
+        // First, check for query parameter method (?key=value) - this is the primary method from 404 redirects
+        const queryKey = this.getURLParameter('key');
+        if (queryKey) {
+            return queryKey;
+        }
+        
+        // Then check for direct path (e.g., /linkedin, /github)
         const path = window.location.pathname;
         
         // Remove leading slash and any trailing slashes
         const pathKey = path.replace(/^\/+|\/+$/g, '');
         
-        // If we have a path key and it's not index.html or empty, use it
-        if (pathKey && pathKey !== 'index.html' && pathKey !== '') {
+        // Only use path key if it's a simple key (no slashes, not a file path)
+        // Valid keys: linkedin, github, resume
+        // Invalid: index.html, Users/path/to/file, anything with slashes
+        if (pathKey && 
+            pathKey !== 'index.html' && 
+            pathKey !== '' && 
+            !pathKey.includes('/') && 
+            !pathKey.includes('.html')) {
             return pathKey;
-        }
-        
-        // Fallback to query parameter method (?key=value)
-        const queryKey = this.getURLParameter('key');
-        if (queryKey) {
-            return queryKey;
         }
         
         return null;
