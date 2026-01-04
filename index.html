@@ -160,10 +160,17 @@
             font-family: var(--font-mono);
             font-size: 1.2rem;
             font-weight: 600;
-            background: var(--gradient-cyber);
+            /* Fallback for browsers that don't support gradient text */
+            color: #00f5d4;
+            /* Gradient text */
+            background: linear-gradient(135deg, #00f5d4 0%, #7b2cbf 50%, #ff6b6b 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            /* Fix for iOS Safari */
+            display: inline-block;
+            -webkit-box-decoration-break: clone;
+            box-decoration-break: clone;
         }
 
         .nav-links {
@@ -805,16 +812,29 @@
             align-items: center;
             justify-content: center;
             background: rgba(255,255,255,0.05);
-            border: none;
+            border: 1px solid rgba(255,255,255,0.2);
             border-radius: 50%;
             color: var(--text-secondary);
             cursor: pointer;
             transition: all 0.3s ease;
+            font-size: 1.2rem;
         }
 
         .exp-popup-close:hover {
             background: var(--accent-magenta);
             color: white;
+            transform: rotate(90deg);
+        }
+
+        /* Make close button more prominent on touch devices */
+        @media (hover: none) and (pointer: coarse) {
+            .exp-popup-close {
+                width: 40px;
+                height: 40px;
+                font-size: 1.5rem;
+                background: rgba(255,107,107,0.2);
+                border-color: rgba(255,107,107,0.5);
+            }
         }
 
         .exp-popup-content ul {
@@ -1261,6 +1281,44 @@
             align-items: center;
             gap: 1rem;
             margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .popup-close {
+            position: absolute;
+            top: -0.5rem;
+            right: -0.5rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            line-height: 1;
+        }
+
+        .popup-close:hover {
+            background: var(--accent-pink);
+            border-color: var(--accent-pink);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        /* Show close button prominently on touch devices */
+        @media (hover: none) and (pointer: coarse) {
+            .popup-close {
+                width: 36px;
+                height: 36px;
+                font-size: 1.4rem;
+                background: rgba(255,107,107,0.2);
+                border-color: rgba(255,107,107,0.5);
+            }
         }
 
         .popup-icon {
@@ -1512,6 +1570,13 @@
             .logo {
                 font-size: 1rem;
                 z-index: 1001;
+                /* Ensure gradient works on mobile Safari */
+                color: #00f5d4;
+                background: linear-gradient(135deg, #00f5d4 0%, #7b2cbf 50%, #ff6b6b 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                display: inline-block;
             }
 
             .nav-links {
@@ -1710,7 +1775,7 @@
                 <h2>Work Experience</h2>
             </div>
             <div class="experience-cards reveal">
-                <div class="company-card walmart" onmouseenter="showExperiencePopup('walmart', event)" onmouseleave="hideExperiencePopupDelayed()">
+                <div class="company-card walmart" onmouseenter="showExperiencePopup('walmart', event)" onmouseleave="hideExperiencePopupDelayed()" onclick="toggleExperiencePopup('walmart', event)">
                     <div class="company-logo walmart-logo">
                         <span class="logo-text">Walmart</span>
                     </div>
@@ -1719,7 +1784,7 @@
                     <div class="company-period">2021 - Present</div>
                     <span class="hover-hint">Hover for details</span>
                 </div>
-                <div class="company-card factset" onmouseenter="showExperiencePopup('factset', event)" onmouseleave="hideExperiencePopupDelayed()">
+                <div class="company-card factset" onmouseenter="showExperiencePopup('factset', event)" onmouseleave="hideExperiencePopupDelayed()" onclick="toggleExperiencePopup('factset', event)">
                     <div class="company-logo factset-logo">
                         <span class="logo-text">FactSet</span>
                     </div>
@@ -2450,6 +2515,22 @@
             }, 200);
         }
 
+        // Toggle function for touch devices
+        let currentExpCompany = null;
+        function toggleExperiencePopup(company, event) {
+            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            if (isTouchDevice) {
+                event.stopPropagation();
+                if (expPopup.classList.contains('active') && currentExpCompany === company) {
+                    hideExperiencePopup();
+                    currentExpCompany = null;
+                } else {
+                    showExperiencePopup(company, event);
+                    currentExpCompany = company;
+                }
+            }
+        }
+
         // Keep popup open when hovering over it
         expPopup.addEventListener('mouseenter', () => {
             clearTimeout(expPopupTimeout);
@@ -2462,6 +2543,14 @@
         // Close on escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') hideExperiencePopup();
+        });
+
+        // Close experience popup when clicking outside (for touch devices)
+        document.addEventListener('click', (e) => {
+            if (!expPopup.contains(e.target) && !e.target.closest('.company-card')) {
+                hideExperiencePopup();
+                currentExpCompany = null;
+            }
         });
 
         // Copy to clipboard function
@@ -2515,11 +2604,30 @@
                     ${project.ai ? '<span class="ai-badge">AI</span>' : ''}
                 `;
                 
-                // Hover events for popup
+                // Hover events for popup (desktop)
                 tile.addEventListener('mouseenter', (e) => showPopup(e, project));
                 tile.addEventListener('mouseleave', hidePopup);
-                tile.addEventListener('click', () => {
-                    if (project.url) window.open(project.url, '_blank');
+                
+                // Touch/click handling
+                tile.addEventListener('click', (e) => {
+                    // Check if device is touch-based
+                    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                    
+                    if (isTouchDevice) {
+                        // On touch devices, first tap shows popup, second tap opens link
+                        if (popup.classList.contains('active') && popup.dataset.currentProject === project.name) {
+                            // Popup already open for this project - navigate
+                            if (project.url) window.open(project.url, '_blank');
+                        } else {
+                            // Show popup first
+                            e.preventDefault();
+                            showPopup(e, project);
+                            popup.dataset.currentProject = project.name;
+                        }
+                    } else {
+                        // On desktop, click navigates directly
+                        if (project.url) window.open(project.url, '_blank');
+                    }
                 });
                 
                 grid.appendChild(tile);
@@ -2544,6 +2652,7 @@
             }
 
             popup.innerHTML = `
+                <button class="popup-close" onclick="closePopup()" aria-label="Close">&times;</button>
                 <div class="popup-header">
                     <span class="popup-icon">${project.icon}</span>
                     <div class="popup-title">
@@ -2588,9 +2697,21 @@
             }, 100);
         }
 
+        function closePopup() {
+            clearTimeout(popupTimeout);
+            popup.classList.remove('active');
+        }
+
         // Keep popup open when hovering over it
         popup.addEventListener('mouseenter', () => clearTimeout(popupTimeout));
         popup.addEventListener('mouseleave', hidePopup);
+
+        // Close popup when clicking outside (for touch devices)
+        document.addEventListener('click', (e) => {
+            if (!popup.contains(e.target) && !e.target.closest('.project-tile')) {
+                closePopup();
+            }
+        });
 
         // ==========================================
         // Initialize
