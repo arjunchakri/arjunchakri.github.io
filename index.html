@@ -14,7 +14,10 @@
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <!-- URL Shortener Scripts -->
+	<script type="text/javascript" src="config/url-mappings.js"></script>
+	<script type="text/javascript" src="config/firebase-config.js"></script>
+	<script type="text/javascript" src="js/url-shortener.js"></script>
     <style>
         :root {
             --bg-primary: #0a0a0f;
@@ -302,10 +305,13 @@
         }
 
         .hero h1 .gradient-text {
-            background: var(--gradient-cyber);
+            display: inline-block;
+            background: linear-gradient(135deg, #00f5d4 0%, #7b2cbf 50%, #f72585 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            -webkit-box-decoration-break: clone;
+            box-decoration-break: clone;
         }
 
         .hero-role {
@@ -419,10 +425,13 @@
         .stat-number {
             font-size: 2.5rem;
             font-weight: 700;
-            background: var(--gradient-cyber);
+            display: inline-block;
+            background: linear-gradient(135deg, #00f5d4 0%, #7b2cbf 50%, #f72585 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            -webkit-box-decoration-break: clone;
+            box-decoration-break: clone;
         }
 
         .stat-label {

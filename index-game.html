@@ -1,0 +1,2148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arjun Chakravarthy | PLAYER SELECT</title>
+    <meta name="description" content="Senior Software Development Engineer - Game-themed Portfolio">
+    <link href="favicon.png" rel="icon" sizes="16x16">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;500;600;700;800;900&family=VT323&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* Cyberpunk + Retro Gaming Palette */
+            --bg-dark: #0d0d1a;
+            --bg-darker: #050510;
+            --bg-panel: #1a1a2e;
+            --bg-card: #16213e;
+            
+            /* Neon Colors */
+            --neon-cyan: #00fff5;
+            --neon-magenta: #ff00ff;
+            --neon-yellow: #ffff00;
+            --neon-green: #39ff14;
+            --neon-orange: #ff6600;
+            --neon-red: #ff0040;
+            --neon-blue: #00a8ff;
+            
+            /* Mario Colors */
+            --mario-red: #e52521;
+            --mario-gold: #fbd000;
+            --mario-green: #43b047;
+            --mario-blue: #049cd8;
+            --mario-brown: #8b4513;
+            
+            /* Text */
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0c0;
+            --text-dim: #606080;
+            
+            /* Fonts */
+            --font-pixel: 'Press Start 2P', cursive;
+            --font-cyber: 'Orbitron', sans-serif;
+            --font-terminal: 'VT323', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-cyber);
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><polygon points="0,0 24,12 12,12 12,24" fill="%2300fff5"/></svg>'), auto;
+        }
+
+        /* Scanline Effect */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* CRT Flicker */
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            92% { opacity: 1; }
+            93% { opacity: 0.8; }
+            94% { opacity: 1; }
+        }
+
+        body {
+            animation: flicker 5s infinite;
+        }
+
+        /* Pixel Grid Background */
+        .pixel-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(0, 255, 245, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 0, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(57, 255, 20, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Floating Pixel Stars */
+        .pixel-stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--neon-cyan);
+            animation: twinkle 2s infinite ease-in-out;
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+        }
+
+        /* ==========================================
+           GAME HUD - Top Navigation
+        ========================================== */
+        .game-hud {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 100%);
+            border-bottom: 3px solid var(--neon-cyan);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-pixel);
+            font-size: 0.6rem;
+        }
+
+        .hud-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .player-tag {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .player-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+            border: 2px solid var(--neon-cyan);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 10px var(--neon-cyan); }
+            50% { box-shadow: 0 0 25px var(--neon-cyan), 0 0 40px var(--neon-magenta); }
+        }
+
+        .player-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .player-name {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        .player-class {
+            color: var(--neon-yellow);
+            font-size: 0.5rem;
+        }
+
+        /* XP Bar */
+        .xp-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .xp-label {
+            display: flex;
+            justify-content: space-between;
+            color: var(--neon-green);
+            font-size: 0.5rem;
+        }
+
+        .xp-bar {
+            width: 150px;
+            height: 12px;
+            background: var(--bg-darker);
+            border: 2px solid var(--neon-green);
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-green), var(--mario-gold));
+            width: 0%;
+            transition: width 1s ease;
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+
+        .xp-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Stats Display */
+        .hud-stats {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--text-dim);
+            border-radius: 4px;
+        }
+
+        .stat-icon {
+            font-size: 1rem;
+        }
+
+        .stat-value {
+            color: var(--mario-gold);
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+        }
+
+        /* Nav Menu */
+        .hud-nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 2px solid var(--text-dim);
+            color: var(--text-secondary);
+            font-family: var(--font-pixel);
+            font-size: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px var(--neon-cyan);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn::before {
+            content: '>';
+            margin-right: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .nav-btn:hover::before {
+            opacity: 1;
+        }
+
+        /* ==========================================
+           MAIN CONTENT
+        ========================================== */
+        main {
+            position: relative;
+            z-index: 10;
+            padding-top: 80px;
+        }
+
+        section {
+            padding: 4rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ==========================================
+           HERO - Player Select Screen
+        ========================================== */
+        .hero-game {
+            min-height: calc(100vh - 80px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .player-select-container {
+            text-align: center;
+            position: relative;
+        }
+
+        .insert-coin {
+            font-family: var(--font-pixel);
+            font-size: 0.8rem;
+            color: var(--mario-gold);
+            animation: blink 1s infinite;
+            margin-bottom: 2rem;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .title-container {
+            margin-bottom: 3rem;
+        }
+
+        .game-title {
+            font-family: var(--font-pixel);
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            color: var(--text-primary);
+            text-shadow: 
+                4px 4px 0 var(--neon-magenta),
+                8px 8px 0 var(--neon-cyan);
+            letter-spacing: 4px;
+            animation: title-float 3s ease-in-out infinite;
+        }
+
+        @keyframes title-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .game-subtitle {
+            font-family: var(--font-terminal);
+            font-size: 1.5rem;
+            color: var(--neon-green);
+            margin-top: 1rem;
+            text-shadow: 0 0 20px var(--neon-green);
+        }
+
+        /* Player Card */
+        .player-card {
+            background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-card) 100%);
+            border: 4px solid var(--neon-cyan);
+            border-radius: 8px;
+            padding: 3rem;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 
+                0 0 30px rgba(0, 255, 245, 0.3),
+                inset 0 0 60px rgba(0, 255, 245, 0.05);
+        }
+
+        .player-card::before {
+            content: 'PLAYER 1';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--mario-gold);
+            color: var(--bg-dark);
+            padding: 0.25rem 1rem;
+            font-family: var(--font-pixel);
+            font-size: 0.6rem;
+            border-radius: 4px;
+        }
+
+        .character-sprite {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 2rem;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            border: 4px solid var(--mario-gold);
+            animation: sprite-idle 1s steps(2) infinite;
+            position: relative;
+        }
+
+        @keyframes sprite-idle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .character-sprite::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 50%;
+            animation: shadow-pulse 1s steps(2) infinite;
+        }
+
+        @keyframes shadow-pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(0.9); }
+        }
+
+        .character-name {
+            font-family: var(--font-pixel);
+            font-size: 1.2rem;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 20px var(--neon-cyan);
+            margin-bottom: 0.5rem;
+        }
+
+        .character-title {
+            font-family: var(--font-terminal);
+            font-size: 1.5rem;
+            color: var(--neon-yellow);
+            margin-bottom: 2rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-box {
+            background: rgba(0,0,0,0.4);
+            border: 2px solid var(--text-dim);
+            padding: 1rem;
+            border-radius: 4px;
+            text-align: left;
+        }
+
+        .stat-box:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 245, 0.3);
+        }
+
+        .stat-name {
+            font-family: var(--font-pixel);
+            font-size: 0.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--bg-darker);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 1s ease;
+        }
+
+        .stat-bar-fill.coding { background: linear-gradient(90deg, var(--neon-cyan), var(--neon-blue)); }
+        .stat-bar-fill.devops { background: linear-gradient(90deg, var(--neon-green), var(--mario-gold)); }
+        .stat-bar-fill.cloud { background: linear-gradient(90deg, var(--neon-magenta), var(--neon-orange)); }
+        .stat-bar-fill.ai { background: linear-gradient(90deg, var(--mario-gold), var(--neon-red)); }
+
+        .stat-number {
+            font-family: var(--font-pixel);
+            font-size: 0.6rem;
+            color: var(--mario-gold);
+            min-width: 30px;
+            text-align: right;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .game-btn {
+            padding: 1rem 2rem;
+            font-family: var(--font-pixel);
+            font-size: 0.7rem;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .game-btn.primary {
+            background: linear-gradient(180deg, var(--mario-gold) 0%, #cc9900 100%);
+            color: var(--bg-dark);
+            border: 3px solid #ffee88;
+            box-shadow: 0 4px 0 #996600, 0 0 20px rgba(251, 208, 0, 0.5);
+        }
+
+        .game-btn.primary:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 0 #996600, 0 0 40px rgba(251, 208, 0, 0.8);
+        }
+
+        .game-btn.primary:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #996600;
+        }
+
+        .game-btn.secondary {
+            background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-darker) 100%);
+            color: var(--neon-cyan);
+            border: 3px solid var(--neon-cyan);
+            box-shadow: 0 4px 0 #006666, 0 0 15px rgba(0, 255, 245, 0.3);
+        }
+
+        .game-btn.secondary:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 0 #006666, 0 0 30px rgba(0, 255, 245, 0.6);
+            background: linear-gradient(180deg, var(--neon-cyan) 0%, #00cccc 100%);
+            color: var(--bg-dark);
+        }
+
+        /* ==========================================
+           LEVEL SELECT - Experience Timeline
+        ========================================== */
+        .section-header-game {
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
+        .section-header-game::before {
+            content: '◆ ◆ ◆';
+            display: block;
+            color: var(--mario-gold);
+            margin-bottom: 1rem;
+            letter-spacing: 1rem;
+        }
+
+        .section-title {
+            font-family: var(--font-pixel);
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            color: var(--text-primary);
+            text-shadow: 3px 3px 0 var(--neon-magenta);
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
+            font-family: var(--font-terminal);
+            font-size: 1.2rem;
+            color: var(--neon-green);
+        }
+
+        /* Level Cards */
+        .levels-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .level-card {
+            background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-card) 100%);
+            border: 3px solid var(--text-dim);
+            border-radius: 8px;
+            padding: 2rem;
+            position: relative;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .level-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--level-color), transparent);
+        }
+
+        .level-card:hover {
+            border-color: var(--level-color);
+            transform: translateX(10px);
+            box-shadow: 0 0 30px color-mix(in srgb, var(--level-color) 30%, transparent);
+        }
+
+        .level-card.walmart { --level-color: var(--mario-blue); }
+        .level-card.factset { --level-color: var(--neon-orange); }
+
+        .level-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .level-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .level-badge {
+            width: 60px;
+            height: 60px;
+            background: var(--level-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-pixel);
+            font-size: 0.6rem;
+            color: white;
+            text-align: center;
+            line-height: 1.2;
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+
+        .level-details h3 {
+            font-family: var(--font-cyber);
+            font-size: 1.3rem;
+            color: var(--level-color);
+            margin-bottom: 0.25rem;
+        }
+
+        .level-role {
+            font-family: var(--font-terminal);
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .level-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.5rem;
+        }
+
+        .level-period {
+            font-family: var(--font-pixel);
+            font-size: 0.6rem;
+            color: var(--neon-green);
+            background: rgba(57, 255, 20, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            border: 1px solid var(--neon-green);
+        }
+
+        .level-status {
+            font-family: var(--font-pixel);
+            font-size: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+        }
+
+        .level-status.current {
+            background: var(--mario-gold);
+            color: var(--bg-dark);
+            animation: pulse 2s infinite;
+        }
+
+        .level-status.completed {
+            background: var(--text-dim);
+            color: var(--text-primary);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .level-achievements {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .achievement-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--mario-gold);
+            border-radius: 4px;
+            font-family: var(--font-pixel);
+            font-size: 0.5rem;
+            color: var(--mario-gold);
+        }
+
+        .achievement-badge i {
+            font-size: 0.8rem;
+        }
+
+        .quest-list {
+            margin-top: 1.5rem;
+            padding-left: 1.5rem;
+        }
+
+        .quest-item {
+            font-family: var(--font-terminal);
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .quest-item::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--neon-green);
+            font-weight: bold;
+        }
+
+        .quest-item strong {
+            color: var(--neon-cyan);
+        }
+
+        /* ==========================================
+           SKILL TREE - Abilities
+        ========================================== */
+        .skill-tree {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .skill-node {
+            background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-card) 100%);
+            border: 2px solid var(--text-dim);
+            border-radius: 8px;
+            padding: 1.5rem;
+            position: relative;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .skill-node::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent, var(--skill-color), transparent 30%);
+            animation: rotate 4s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .skill-node:hover::before {
+            opacity: 0.3;
+        }
+
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+
+        .skill-node:hover {
+            border-color: var(--skill-color);
+            transform: translateY(-5px);
+        }
+
+        .skill-node.coding { --skill-color: var(--neon-cyan); }
+        .skill-node.cloud { --skill-color: var(--neon-magenta); }
+        .skill-node.devops { --skill-color: var(--neon-green); }
+        .skill-node.data { --skill-color: var(--mario-gold); }
+
+        .skill-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .skill-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--skill-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 0 15px var(--skill-color);
+        }
+
+        .skill-title {
+            font-family: var(--font-pixel);
+            font-size: 0.7rem;
+            color: var(--skill-color);
+        }
+
+        .skill-level {
+            font-family: var(--font-terminal);
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .skill-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .skill-tag {
+            padding: 0.4rem 0.8rem;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--skill-color);
+            border-radius: 4px;
+            font-family: var(--font-terminal);
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .skill-tag:hover {
+            background: var(--skill-color);
+            color: var(--bg-dark);
+        }
+
+        /* ==========================================
+           SIDE QUESTS - Projects
+        ========================================== */
+        .quests-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .quest-card {
+            background: var(--bg-panel);
+            border: 2px solid var(--text-dim);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: block;
+        }
+
+        .quest-card::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--quest-color);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .quest-card:hover {
+            border-color: var(--quest-color);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 20px color-mix(in srgb, var(--quest-color) 30%, transparent);
+        }
+
+        .quest-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .quest-card.webapp { --quest-color: var(--neon-cyan); }
+        .quest-card.ai { --quest-color: var(--neon-magenta); }
+        .quest-card.selfhosted { --quest-color: var(--neon-green); }
+        .quest-card.work { --quest-color: var(--mario-gold); }
+        .quest-card.deprecated { --quest-color: var(--text-dim); opacity: 0.7; }
+
+        .quest-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .quest-name {
+            font-family: var(--font-pixel);
+            font-size: 0.5rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .quest-type {
+            font-family: var(--font-terminal);
+            font-size: 0.85rem;
+            color: var(--quest-color);
+        }
+
+        .quest-card.featured {
+            grid-column: span 2;
+            border-color: var(--mario-gold);
+            background: linear-gradient(135deg, var(--bg-panel) 0%, rgba(251, 208, 0, 0.1) 100%);
+        }
+
+        .quest-card.featured::after {
+            content: '★ FEATURED';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-family: var(--font-pixel);
+            font-size: 0.4rem;
+            color: var(--mario-gold);
+            background: rgba(0,0,0,0.5);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        /* Tooltip for quests */
+        .quest-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-darker);
+            border: 2px solid var(--quest-color);
+            border-radius: 8px;
+            padding: 1rem;
+            width: 250px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .quest-card:hover .quest-tooltip {
+            opacity: 1;
+            visibility: visible;
+            bottom: calc(100% + 10px);
+        }
+
+        .quest-tooltip-desc {
+            font-family: var(--font-terminal);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            text-align: left;
+        }
+
+        .quest-tooltip-tech {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+
+        .tech-tag {
+            font-family: var(--font-pixel);
+            font-size: 0.4rem;
+            padding: 0.2rem 0.5rem;
+            background: var(--quest-color);
+            color: var(--bg-dark);
+            border-radius: 2px;
+        }
+
+        /* ==========================================
+           CONTACT - Game Over / Continue
+        ========================================== */
+        .contact-game {
+            text-align: center;
+            padding: 6rem 2rem;
+        }
+
+        .game-over-text {
+            font-family: var(--font-pixel);
+            font-size: clamp(2rem, 5vw, 4rem);
+            color: var(--neon-red);
+            text-shadow: 
+                4px 4px 0 var(--mario-gold),
+                0 0 40px var(--neon-red);
+            margin-bottom: 1rem;
+            animation: game-over-flash 1s infinite;
+        }
+
+        @keyframes game-over-flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .continue-text {
+            font-family: var(--font-pixel);
+            font-size: 1rem;
+            color: var(--neon-green);
+            margin-bottom: 3rem;
+            animation: blink 1s infinite;
+        }
+
+        .contact-links-game {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .contact-btn {
+            width: 60px;
+            height: 60px;
+            background: var(--bg-panel);
+            border: 3px solid var(--text-dim);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .contact-btn:hover {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 10px 30px rgba(0, 255, 245, 0.3);
+        }
+
+        .contact-btn::after {
+            content: attr(data-label);
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: var(--font-pixel);
+            font-size: 0.4rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .contact-btn:hover::after {
+            opacity: 1;
+        }
+
+        .contact-email-game {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--bg-panel);
+            border: 3px solid var(--neon-cyan);
+            border-radius: 8px;
+            color: var(--neon-cyan);
+            font-family: var(--font-terminal);
+            font-size: 1.2rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .contact-email-game:hover {
+            background: var(--neon-cyan);
+            color: var(--bg-dark);
+            box-shadow: 0 0 30px rgba(0, 255, 245, 0.5);
+        }
+
+        /* ==========================================
+           FOOTER - Credits
+        ========================================== */
+        .game-footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 3px solid var(--text-dim);
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.5) 100%);
+        }
+
+        .credits {
+            font-family: var(--font-pixel);
+            font-size: 0.5rem;
+            color: var(--text-dim);
+            line-height: 2;
+        }
+
+        .credits .highlight {
+            color: var(--neon-cyan);
+        }
+
+        .high-score {
+            font-family: var(--font-pixel);
+            font-size: 0.6rem;
+            color: var(--mario-gold);
+            margin-top: 1rem;
+        }
+
+        /* ==========================================
+           RESPONSIVE
+        ========================================== */
+        @media (max-width: 968px) {
+            .game-hud {
+                flex-direction: column;
+                gap: 0.5rem;
+                padding: 0.5rem;
+            }
+
+            .hud-left {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .hud-stats {
+                display: none;
+            }
+
+            .hud-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            main {
+                padding-top: 150px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quest-card.featured {
+                grid-column: span 1;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .game-title {
+                font-size: 1rem;
+            }
+
+            .player-card {
+                padding: 1.5rem;
+            }
+
+            .nav-btn {
+                font-size: 0.4rem;
+                padding: 0.4rem 0.6rem;
+            }
+        }
+
+        /* Glitch effect on hover for certain elements */
+        .glitch {
+            position: relative;
+        }
+
+        .glitch:hover {
+            animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        /* ==========================================
+           MINI GAME MODAL - IFRAME VERSION
+        ========================================== */
+        .mini-game-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .mini-game-modal.active {
+            display: flex;
+        }
+
+        .mario-iframe-container {
+            background: #000;
+            border: 4px solid var(--mario-gold);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 60px rgba(251, 208, 0, 0.3);
+            max-width: 680px;
+            width: 100%;
+        }
+
+        .mini-game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(90deg, var(--mario-red), #c41e1a);
+            border-bottom: 4px solid var(--mario-brown);
+        }
+
+        .mini-game-title {
+            font-family: var(--font-pixel);
+            font-size: 0.65rem;
+            color: white;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .github-link-btn {
+            width: 32px;
+            height: 32px;
+            background: rgba(0,0,0,0.3);
+            border: 2px solid white;
+            border-radius: 50%;
+            color: white;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .github-link-btn:hover {
+            background: white;
+            color: #000;
+            transform: scale(1.1);
+        }
+
+        .close-game-btn {
+            width: 32px;
+            height: 32px;
+            background: var(--mario-red);
+            border: 2px solid white;
+            border-radius: 50%;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-pixel);
+            line-height: 1;
+        }
+
+        .close-game-btn:hover {
+            transform: scale(1.1);
+            background: #ff0000;
+        }
+
+        .game-screen-iframe {
+            position: relative;
+            background: #5c94fc;
+            width: 100%;
+            height: 480px;
+        }
+
+        .game-screen-iframe iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .game-controls-info {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            padding: 0.75rem 1rem;
+            background: #000;
+            border-top: 4px solid var(--mario-brown);
+            flex-wrap: wrap;
+        }
+
+        .control-key-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--font-terminal);
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .control-key-item .key {
+            padding: 0.3rem 0.6rem;
+            background: linear-gradient(180deg, #444 0%, #222 100%);
+            border: 2px solid #666;
+            border-radius: 4px;
+            font-family: var(--font-pixel);
+            font-size: 0.5rem;
+            color: white;
+            box-shadow: 0 2px 0 #111;
+        }
+
+        @media (max-width: 768px) {
+            .game-screen-iframe {
+                height: 380px;
+            }
+            
+            .mini-game-title {
+                font-size: 0.5rem;
+            }
+            
+            .game-controls-info {
+                gap: 1rem;
+                padding: 0.5rem;
+            }
+            
+            .control-key-item {
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .mario-iframe-container {
+                max-width: 100%;
+            }
+            
+            .game-screen-iframe {
+                height: 300px;
+            }
+            
+            .mini-game-title {
+                font-size: 0.4rem;
+            }
+            
+            .github-link-btn, .close-game-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 0.8rem;
+            }
+            
+            .control-key-item {
+                font-size: 0.75rem;
+            }
+            
+            .control-key-item .key {
+                font-size: 0.4rem;
+                padding: 0.2rem 0.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="pixel-bg"></div>
+    <div class="pixel-stars" id="pixelStars"></div>
+
+    <!-- Game HUD -->
+    <header class="game-hud">
+        <div class="hud-left">
+            <div class="player-tag">
+                <div class="player-avatar">👨‍💻</div>
+                <div class="player-info">
+                    <span class="player-name">ARJUN.EXE</span>
+                    <span class="player-class">SR. SOFTWARE ENGINEER</span>
+                </div>
+            </div>
+            <div class="xp-container">
+                <div class="xp-label">
+                    <span>LVL <span id="playerLevel">7</span></span>
+                    <span id="xpText">EXPERT</span>
+                </div>
+                <div class="xp-bar">
+                    <div class="xp-fill" id="xpFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hud-stats">
+            <div class="stat-item">
+                <span class="stat-icon">⏱️</span>
+                <span class="stat-value" id="yearsPlayed">6.5</span>
+                <span>YRS</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">🏆</span>
+                <span class="stat-value">15+</span>
+                <span>APPS</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">⚡</span>
+                <span class="stat-value">24/7</span>
+                <span>UPTIME</span>
+            </div>
+        </div>
+
+        <nav class="hud-nav">
+            <a href="#experience" class="nav-btn">LEVELS</a>
+            <a href="#skills" class="nav-btn">SKILLS</a>
+            <a href="#projects" class="nav-btn">QUESTS</a>
+            <a href="#contact" class="nav-btn">CONNECT</a>
+            <a href="config/admin.html" class="nav-btn" target="_blank">TOOLS</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero - Player Select -->
+        <section class="hero-game">
+            <div class="player-select-container">
+                <p class="insert-coin">- PRESS START TO BEGIN -</p>
+                
+                <div class="title-container">
+                    <h1 class="game-title glitch">SELECT YOUR ENGINEER</h1>
+                    <p class="game-subtitle">// Ready to deploy code and crush bugs</p>
+                </div>
+
+                <div class="player-card">
+                    <div class="character-sprite">🧑‍💻</div>
+                    <h2 class="character-name">ARJUN CHAKRAVARTHY</h2>
+                    <p class="character-title">Senior Software Development Engineer</p>
+
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-name">CODING</div>
+                            <div class="stat-bar-container">
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill coding" style="width: 95%"></div>
+                                </div>
+                                <span class="stat-number">95</span>
+                            </div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-name">DEVOPS</div>
+                            <div class="stat-bar-container">
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill devops" style="width: 88%"></div>
+                                </div>
+                                <span class="stat-number">88</span>
+                            </div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-name">CLOUD</div>
+                            <div class="stat-bar-container">
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill cloud" style="width: 90%"></div>
+                                </div>
+                                <span class="stat-number">90</span>
+                            </div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-name">AI/ML</div>
+                            <div class="stat-bar-container">
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill ai" style="width: 75%"></div>
+                                </div>
+                                <span class="stat-number">75</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <a href="res/ArjunChakravarthyResume.pdf" class="game-btn primary" target="_blank">
+                            <i class="fas fa-scroll"></i> VIEW RESUME
+                        </a>
+                        <button class="game-btn secondary" onclick="openMiniGame()">
+                            <i class="fas fa-gamepad"></i> PLAY MARIO
+                        </button>
+                        <a href="#experience" class="game-btn secondary">
+                            <i class="fas fa-play"></i> START GAME
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mini Game Modal -->
+        <div id="miniGameModal" class="mini-game-modal">
+            <div class="mini-game-container mario-iframe-container">
+                <div class="mini-game-header">
+                    <h3 class="mini-game-title">🍄 INFINITE MARIO HTML5 🍄</h3>
+                    <div class="header-controls">
+                        <a href="https://github.com/nicklockwood/MarioHTML5" target="_blank" class="github-link-btn" title="View Source on GitHub">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <button class="close-game-btn" onclick="closeMiniGame()">✕</button>
+                    </div>
+                </div>
+                <div class="game-screen-iframe">
+                    <iframe 
+                        id="marioGameFrame"
+                        src="https://nicklockwood.github.io/MarioHTML5/"
+                        allow="autoplay; fullscreen; keyboard-map"
+                        allowfullscreen
+                    ></iframe>
+                </div>
+                <div class="game-controls-info">
+                    <div class="control-key-item"><span class="key">←→</span> Move</div>
+                    <div class="control-key-item"><span class="key">S</span> Jump</div>
+                    <div class="control-key-item"><span class="key">A</span> Run/Fire</div>
+                    <div class="control-key-item"><span class="key">↓</span> Duck</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Experience - Level Select -->
+        <section id="experience">
+            <div class="section-header-game">
+                <h2 class="section-title">CAMPAIGN MODE</h2>
+                <p class="section-subtitle">// Main story progression</p>
+            </div>
+
+            <div class="levels-container">
+                <!-- Walmart Level -->
+                <div class="level-card walmart">
+                    <div class="level-header">
+                        <div class="level-info">
+                            <div class="level-badge">WORLD<br>2</div>
+                            <div class="level-details">
+                                <h3>Walmart Inc.</h3>
+                                <p class="level-role">Senior Software Development Engineer</p>
+                            </div>
+                        </div>
+                        <div class="level-meta">
+                            <span class="level-period">SEP 2021 - PRESENT</span>
+                            <span class="level-status current">▶ NOW PLAYING</span>
+                        </div>
+                    </div>
+
+                    <div class="level-achievements">
+                        <div class="achievement-badge">
+                            <i class="fas fa-trophy"></i> BRAVO AWARD x3
+                        </div>
+                        <div class="achievement-badge">
+                            <i class="fas fa-star"></i> TOP 3 BADGIFY
+                        </div>
+                        <div class="achievement-badge">
+                            <i class="fas fa-lightbulb"></i> HACKATHON WINS
+                        </div>
+                    </div>
+
+                    <ul class="quest-list">
+                        <li class="quest-item">Optimized WMS using Java Spring Boot microservices</li>
+                        <li class="quest-item">Enhanced inbound/outbound workflows for <strong>300%</strong> efficiency boost</li>
+                        <li class="quest-item">Integrated AI into Honeywell's voice framework using Python on GCP</li>
+                        <li class="quest-item">Re-architected critical component achieving <strong>400x performance</strong></li>
+                        <li class="quest-item">Led end-to-end DC launches with RESTful APIs</li>
+                    </ul>
+                </div>
+
+                <!-- FactSet Level -->
+                <div class="level-card factset">
+                    <div class="level-header">
+                        <div class="level-info">
+                            <div class="level-badge">WORLD<br>1</div>
+                            <div class="level-details">
+                                <h3>FactSet Research Systems</h3>
+                                <p class="level-role">Software Development Engineer III</p>
+                            </div>
+                        </div>
+                        <div class="level-meta">
+                            <span class="level-period">JUN 2018 - SEP 2021</span>
+                            <span class="level-status completed">✓ COMPLETED</span>
+                        </div>
+                    </div>
+
+                    <ul class="quest-list">
+                        <li class="quest-item">Implemented containerized troubleshooting environments</li>
+                        <li class="quest-item">Built AWS Lambda monitoring saving <strong>$4,000/month</strong></li>
+                        <li class="quest-item">Optimized search with AI-powered ElasticSearch - <strong>hours → milliseconds</strong></li>
+                        <li class="quest-item">Full-stack contribution: spec, design, coding, reviews, DevOps</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills - Skill Tree -->
+        <section id="skills">
+            <div class="section-header-game">
+                <h2 class="section-title">SKILL TREE</h2>
+                <p class="section-subtitle">// Unlocked abilities</p>
+            </div>
+
+            <div class="skill-tree">
+                <div class="skill-node coding">
+                    <div class="skill-header">
+                        <div class="skill-icon">⚔️</div>
+                        <div>
+                            <div class="skill-title">COMBAT - LANGUAGES</div>
+                            <div class="skill-level">Master Rank</div>
+                        </div>
+                    </div>
+                    <div class="skill-list">
+                        <span class="skill-tag">Java</span>
+                        <span class="skill-tag">Python</span>
+                        <span class="skill-tag">JavaScript</span>
+                        <span class="skill-tag">TypeScript</span>
+                        <span class="skill-tag">SQL</span>
+                        <span class="skill-tag">Bash</span>
+                    </div>
+                </div>
+
+                <div class="skill-node cloud">
+                    <div class="skill-header">
+                        <div class="skill-icon">☁️</div>
+                        <div>
+                            <div class="skill-title">MAGIC - CLOUD</div>
+                            <div class="skill-level">Expert Rank</div>
+                        </div>
+                    </div>
+                    <div class="skill-list">
+                        <span class="skill-tag">AWS</span>
+                        <span class="skill-tag">GCP</span>
+                        <span class="skill-tag">Azure</span>
+                        <span class="skill-tag">Firebase</span>
+                        <span class="skill-tag">Kubernetes</span>
+                    </div>
+                </div>
+
+                <div class="skill-node devops">
+                    <div class="skill-header">
+                        <div class="skill-icon">🛠️</div>
+                        <div>
+                            <div class="skill-title">CRAFTING - DEVOPS</div>
+                            <div class="skill-level">Expert Rank</div>
+                        </div>
+                    </div>
+                    <div class="skill-list">
+                        <span class="skill-tag">Docker</span>
+                        <span class="skill-tag">Jenkins</span>
+                        <span class="skill-tag">CI/CD</span>
+                        <span class="skill-tag">Terraform</span>
+                        <span class="skill-tag">Nginx</span>
+                    </div>
+                </div>
+
+                <div class="skill-node data">
+                    <div class="skill-header">
+                        <div class="skill-icon">🧠</div>
+                        <div>
+                            <div class="skill-title">KNOWLEDGE - FRAMEWORKS</div>
+                            <div class="skill-level">Expert Rank</div>
+                        </div>
+                    </div>
+                    <div class="skill-list">
+                        <span class="skill-tag">Spring Boot</span>
+                        <span class="skill-tag">React</span>
+                        <span class="skill-tag">Node.js</span>
+                        <span class="skill-tag">ElasticSearch</span>
+                        <span class="skill-tag">Kafka</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects - Side Quests -->
+        <section id="projects">
+            <div class="section-header-game">
+                <h2 class="section-title">SIDE QUESTS</h2>
+                <p class="section-subtitle">// Personal projects & self-hosted adventures</p>
+            </div>
+
+            <div class="quests-grid" id="questsGrid">
+                <!-- Populated by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Contact - Continue Screen -->
+        <section id="contact" class="contact-game">
+            <h2 class="game-over-text">GAME PAUSED</h2>
+            <p class="continue-text">INSERT COIN TO CONTINUE...</p>
+
+            <div class="contact-links-game">
+                <a href="https://linkedin.com/in/arjunchakravarthy" target="_blank" class="contact-btn" data-label="LinkedIn">
+                    <i class="fab fa-linkedin-in"></i>
+                </a>
+                <a href="https://github.com/arjunchakri" target="_blank" class="contact-btn" data-label="GitHub">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="https://medium.com/@arjunchakravarthy" target="_blank" class="contact-btn" data-label="Medium">
+                    <i class="fab fa-medium-m"></i>
+                </a>
+                <a href="https://youtube.com/@arjunchakravarthy" target="_blank" class="contact-btn" data-label="YouTube">
+                    <i class="fab fa-youtube"></i>
+                </a>
+                <a href="https://twitter.com/arjunchakravarthy" target="_blank" class="contact-btn" data-label="Twitter">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="https://wa.me/918897566013" target="_blank" class="contact-btn" data-label="WhatsApp">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+                <a href="https://t.me/arjunchakravarthy" target="_blank" class="contact-btn" data-label="Telegram">
+                    <i class="fab fa-telegram-plane"></i>
+                </a>
+            </div>
+
+            <a href="mailto:arjunchakri@gmail.com" class="contact-email-game">
+                <i class="fab fa-google"></i>
+                arjunchakri@gmail.com
+            </a>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="game-footer">
+        <div class="credits">
+            DEVELOPED BY <span class="highlight">ARJUN CHAKRAVARTHY</span><br>
+            © <span id="currentYear"></span> ALL RIGHTS RESERVED<br>
+            NO CHEATS USED IN THE MAKING OF THIS CAREER
+        </div>
+        <div class="high-score">
+            HIGH SCORE: <span id="highScore">999,999</span> LINES OF CODE
+        </div>
+    </footer>
+
+    <script>
+        // ==========================================
+        // PROJECT DATA
+        // ==========================================
+        const projectsData = [
+            // Featured
+            {
+                id: "collab-notes",
+                name: "Collab Notes",
+                icon: "📝",
+                category: "Web App",
+                description: "Real-time collaborative note-taking with Firebase sync. My daily driver for quick notes.",
+                tech: ["Firebase", "JavaScript", "Real-time"],
+                url: "https://arjunchakri.github.io/notes/",
+                featured: true
+            },
+            {
+                id: "open-webui",
+                name: "Open WebUI",
+                icon: "🤖",
+                category: "AI",
+                description: "Self-hosted ChatGPT-like interface for local LLMs. Beautiful UI, conversation history.",
+                tech: ["Open WebUI", "Docker", "Python"],
+                url: "http://ai.arjunchakri.duckdns.org/",
+                featured: true,
+                ai: true
+            },
+            // Web Apps
+            {
+                id: "url-shortener",
+                name: "URL Shortener",
+                icon: "🔗",
+                category: "Web App",
+                description: "Custom URL shortener with analytics.",
+                tech: ["Firebase", "JavaScript"],
+                url: "https://arjunchakri.github.io/config/admin.html"
+            },
+            {
+                id: "polls",
+                name: "Polls App",
+                icon: "📊",
+                category: "Web App",
+                description: "Real-time polling with instant results.",
+                tech: ["Firebase", "JavaScript"],
+                url: "https://arjunchakri.github.io/polls/"
+            },
+            {
+                id: "video-call",
+                name: "WebRTC Call",
+                icon: "📹",
+                category: "Web App",
+                description: "P2P video calling. No servers in between.",
+                tech: ["WebRTC", "Firebase"],
+                url: "https://arjunchakri.github.io/call/"
+            },
+            {
+                id: "screen-cap",
+                name: "Screen Cap",
+                icon: "🎥",
+                category: "Web App",
+                description: "Browser-based screen recording. All local.",
+                tech: ["MediaRecorder", "JavaScript"],
+                url: "https://arjunchakri.github.io/screencapture/"
+            },
+            {
+                id: "save-link",
+                name: "Save Link",
+                icon: "🔖",
+                category: "Web App",
+                description: "Quick bookmark utility across devices.",
+                tech: ["Firebase", "JavaScript"],
+                url: "https://arjunchakri.github.io/savelink/"
+            },
+            {
+                id: "firebase-chat",
+                name: "Firebase Chat",
+                icon: "💬",
+                category: "Web App",
+                description: "Simple real-time chat application.",
+                tech: ["Firebase", "JavaScript"],
+                url: "https://arjunchakri.github.io/test-chat/",
+                deprecated: true
+            },
+            // AI
+            {
+                id: "ollama",
+                name: "Ollama",
+                icon: "🦙",
+                category: "AI",
+                description: "Local LLM inference engine. Running Llama & Mistral.",
+                tech: ["Ollama", "REST API", "LLM"],
+                url: "http://os.arjunchakri.duckdns.org:11434/",
+                ai: true
+            },
+            // Self-Hosted
+            {
+                id: "casaos",
+                name: "CasaOS",
+                icon: "🏡",
+                category: "Self-Hosted",
+                description: "Home server dashboard for all apps.",
+                tech: ["CasaOS", "Docker"],
+                url: "http://os.arjunchakri.duckdns.org/#/"
+            },
+            {
+                id: "cockpit",
+                name: "Ubuntu Cockpit",
+                icon: "🐧",
+                category: "Self-Hosted",
+                description: "Web-based server management console.",
+                tech: ["Cockpit", "Ubuntu"],
+                url: "https://arjunchakri.duckdns.org:9090/"
+            },
+            {
+                id: "nginx",
+                name: "Nginx Proxy",
+                icon: "🔀",
+                category: "Self-Hosted",
+                description: "Reverse proxy with SSL management.",
+                tech: ["Nginx", "SSL"],
+                url: "http://os.arjunchakri.duckdns.org:81/"
+            },
+            {
+                id: "nextcloud",
+                name: "Nextcloud",
+                icon: "☁️",
+                category: "Self-Hosted",
+                description: "Self-hosted cloud storage. My Google Drive.",
+                tech: ["Nextcloud", "Docker"],
+                url: "http://os.arjunchakri.duckdns.org:10081/"
+            },
+            {
+                id: "photos",
+                name: "Photo Gallery",
+                icon: "📸",
+                category: "Self-Hosted",
+                description: "Self-hosted photo backup. Google Photos alt.",
+                tech: ["Immich", "Docker"],
+                url: "http://photos.arjunchakri.duckdns.org/"
+            },
+            {
+                id: "vscode",
+                name: "VS Code Tunnel",
+                icon: "📝",
+                category: "Self-Hosted",
+                description: "Remote VS Code via tunnel.",
+                tech: ["VS Code", "Tunnel"],
+                url: "https://vscode.dev/tunnel/arjunchakri-cloud"
+            },
+            {
+                id: "code-server",
+                name: "Code Server",
+                icon: "⌨️",
+                category: "Self-Hosted",
+                description: "Self-hosted VS Code in browser.",
+                tech: ["code-server", "Docker"],
+                url: "http://code.arjunchakri.duckdns.org/"
+            },
+            // Work Projects
+            {
+                id: "intellishop",
+                name: "IntelliShop",
+                icon: "🛒",
+                category: "Work",
+                description: "AI-powered in-store recommendations. +20% engagement.",
+                tech: ["Firebase", "Android", "AI"],
+                url: null
+            },
+            {
+                id: "testhive",
+                name: "TestHive",
+                icon: "🐝",
+                category: "Work",
+                description: "Microservice orchestration for 35+ services.",
+                tech: ["Docker", "Microservices"],
+                url: null
+            }
+        ];
+
+        // ==========================================
+        // RENDER PROJECTS
+        // ==========================================
+        function renderProjects() {
+            const grid = document.getElementById('questsGrid');
+            
+            const html = projectsData.map(project => {
+                let cardClass = 'quest-card';
+                
+                // Category classes
+                if (project.category === 'Web App') cardClass += ' webapp';
+                else if (project.category === 'AI') cardClass += ' ai';
+                else if (project.category === 'Self-Hosted') cardClass += ' selfhosted';
+                else if (project.category === 'Work') cardClass += ' work';
+                
+                if (project.deprecated) cardClass += ' deprecated';
+                if (project.featured) cardClass += ' featured';
+
+                const linkStart = project.url ? `<a href="${project.url}" target="_blank" class="${cardClass}">` : `<div class="${cardClass}">`;
+                const linkEnd = project.url ? '</a>' : '</div>';
+
+                return `
+                    ${linkStart}
+                        <span class="quest-icon">${project.icon}</span>
+                        <h4 class="quest-name">${project.name}</h4>
+                        <span class="quest-type">${project.category}</span>
+                        <div class="quest-tooltip">
+                            <p class="quest-tooltip-desc">${project.description}</p>
+                            <div class="quest-tooltip-tech">
+                                ${project.tech.map(t => `<span class="tech-tag">${t}</span>`).join('')}
+                            </div>
+                        </div>
+                    ${linkEnd}
+                `;
+            }).join('');
+
+            grid.innerHTML = html;
+        }
+
+        // ==========================================
+        // DYNAMIC CALCULATIONS
+        // ==========================================
+        function calculateYearsOfExperience() {
+            const startDate = new Date(2018, 6, 1); // July 2018
+            const now = new Date();
+            const years = (now - startDate) / (1000 * 60 * 60 * 24 * 365.25);
+            return Math.floor(years * 10) / 10;
+        }
+
+        function updateXPBar() {
+            const years = calculateYearsOfExperience();
+            const level = Math.floor(years);
+            const progress = (years - level) * 100;
+            
+            document.getElementById('playerLevel').textContent = level;
+            document.getElementById('yearsPlayed').textContent = years.toFixed(1);
+            document.getElementById('xpFill').style.width = `${progress}%`;
+            
+            // XP text based on level
+            const ranks = ['NOVICE', 'APPRENTICE', 'JOURNEYMAN', 'EXPERT', 'MASTER', 'GRANDMASTER', 'LEGEND', 'MYTHIC'];
+            document.getElementById('xpText').textContent = ranks[Math.min(level, ranks.length - 1)];
+        }
+
+        // ==========================================
+        // PIXEL STARS BACKGROUND
+        // ==========================================
+        function createStars() {
+            const container = document.getElementById('pixelStars');
+            const starCount = 50;
+
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                star.style.animationDuration = `${1.5 + Math.random() * 2}s`;
+                
+                // Random colors
+                const colors = ['var(--neon-cyan)', 'var(--neon-magenta)', 'var(--mario-gold)', 'var(--neon-green)'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                star.style.background = color;
+                star.style.boxShadow = `0 0 10px ${color}`;
+                
+                container.appendChild(star);
+            }
+        }
+
+        // ==========================================
+        // SOUND EFFECTS (optional visual feedback)
+        // ==========================================
+        function addHoverEffects() {
+            // Add click/hover visual feedback
+            document.querySelectorAll('.game-btn, .nav-btn, .contact-btn, .quest-card').forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    // Visual pulse effect
+                    el.style.transition = 'all 0.1s ease';
+                });
+            });
+        }
+
+        // ==========================================
+        // HIGH SCORE ANIMATION
+        // ==========================================
+        function animateHighScore() {
+            const target = 847293;
+            const duration = 2000;
+            const start = 0;
+            const startTime = Date.now();
+            
+            function update() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const current = Math.floor(start + (target - start) * progress);
+                document.getElementById('highScore').textContent = current.toLocaleString();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            
+            // Start animation when footer is visible
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    update();
+                    observer.disconnect();
+                }
+            });
+            observer.observe(document.querySelector('.high-score'));
+        }
+
+        // ==========================================
+        // INIT
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            createStars();
+            renderProjects();
+            updateXPBar();
+            addHoverEffects();
+            animateHighScore();
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+        });
+
+        // Smooth scroll for nav links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // ==========================================
+        // INFINITE MARIO HTML5 - GAME MODAL
+        // ==========================================
+        
+        // Open mini game modal
+        function openMiniGame() {
+            const modal = document.getElementById('miniGameModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Focus the iframe so keyboard input works
+            setTimeout(() => {
+                const iframe = document.getElementById('marioGameFrame');
+                if (iframe) {
+                    iframe.focus();
+                }
+            }, 100);
+        }
+        
+        // Close mini game modal
+        function closeMiniGame() {
+            const modal = document.getElementById('miniGameModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Escape' && document.getElementById('miniGameModal').classList.contains('active')) {
+                closeMiniGame();
+            }
+        });
+        
+        // Close modal on background click
+        document.getElementById('miniGameModal').addEventListener('click', (e) => {
+            if (e.target.id === 'miniGameModal') {
+                closeMiniGame();
+            }
+        });
+    </script>
+</body>
+</html>
+
