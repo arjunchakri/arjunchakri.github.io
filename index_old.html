@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>NAC</title>
+	<meta name="description" content="Hello, I'm NAC, a front-end developer and UI designer.">
+	<link href="favicon.png" rel="icon" sizes="16x16">
+	<meta name="viewport" content="width = device-width, minimum-scale = 1.0 , initial-scale = 1,user-scalable=yes">
+	<!--Import .css-->
+	<link type="text/css" rel="stylesheet" href="css/materialize.min.css" media="screen,projection" />
+	<link type="text/css" rel="stylesheet" href="css/main.css">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+	<!--Import .js-->
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/jquery.nicescroll.min.js"></script>
+	<script type="text/javascript" src="js/jquery.nicescroll.plus.js"></script>
+	<script type="text/javascript" src="js/velocity.min.js"></script>
+	<script type="text/javascript" src="js/skrollr.min.js"></script>
+	<script type="text/javascript" src="js/jquery.scrolline.js"></script>
+	<script type="text/javascript" src="js/modernizr.js"></script>
+	<script type="text/javascript" src="js/materialize.min.js"></script>
+	<script type="text/javascript" src="js/main.js"></script>
+	<!-- Firebase Scripts -->
+	<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+	<!-- URL Shortener Scripts -->
+	<script type="text/javascript" src="config/url-mappings.js"></script>
+	<script type="text/javascript" src="config/firebase-config.js"></script>
+	<script type="text/javascript" src="js/url-shortener.js"></script>
+</head>
+
+<body class="red lighten-5">
+	<script language=JavaScript>
+	<!--
+	//Disable Right click Script
+	var message = "Page Encrypted: Right Click Disabled";
+	///////////////////////////////////
+	function clickIE4() {
+		if(event.button == 2) {
+			alert(message);
+			return false;
+		}
+	}
+
+	function clickNS4(e) {
+		if(document.layers || document.getElementById && !document.all) {
+			if(e.which == 2 || e.which == 3) {
+				alert(message);
+				return false;
+			}
+		}
+	}
+	if(document.layers) {
+		document.captureEvents(Event.MOUSEDOWN);
+		document.onmousedown = clickNS4;
+	} else if(document.all && !document.getElementById) {
+		document.onmousedown = clickIE4;
+	}
+	document.oncontextmenu = new Function("alert(message);return false")
+		// -->
+	</script>
+	<script language="javascript" type="text/javascript">
+	<!--
+	function popitup(url) {
+		newwindow = window.open(url, 'name', 'height=200,width=400');
+		if(window.focus) {
+			newwindow.focus()
+		}
+		return false;
+	}
+	
+	function openLinkDelay (url) {
+		setTimeout( function() { 
+			window.open(url, '_blank').focus();
+		}, 500 );
+	}
+	// -->
+	</script>
+	<div class="preloader red container-fluid row">
+		<div class="white-text text-darken-4 xpretext">
+			<h4>Loading UI...</h4> </div>
+		<div class="progress red lighten-2 xpreloading">
+			<div class="indeterminate red darken-3"></div>
+		</div>
+	</div>
+	<header class="site-header">
+		<div class="navbar-fixed">
+			<nav class="red darken-2 waves-effect waves-light">
+				<div class="nav-wrapper">
+					<div class="container"> <a internal href="index.html" class="brand-logo"><i class="mdi-communication-chat"></i> Arjun</a>
+						<ul id="nav-mobile" class="right side-nav">
+							<li><a href="#" onclick="openLinkDelay('config/admin.html')" ><i class="fas fa-link" style="font-size: inherit;color: #white;"> </i> &nbsp; URL Shortner </a> </li>
+							<li><a href="#" onclick="openLinkDelay('https://www.linkedin.com/in/arjunchakravarthy/')" ><i class="fab fa-linkedin" style="font-size: inherit;color: #white;"> </i> &nbsp; Linkedin </a> </li>
+							<li><a href="#" onclick="openLinkDelay('res/ArjunChakravarthyResume.pdf')" ><i class="fas fa-briefcase" style="font-size: inherit;color: #white;"> </i> &nbsp; Resume </a> </li>
+						</ul> <a class="button-collapse" href="#" data-activates="nav-mobile"><i class="mdi-navigation-menu"></i></a> </div>
+				</div>
+			</nav>
+		</div>
+	</header> <a class="darken-2 scrollToTop btn-floating btn-large waves-effect waves-light red"><i class="mdi-hardware-keyboard-arrow-up"> ::before</i></a>
+	<div id="page-wrap">
+		<div id="main-content">
+			<div id="guts">
+				<div class="container">
+					<div class="wrapper red-text text-darken-3">
+						<div>
+							<div id="skrollr-body">
+								<div id="non-skrollr">
+									<div class="container-fluid">
+										<div class="mast"> 
+											<h1>Welcome</h1>
+											<h4>I'm <b>Arjun Chakravarthy Nunugonda</b></h4> 
+											<h6>a creative &amp; people-oriented <b>Software Developer 💻 </b> <br /> </h6>
+											with immense passion to implement <b>robust solutions 🤖 </b>
+											<h5>and loves ❤️ to <b>learn every day.</b> </h5>
+											<br> <br>
+											<!-- <h5> 
+												Java ⭐ 
+												<b>|</b>  
+												Spring 🍃 
+												<b>|</b>  
+												JS/JQuery 🌐
+												<b>|</b>  
+												AWS ☁️ 
+												<b>|</b>  
+												DevOps ✅ 
+											</h5>
+											<h5> 
+												Firebase 🔥 
+												<b>|</b>  
+												Python 🐍
+												<b>|</b>  
+												ElasticSearch 🔍
+												<b>|</b>  
+												Docker 🐳
+											</h5>
+										-->
+											
+											<!--a target="_blank" href="folder-public.html" class="red darken-2 white-text text-darken-3 waves-effect waves-light btn">Folder(Public)</a>
+											<br> <a target="_blank" href="folder-temp.html" class="red darken-2 white-text text-darken-3 waves-effect waves-light btn">Folder(Temp)</a>
+											<br> <a href="https://script.google.com/macros/s/AKfycbwRTLzPP_1CFZshaDW0iqS6DKGlbKHaxcPZpjh7x0dAxadM3Po/exec" onclick="return popitup('https://script.google.com/macros/s/AKfycbwRTLzPP_1CFZshaDW0iqS6DKGlbKHaxcPZpjh7x0dAxadM3Po/exec')"><b>Upload File to Temp</b></a>
+											<br>
+											<br --> 
+										</div>
+									</div>
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light" style="width:100%">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/1.jpg');">
+											<div class="filter red" style="opacity: 0.7;">
+												<div class="cover-text red-text text-darken-4"> <span style="font-size: 50px;"> < arjunchakri /></span> </div>
+											</div>
+										</div>
+										<div class="card-content white-text">
+											<div class="card-title"> </div>
+
+											<a href=""><b>
+											!!PROJECTS!! These are still in BETA : NotForPublicUse !!NOTE!!</b></a>
+											<br>
+											<br> <a target="_blank" href="/notes/">-[COLLABORATIVE_NOTES]-[PROD]</a>
+											<br> <a target="_blank" href="/polls/">-[POLLS_APP]-[PROD]</a>
+											<br> 
+											<br> <a target="_blank" href="/savelink/">-[Save link]-[Stable]</a>
+											<br> 
+											<br> <a target="_blank" href="/test-chat">-[Firebase-Chat]-[0.7.Unreleased]</a>
+											<br> <a target="_blank" href="/send/test1">-[Api-SEND_ME_SMS]-[0.3.Unreleased]</a>
+											<br> <a target="_blank" href="/email/">-[EMAIL]-[0.2.Unreleased]</a>
+											<br> 
+											<br> <a target="_blank" href="/screencapture/">-[SCREENRECORDER]-[Beta]</a>
+											<br> <a target="_blank" href="/call/">-[VideoCall]-[Beta]</a>
+
+											<br>
+											<script language="javascript" type="text/javascript">
+											M.AutoInit();
+											</script>
+										</div>
+									</div>
+									<!--
+							<div class="row">
+								<div class="container-fluid">
+									<div class="col s12 m6">
+										<ul>
+
+											<li class="card advantage red white-text darken-1 waves-effect waves-light" >
+												<h4>Collaborative notes</h4> 
+												A simple <b>cloud based</b> notepad with <b>realtime sync. </b>
+												<br> Open the same note in 2 different devices (or tabs) and experience the realtime edit. 
+												<br> Powered by <b>Firebase.</b>
+												<br> <br> <a href="/notes/" target="_blank"class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Visit app <i class="fa fa-arrow-right"></i></a>
+											</li>
+
+										</ul>
+									</div>
+									<div class="col s12 m6">
+										<ul>
+											<li class="card advantage red white-text darken-1 waves-effect waves-light" >
+												<h4>Polls app</h4> 
+												A serverless light-weight polls app. Frontent designed as an eyefeast . 
+												<br> Powered by <b>Firebase.</b>
+												<br> <br> <a href="/polls/" target="_blank"class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Visit app</a>
+											</li>
+											
+										</ul>
+									</div>
+								</div>
+								
+							</div>
+					--></div>
+							</div>
+							<div class="row height-container">
+								<div class="row">
+									<h1><br>-how-to-contact-me-<br></h1>
+									<div class="container-fluid"> </div>
+								</div>
+								
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fas fa-briefcase" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a target="_blank" href="res/ArjunChakravarthyResume.pdf" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Resume</a>  </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fab fa-google" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a onclick="copyTextToClipboard('arjunchakri@gmail.com')" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Copy email</a> <a href="mailto:arjunchakri@gmail.com" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Connect</a> </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fab fa-linkedin-in" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a href="https://www.linkedin.com/in/arjunchakravarthy/" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Visit Linkedin profile</a> </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fab fa-medium-m" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a href="https://arjunchakri.medium.com/" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Visit Medium page</a> </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fab fa-github" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a href="https://github.com/arjunchakri/" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Visit Github page</a> </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fab fa-youtube" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a href="https://www.youtube.com/c/ArjunChakravarthyNunugonda" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Visit Youtube channel</a> </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fab fa-facebook-f" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a href="https://www.facebook.com/arjunchakri" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Visit Facebook page</a> </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fab fa-pinterest" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a href="https://in.pinterest.com/arjunchakri/" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Visit Pinterest</a> </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fab fa-instagram" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a href="https://www.instagram.com/arjunchakravarthynunugonda/" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Visit Instragram page</a> </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fab fa-twitter" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a href="https://twitter.com/arjunchakri" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Visit Twitter</a> </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fab fa-yandex-international" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a onclick="copyTextToClipboard('arjunchakavarthy@yandex.com')" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Copy Yandex mail</a> <a href="mailto:arjunchakavarthy@yandex.com" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Connect with Yandex</a> </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fab fa-apple" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a onclick="copyTextToClipboard('arjunchakri@icloud.com')" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Copy Apple ID</a> <a href="mailto:arjunchakri@icloud.com" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Connect with Apple ID</a> </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fab fa-windows" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a onclick="copyTextToClipboard('arjunchakri@outlook.com')" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Copy Outlook mail</a> <a href="mailto:arjunchakri@outlook.com" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Connect with Outlook</a> </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fab fa-facebook-messenger" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a href="http://m.me/arjunchakri" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Connect via Messenger</a> </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fas fa-phone" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a onclick="copyTextToClipboard('8897566013')" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Copy Phone number (+91)</a> </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fab fa-whatsapp" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a href="https://wa.me/8897566013" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Connect via Whatsapp</a> </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> <i class="fab fa-telegram-plane" style="color:black"></i> </div>
+											</div>
+										</div>
+										<div class="card-action red darken-2"> <a href="https://t.me/8897566013" target="_blank" class="red darken-1 white-text text-darken-3 waves-effect waves-light btn">Connect via Telegram</a> </div>
+									</div>
+								</div>
+								<div class="scroll-1">
+									<div class="container-fluid card red z-depth-2 waves-effect waves-light">
+										<div class="cover z-depth-1" style="background-image: url('/material//img/0.jpg');">
+											<div class="filter red">
+												<div class="cover-text red-text text-darken-4"> Made with <3 </div>
+												</div>
+											</div>
+											<div class="card-action red darken-2" style="height: 98px;">
+												<div class="card-title"><b> &lt; &gt; </b> by <b>Arjun-Chakravarthy-Nunugonda</b></div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script>
+		function copyTextToClipboard(text) {
+			var dummy = document.createElement("textarea");
+			document.body.appendChild(dummy);
+			dummy.value = text;
+			dummy.select();
+			document.execCommand("copy");
+			document.body.removeChild(dummy);
+		}
+		(function(i, s, o, g, r, a, m) {
+			i['GoogleAnalyticsObject'] = r;
+			i[r] = i[r] || function() {
+				(i[r].q = i[r].q || []).push(arguments)
+			}, i[r].l = 1 * new Date();
+			a = s.createElement(o),
+				m = s.getElementsByTagName(o)[0];
+			a.async = 1;
+			a.src = g;
+			m.parentNode.insertBefore(a, m)
+		})(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+		ga('create', 'UA-60711072-1', 'auto');
+		ga('send', 'pageview');
+		</script>
+</body>
+
+</html>
