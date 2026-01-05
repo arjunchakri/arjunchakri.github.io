@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+    <link href="https://arjunchakri.github.io/favicon.png" rel="icon" sizes="16x16">
+    <title>CodePad</title>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    
+    <!-- Monaco Editor -->
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+    
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a24;
+            --bg-hover: #22222e;
+            --border-color: #2a2a3a;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --text-muted: #555566;
+            --accent: #6366f1;
+            --accent-hover: #818cf8;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        /* View Transitions */
+        .view {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s;
+        }
+
+        .view.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Landing Page */
+        .landing {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, #0f0f1a 100%);
+        }
+
+        .landing-card {
+            width: 90%;
+            max-width: 480px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent) 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 32px;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-field:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .recent-section {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .recent-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .recent-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .recent-item {
+            padding: 8px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s;
+        }
+
+        .recent-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+
+        /* Editor View */
+        .editor-view {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toolbar-center {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .back-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .doc-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-field {
+            padding: 8px 32px 8px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+            appearance: none;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .select-field:hover, .select-field:focus {
+            border-color: var(--accent);
+        }
+
+        .select-wrapper::after {
+            content: '▼';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .toolbar-btn {
+            padding: 8px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toolbar-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+
+        .toolbar-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .toolbar-btn.run {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .toolbar-btn.run:hover {
+            background: #16a34a;
+        }
+
+        /* Timer */
+        .timer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .timer.running {
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .timer-btn {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .timer-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        /* Editor Container */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        #monaco-container {
+            flex: 1;
+        }
+
+        /* Output Panel */
+        .output-panel {
+            width: 400px;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            display: none;
+            flex-direction: column;
+        }
+
+        .output-panel.visible {
+            display: flex;
+        }
+
+        .output-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .output-title {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .output-close {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .output-close:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .output-content {
+            flex: 1;
+            padding: 16px;
+            overflow: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            color: var(--text-secondary);
+        }
+
+        .output-content.error {
+            color: var(--error);
+        }
+
+        .output-content.success {
+            color: var(--success);
+        }
+
+        /* Status Bar */
+        .statusbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 16px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .statusbar-left, .statusbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        .status-dot.saving {
+            background: var(--warning);
+            animation: pulse 1s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 14px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            border-color: var(--success);
+        }
+
+        /* Templates Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: auto;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .template-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .template-item {
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .template-item:hover {
+            border-color: var(--accent);
+            background: var(--bg-hover);
+        }
+
+        .template-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .template-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .landing-card {
+                padding: 24px;
+            }
+
+            .toolbar {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .toolbar-center {
+                order: 3;
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .output-panel {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                z-index: 100;
+            }
+
+            .timer {
+                display: none;
+            }
+
+            .toolbar-btn span {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Landing Page -->
+    <div id="landing" class="view landing active">
+        <div class="landing-card">
+            <div class="logo">
+                <div class="logo-icon">⚡</div>
+                <span class="logo-text">CodePad</span>
+            </div>
+            <p class="tagline">Real-time collaborative code editor. Perfect for interviews.</p>
+
+            <div class="input-group">
+                <label class="input-label">Session Name</label>
+                <input type="text" id="sessionInput" class="input-field" placeholder="e.g., interview-google-2024" autocomplete="off">
+            </div>
+
+            <button class="btn-primary" onclick="joinSession()">
+                Start Session →
+            </button>
+
+            <div class="recent-section" id="recentSection" style="display: none;">
+                <div class="recent-title">Recent Sessions</div>
+                <div class="recent-list" id="recentList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Editor View -->
+    <div id="editorView" class="view editor-view">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button class="back-btn" onclick="goHome()" title="Back">←</button>
+                <span class="doc-name" id="docName">untitled</span>
+            </div>
+
+            <div class="toolbar-center">
+                <div class="select-wrapper">
+                    <select class="select-field" id="languageSelect" onchange="changeLanguage()">
+                        <option value="javascript">JavaScript</option>
+                        <option value="typescript">TypeScript</option>
+                        <option value="python">Python</option>
+                        <option value="java">Java</option>
+                        <option value="cpp">C++</option>
+                        <option value="csharp">C#</option>
+                        <option value="go">Go</option>
+                        <option value="rust">Rust</option>
+                        <option value="sql">SQL</option>
+                        <option value="json">JSON</option>
+                        <option value="html">HTML</option>
+                        <option value="css">CSS</option>
+                        <option value="markdown">Markdown</option>
+                        <option value="plaintext">Plain Text</option>
+                    </select>
+                </div>
+
+                <button class="toolbar-btn" id="runBtn" onclick="runCode()" title="Run JavaScript (Ctrl+Enter)">
+                    ▶ <span>Run</span>
+                </button>
+
+                <button class="toolbar-btn" onclick="showTemplates()" title="Code Templates">
+                    📋 <span>Templates</span>
+                </button>
+            </div>
+
+            <div class="toolbar-right">
+                <div class="timer" id="timer">
+                    <span id="timerDisplay">00:00</span>
+                    <button class="timer-btn" id="timerBtn" onclick="toggleTimer()" title="Start/Stop Timer">▶</button>
+                    <button class="timer-btn" onclick="resetTimer()" title="Reset Timer">↺</button>
+                </div>
+
+                <button class="toolbar-btn" onclick="copyLink()" title="Copy Share Link">
+                    🔗 <span>Share</span>
+                </button>
+
+                <button class="toolbar-btn" onclick="downloadCode()" title="Download Code">
+                    ⬇ <span>Download</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="editor-container">
+            <div id="monaco-container"></div>
+            <div class="output-panel" id="outputPanel">
+                <div class="output-header">
+                    <span class="output-title">Output</span>
+                    <button class="output-close" onclick="closeOutput()">×</button>
+                </div>
+                <div class="output-content" id="outputContent">Run code to see output...</div>
+            </div>
+        </div>
+
+        <div class="statusbar">
+            <div class="statusbar-left">
+                <div class="status-item">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Saved</span>
+                </div>
+                <span id="cursorPos">Ln 1, Col 1</span>
+            </div>
+            <div class="statusbar-right">
+                <span id="charCount">0 chars</span>
+                <span id="lineCount">1 line</span>
+                <span id="langDisplay">JavaScript</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Templates Modal -->
+    <div class="modal" id="templatesModal" onclick="hideTemplates()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-title">📋 Code Templates</div>
+            <div class="template-list" id="templateList"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // Firebase Configuration
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCibTNoAZEu37Lih8PM5I5neXXpUUmKA_A",
+            authDomain: "arjunchakri-commonutil-db-dnd.firebaseapp.com",
+            databaseURL: "https://arjunchakri-commonutil-db-dnd-default-rtdb.firebaseio.com",
+            projectId: "arjunchakri-commonutil-db-dnd",
+            storageBucket: "arjunchakri-commonutil-db-dnd.firebasestorage.app",
+            messagingSenderId: "427544663337",
+            appId: "1:427544663337:web:7d76d4095003960d6a9338"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        // ==========================================
+        // State
+        // ==========================================
+        let editor = null;
+        let currentSession = null;
+        let saveTimeout = null;
+        let lastSavedContent = '';
+        let isLocalChange = false;
+        let unsubscribe = null;
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let timerRunning = false;
+
+        const RECENT_KEY = 'codepad_recent';
+        const MAX_RECENT = 8;
+
+        // ==========================================
+        // Templates
+        // ==========================================
+        const TEMPLATES = {
+            javascript: [
+                { name: 'Two Sum', desc: 'Classic array problem', code: `// Two Sum - Find indices of two numbers that add up to target
+function twoSum(nums, target) {
+    const map = new Map();
+    
+    for (let i = 0; i < nums.length; i++) {
+        const complement = target - nums[i];
+        
+        if (map.has(complement)) {
+            return [map.get(complement), i];
+        }
+        
+        map.set(nums[i], i);
+    }
+    
+    return [];
+}
+
+// Test
+console.log(twoSum([2, 7, 11, 15], 9)); // [0, 1]` },
+                { name: 'Binary Search', desc: 'O(log n) search', code: `// Binary Search
+function binarySearch(arr, target) {
+    let left = 0;
+    let right = arr.length - 1;
+    
+    while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        
+        if (arr[mid] === target) {
+            return mid;
+        } else if (arr[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+    
+    return -1;
+}
+
+// Test
+console.log(binarySearch([1, 2, 3, 4, 5, 6, 7, 8, 9], 5)); // 4` },
+                { name: 'BFS Template', desc: 'Breadth-first search', code: `// BFS Template for Graph/Tree Traversal
+function bfs(root) {
+    if (!root) return [];
+    
+    const result = [];
+    const queue = [root];
+    
+    while (queue.length > 0) {
+        const node = queue.shift();
+        result.push(node.val);
+        
+        if (node.left) queue.push(node.left);
+        if (node.right) queue.push(node.right);
+    }
+    
+    return result;
+}` },
+                { name: 'DFS Template', desc: 'Depth-first search', code: `// DFS Template (Recursive)
+function dfs(node, result = []) {
+    if (!node) return result;
+    
+    result.push(node.val);       // Pre-order
+    dfs(node.left, result);
+    // result.push(node.val);    // In-order
+    dfs(node.right, result);
+    // result.push(node.val);    // Post-order
+    
+    return result;
+}` },
+                { name: 'Merge Sort', desc: 'O(n log n) sorting', code: `// Merge Sort - O(n log n)
+function mergeSort(arr) {
+    if (arr.length <= 1) return arr;
+    
+    const mid = Math.floor(arr.length / 2);
+    const left = mergeSort(arr.slice(0, mid));
+    const right = mergeSort(arr.slice(mid));
+    
+    return merge(left, right);
+}
+
+function merge(left, right) {
+    const result = [];
+    let i = 0, j = 0;
+    
+    while (i < left.length && j < right.length) {
+        if (left[i] <= right[j]) {
+            result.push(left[i++]);
+        } else {
+            result.push(right[j++]);
+        }
+    }
+    
+    return [...result, ...left.slice(i), ...right.slice(j)];
+}
+
+// Test
+console.log(mergeSort([64, 34, 25, 12, 22, 11, 90]));` },
+                { name: 'Dynamic Programming', desc: 'DP pattern template', code: `// Dynamic Programming Template - Fibonacci
+function fib(n, memo = {}) {
+    if (n in memo) return memo[n];
+    if (n <= 2) return 1;
+    
+    memo[n] = fib(n - 1, memo) + fib(n - 2, memo);
+    return memo[n];
+}
+
+// Bottom-up approach
+function fibBottomUp(n) {
+    if (n <= 2) return 1;
+    
+    const dp = [0, 1, 1];
+    
+    for (let i = 3; i <= n; i++) {
+        dp[i] = dp[i - 1] + dp[i - 2];
+    }
+    
+    return dp[n];
+}
+
+console.log(fib(40));
+console.log(fibBottomUp(40));` }
+            ],
+            python: [
+                { name: 'Two Sum', desc: 'Classic array problem', code: `# Two Sum - Find indices of two numbers that add up to target
+def two_sum(nums, target):
+    seen = {}
+    
+    for i, num in enumerate(nums):
+        complement = target - num
+        
+        if complement in seen:
+            return [seen[complement], i]
+        
+        seen[num] = i
+    
+    return []
+
+# Test
+print(two_sum([2, 7, 11, 15], 9))  # [0, 1]` },
+                { name: 'Binary Search', desc: 'O(log n) search', code: `# Binary Search
+def binary_search(arr, target):
+    left, right = 0, len(arr) - 1
+    
+    while left <= right:
+        mid = (left + right) // 2
+        
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    
+    return -1
+
+# Test
+print(binary_search([1, 2, 3, 4, 5, 6, 7, 8, 9], 5))  # 4` }
+            ],
+            java: [
+                { name: 'Main Class', desc: 'Basic Java setup', code: `public class Solution {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+    }
+}` },
+                { name: 'Two Sum', desc: 'Classic array problem', code: `import java.util.*;
+
+public class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        Map<Integer, Integer> map = new HashMap<>();
+        
+        for (int i = 0; i < nums.length; i++) {
+            int complement = target - nums[i];
+            
+            if (map.containsKey(complement)) {
+                return new int[] { map.get(complement), i };
+            }
+            
+            map.put(nums[i], i);
+        }
+        
+        return new int[] {};
+    }
+}` }
+            ]
+        };
+
+        // ==========================================
+        // Utility Functions
+        // ==========================================
+        function wait(ms) {
+            return new Promise(r => setTimeout(r, ms));
+        }
+
+        function sanitize(key) {
+            return key.trim().toLowerCase().replace(/[.$#\[\]\/]/g, '-');
+        }
+
+        function getSessionFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('s') || null;
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId)?.classList.add('active');
+        }
+
+        // ==========================================
+        // Recent Sessions
+        // ==========================================
+        function getRecent() {
+            try {
+                return JSON.parse(localStorage.getItem(RECENT_KEY)) || [];
+            } catch {
+                return [];
+            }
+        }
+
+        function addToRecent(session) {
+            let recent = getRecent().filter(s => s !== session);
+            recent.unshift(session);
+            localStorage.setItem(RECENT_KEY, JSON.stringify(recent.slice(0, MAX_RECENT)));
+            renderRecent();
+        }
+
+        function renderRecent() {
+            const recent = getRecent();
+            const section = document.getElementById('recentSection');
+            const list = document.getElementById('recentList');
+
+            if (!recent.length) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            list.innerHTML = recent.map(s => 
+                `<a href="?s=${encodeURIComponent(s)}" class="recent-item">${s}</a>`
+            ).join('');
+        }
+
+        // ==========================================
+        // Toast
+        // ==========================================
+        function showToast(msg, type = '') {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = `${type === 'success' ? '✓' : 'ℹ'} ${msg}`;
+            toast.className = 'toast show ' + type;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ==========================================
+        // Status
+        // ==========================================
+        function setStatus(status, text) {
+            document.getElementById('statusDot').className = 'status-dot ' + status;
+            document.getElementById('statusText').textContent = text;
+        }
+
+        function updateStats() {
+            if (!editor) return;
+            const content = editor.getValue();
+            const pos = editor.getPosition();
+            
+            document.getElementById('charCount').textContent = `${content.length} chars`;
+            document.getElementById('lineCount').textContent = `${content.split('\n').length} lines`;
+            if (pos) {
+                document.getElementById('cursorPos').textContent = `Ln ${pos.lineNumber}, Col ${pos.column}`;
+            }
+        }
+
+        // ==========================================
+        // Timer
+        // ==========================================
+        function updateTimerDisplay() {
+            const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const secs = (timerSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').textContent = `${mins}:${secs}`;
+        }
+
+        function toggleTimer() {
+            timerRunning = !timerRunning;
+            const btn = document.getElementById('timerBtn');
+            const timer = document.getElementById('timer');
+            
+            if (timerRunning) {
+                btn.textContent = '⏸';
+                timer.classList.add('running');
+                timerInterval = setInterval(() => {
+                    timerSeconds++;
+                    updateTimerDisplay();
+                }, 1000);
+            } else {
+                btn.textContent = '▶';
+                timer.classList.remove('running');
+                clearInterval(timerInterval);
+            }
+        }
+
+        function resetTimer() {
+            timerRunning = false;
+            timerSeconds = 0;
+            clearInterval(timerInterval);
+            document.getElementById('timerBtn').textContent = '▶';
+            document.getElementById('timer').classList.remove('running');
+            updateTimerDisplay();
+        }
+
+        // ==========================================
+        // Firebase Operations
+        // ==========================================
+        function getRef(session) {
+            return db.ref(`codepad/${sanitize(session)}`);
+        }
+
+        async function loadSession(session) {
+            const snapshot = await getRef(session).once('value');
+            return snapshot.val();
+        }
+
+        async function saveSession(session, content, language) {
+            isLocalChange = true;
+            await getRef(session).set({
+                content,
+                language,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
+            });
+            setTimeout(() => { isLocalChange = false; }, 100);
+        }
+
+        function subscribeToSession(session, callback) {
+            const ref = getRef(session);
+            const handler = ref.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) callback(data);
+            });
+            return () => ref.off('value', handler);
+        }
+
+        // ==========================================
+        // Code Execution
+        // ==========================================
+        function runCode() {
+            const lang = document.getElementById('languageSelect').value;
+            
+            if (lang !== 'javascript') {
+                showToast('Only JavaScript can be executed in browser', '');
+                return;
+            }
+
+            const code = editor.getValue();
+            const outputEl = document.getElementById('outputContent');
+            const panel = document.getElementById('outputPanel');
+            
+            panel.classList.add('visible');
+            outputEl.className = 'output-content';
+            
+            // Capture console output
+            const logs = [];
+            const originalLog = console.log;
+            const originalError = console.error;
+            const originalWarn = console.warn;
+            
+            console.log = (...args) => logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : a).join(' '));
+            console.error = (...args) => logs.push('❌ ' + args.join(' '));
+            console.warn = (...args) => logs.push('⚠️ ' + args.join(' '));
+            
+            try {
+                const result = eval(code);
+                if (result !== undefined) {
+                    logs.push('→ ' + (typeof result === 'object' ? JSON.stringify(result, null, 2) : result));
+                }
+                outputEl.textContent = logs.join('\n') || 'Code executed successfully (no output)';
+                outputEl.classList.add('success');
+            } catch (err) {
+                outputEl.textContent = `❌ ${err.name}: ${err.message}`;
+                outputEl.classList.add('error');
+            }
+            
+            console.log = originalLog;
+            console.error = originalError;
+            console.warn = originalWarn;
+        }
+
+        function closeOutput() {
+            document.getElementById('outputPanel').classList.remove('visible');
+        }
+
+        // ==========================================
+        // Language
+        // ==========================================
+        function changeLanguage() {
+            const lang = document.getElementById('languageSelect').value;
+            const model = editor.getModel();
+            monaco.editor.setModelLanguage(model, lang);
+            
+            document.getElementById('langDisplay').textContent = 
+                document.getElementById('languageSelect').selectedOptions[0].text;
+            
+            // Show/hide run button
+            document.getElementById('runBtn').style.display = 
+                lang === 'javascript' ? 'flex' : 'none';
+            
+            // Save language preference
+            if (currentSession) {
+                saveSession(currentSession, editor.getValue(), lang);
+            }
+        }
+
+        // ==========================================
+        // Templates
+        // ==========================================
+        function showTemplates() {
+            const lang = document.getElementById('languageSelect').value;
+            const templates = TEMPLATES[lang] || TEMPLATES.javascript;
+            const list = document.getElementById('templateList');
+            
+            list.innerHTML = templates.map((t, i) => `
+                <div class="template-item" onclick="insertTemplate(${i})">
+                    <div class="template-name">${t.name}</div>
+                    <div class="template-desc">${t.desc}</div>
+                </div>
+            `).join('');
+            
+            document.getElementById('templatesModal').classList.add('show');
+        }
+
+        function hideTemplates() {
+            document.getElementById('templatesModal').classList.remove('show');
+        }
+
+        function insertTemplate(index) {
+            const lang = document.getElementById('languageSelect').value;
+            const templates = TEMPLATES[lang] || TEMPLATES.javascript;
+            const template = templates[index];
+            
+            if (template) {
+                editor.setValue(template.code);
+                hideTemplates();
+                showToast('Template loaded', 'success');
+            }
+        }
+
+        // ==========================================
+        // Navigation
+        // ==========================================
+        function goHome() {
+            if (unsubscribe) {
+                unsubscribe();
+                unsubscribe = null;
+            }
+            resetTimer();
+            window.location.href = window.location.pathname;
+        }
+
+        function joinSession() {
+            const input = document.getElementById('sessionInput').value.trim();
+            if (input) {
+                window.location.href = `?s=${encodeURIComponent(input)}`;
+            }
+        }
+
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                showToast('Link copied to clipboard!', 'success');
+            });
+        }
+
+        function downloadCode() {
+            if (!editor || !currentSession) return;
+            const lang = document.getElementById('languageSelect').value;
+            const ext = { javascript: 'js', typescript: 'ts', python: 'py', java: 'java', cpp: 'cpp', csharp: 'cs', go: 'go', rust: 'rs', sql: 'sql', json: 'json', html: 'html', css: 'css', markdown: 'md', plaintext: 'txt' };
+            
+            const blob = new Blob([editor.getValue()], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${currentSession}.${ext[lang] || 'txt'}`;
+            a.click();
+            showToast('Downloaded!', 'success');
+        }
+
+        // ==========================================
+        // Monaco Editor
+        // ==========================================
+        async function initEditor(session, content = '', language = 'javascript') {
+            return new Promise((resolve) => {
+                require.config({ 
+                    paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' }
+                });
+
+                require(['vs/editor/editor.main'], function() {
+                    // Custom theme
+                    monaco.editor.defineTheme('codepad-dark', {
+                        base: 'vs-dark',
+                        inherit: true,
+                        rules: [],
+                        colors: {
+                            'editor.background': '#0a0a0f',
+                            'editor.foreground': '#f0f0f5',
+                            'editor.lineHighlightBackground': '#12121a',
+                            'editorCursor.foreground': '#6366f1',
+                            'editorLineNumber.foreground': '#555566',
+                            'editorLineNumber.activeForeground': '#8888a0',
+                        }
+                    });
+
+                    editor = monaco.editor.create(document.getElementById('monaco-container'), {
+                        value: content,
+                        language: language,
+                        theme: 'codepad-dark',
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: 14,
+                        lineHeight: 24,
+                        padding: { top: 16, bottom: 16 },
+                        minimap: { enabled: false },
+                        scrollBeyondLastLine: false,
+                        wordWrap: 'on',
+                        automaticLayout: true,
+                        cursorBlinking: 'smooth',
+                        cursorSmoothCaretAnimation: 'on',
+                        smoothScrolling: true,
+                        tabSize: 2,
+                    });
+
+                    lastSavedContent = content;
+                    document.getElementById('languageSelect').value = language;
+                    document.getElementById('langDisplay').textContent = 
+                        document.getElementById('languageSelect').selectedOptions[0].text;
+                    document.getElementById('runBtn').style.display = 
+                        language === 'javascript' ? 'flex' : 'none';
+
+                    // Auto-save
+                    editor.onDidChangeModelContent(() => {
+                        setStatus('saving', 'Saving...');
+                        updateStats();
+
+                        if (saveTimeout) clearTimeout(saveTimeout);
+                        saveTimeout = setTimeout(async () => {
+                            const content = editor.getValue();
+                            const lang = document.getElementById('languageSelect').value;
+                            if (content !== lastSavedContent) {
+                                try {
+                                    await saveSession(session, content, lang);
+                                    lastSavedContent = content;
+                                    setStatus('', 'Saved');
+                                } catch (err) {
+                                    setStatus('error', 'Error');
+                                }
+                            } else {
+                                setStatus('', 'Saved');
+                            }
+                        }, 500);
+                    });
+
+                    // Cursor position
+                    editor.onDidChangeCursorPosition(updateStats);
+
+                    // Ctrl+Enter to run
+                    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, runCode);
+
+                    // Ctrl+S
+                    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, async () => {
+                        if (saveTimeout) clearTimeout(saveTimeout);
+                        const content = editor.getValue();
+                        const lang = document.getElementById('languageSelect').value;
+                        await saveSession(session, content, lang);
+                        lastSavedContent = content;
+                        setStatus('', 'Saved');
+                        showToast('Saved!', 'success');
+                    });
+
+                    updateStats();
+                    resolve(editor);
+                });
+            });
+        }
+
+        // ==========================================
+        // Event Listeners
+        // ==========================================
+        document.getElementById('sessionInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') joinSession();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') hideTemplates();
+        });
+
+        // ==========================================
+        // Init
+        // ==========================================
+        async function init() {
+            const session = getSessionFromURL();
+
+            if (!session) {
+                document.title = 'CodePad';
+                renderRecent();
+                switchView('landing');
+                setTimeout(() => document.getElementById('sessionInput').focus(), 100);
+                return;
+            }
+
+            currentSession = session;
+            document.title = `${session} — CodePad`;
+            document.getElementById('docName').textContent = session;
+
+            try {
+                const data = await loadSession(session);
+                const content = data?.content || `// Welcome to CodePad!\n// Start coding here...\n\nfunction hello() {\n  console.log("Hello, World!");\n}\n\nhello();`;
+                const language = data?.language || 'javascript';
+
+                await initEditor(session, content, language);
+                addToRecent(session);
+
+                // Real-time sync
+                unsubscribe = subscribeToSession(session, (data) => {
+                    if (!isLocalChange && editor && data.content !== editor.getValue()) {
+                        const pos = editor.getPosition();
+                        const scroll = editor.getScrollTop();
+                        editor.setValue(data.content);
+                        if (pos) editor.setPosition(pos);
+                        editor.setScrollTop(scroll);
+                        lastSavedContent = data.content;
+                        
+                        if (data.language && data.language !== document.getElementById('languageSelect').value) {
+                            document.getElementById('languageSelect').value = data.language;
+                            changeLanguage();
+                        }
+                    }
+                });
+
+                switchView('editorView');
+                setTimeout(() => editor?.focus(), 100);
+
+            } catch (err) {
+                console.error(err);
+                showToast('Error loading session', '');
+                goHome();
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

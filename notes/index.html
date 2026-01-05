@@ -3,398 +3,1245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Roboto:wght@300;400;500&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Fira+Code:wght@400;500&display=swap">
     <link href="https://arjunchakri.github.io/favicon.png" rel="icon" sizes="16x16">
-
-    <link rel="preconnect" href="https://docs.google.com">
-    <link rel="preconnect" href="https://script.google.com">
-
-    <title>Terminal Notes</title>
+    <title>Notes</title>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    
+    <!-- Monaco Editor -->
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+    
     <style>
-        /* --- GLOBAL --- */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12131a;
+            --bg-tertiary: #1a1b26;
+            --border: #2a2d3a;
+            --text: #e6edf3;
+            --text-muted: #6b7280;
+            --accent: #58a6ff;
+            --green: #4ade80;
+            --yellow: #fbbf24;
+            --red: #f87171;
+            --purple: #a78bfa;
+            --cyan: #22d3ee;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body, html {
-            margin: 0; padding: 0; height: 100%; width: 100%;
+            height: 100%;
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text);
             overflow: hidden;
-            font-family: 'Roboto', sans-serif;
-            background-color: #0d1117;
-            color: #c9d1d9;
         }
 
-        /* --- THE "SOFT EXPANSION" TRANSITION --- */
-        .view-section {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-
-            /* Initial State: Hidden & Slightly Smaller */
-            opacity: 0;
-            visibility: hidden;
+        /* Background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(88, 166, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(88, 166, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
             pointer-events: none;
-
-            /* Start at 98% scale (roughly size of terminal) */
-            transform: scale(0.98);
-
-            /* Minimalist Easing: Starts quick, lands soft */
-            transition:
-                opacity 0.5s ease-in-out,
-                transform 0.5s cubic-bezier(0.25, 1, 0.5, 1),
-                visibility 0.5s step-end;
-
-            will-change: transform, opacity;
+            z-index: 0;
         }
 
-        .view-section.active {
-            /* Active State: Visible & Full Screen */
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
+        /* Glow orb */
+        .glow-orb {
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(88, 166, 255, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            animation: float 8s ease-in-out infinite;
+        }
+        .glow-orb.orb1 { top: -100px; left: -100px; }
+        .glow-orb.orb2 { bottom: -150px; right: -150px; animation-delay: -4s; background: radial-gradient(circle, rgba(167, 139, 250, 0.12) 0%, transparent 70%); }
 
-            transform: scale(1);
-
-            transition:
-                opacity 0.5s ease-in-out,
-                transform 0.5s cubic-bezier(0.25, 1, 0.5, 1),
-                visibility 0s step-start;
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, 30px); }
         }
 
-        /* --- TERMINAL WINDOW STYLES --- */
-        .terminal-container {
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            background: #0d1117;
-            z-index: 20;
+        /* ====================== TERMINAL CARD ====================== */
+        .terminal-wrapper {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .terminal-window {
-            width: 90%; max-width: 600px;
-            /* Glassmorphism for the window only */
-            background: rgba(22, 27, 34, 0.6);
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-            font-family: 'Fira Code', 'Courier New', monospace;
+        .terminal-wrapper.expanding {
+            background: var(--bg-primary);
+        }
+
+        .terminal {
+            width: 480px;
+            max-width: 95%;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 
+                0 0 0 1px rgba(255,255,255,0.05),
+                0 25px 50px -12px rgba(0, 0, 0, 0.8),
+                0 0 100px rgba(88, 166, 255, 0.1);
             overflow: hidden;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            transform: scale(1);
+            opacity: 1;
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .terminal.hidden {
+            opacity: 0;
+            transform: scale(0.9);
+            pointer-events: none;
+        }
+
+        .terminal.expanding {
+            width: 100vw;
+            max-width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            border: none;
         }
 
         .terminal-header {
-            background: rgba(22, 27, 34, 0.95);
-            padding: 10px 15px;
-            border-bottom: 1px solid #30363d;
-            display: flex; gap: 8px;
+            display: flex;
             align-items: center;
+            gap: 8px;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
         }
-        .header-title { margin-left: auto; margin-right: auto; font-size: 0.75rem; color: #8b949e; letter-spacing: 1px;}
-        .dot { width: 10px; height: 10px; border-radius: 50%; }
-        .red { background: #ff5f56; }
-        .yellow { background: #ffbd2e; }
-        .green { background: #27c93f; }
+
+        .terminal-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        .dot.red { background: #ff5f56; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #27c93f; }
+        .dot:hover { transform: scale(1.2); }
+
+        .terminal-title {
+            flex: 1;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-right: 52px;
+        }
 
         .terminal-body {
-            padding: 25px;
-            color: #c9d1d9;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            min-height: 160px;
+            padding: 24px;
+            min-height: 200px;
         }
 
-        /* --- DASHBOARD CONTENT --- */
-        .comment { color: #8b949e; font-style: italic; display: block; margin-bottom: 4px; }
-        .keyword { color: #ff7b72; }
-        .string { color: #a5d6ff; }
-        .obj { color: #79c0ff; }
+        /* ASCII Art */
+        .ascii-art {
+            color: var(--cyan);
+            font-size: 10px;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
 
-        .command-prompt { display: flex; align-items: center; margin-top: 25px; border-top: 1px solid #30363d; padding-top: 20px;}
-        .prompt-symbol { color: #7ee787; margin-right: 12px; font-weight: bold; }
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
 
-        input.cli-input {
+        .welcome-text {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-bottom: 24px;
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 0.5s ease 0.2s forwards;
+        }
+
+        .welcome-text span {
+            color: var(--green);
+        }
+
+        /* Input area */
+        .input-area {
+            opacity: 0;
+            animation: fadeIn 0.5s ease 0.4s forwards;
+        }
+
+        .prompt-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .prompt {
+            color: var(--green);
+            font-weight: 500;
+        }
+
+        .prompt-path {
+            color: var(--cyan);
+        }
+
+        .prompt-symbol {
+            color: var(--purple);
+        }
+
+        .input-field {
+            flex: 1;
             background: transparent;
             border: none;
-            color: #c9d1d9;
-            font-family: 'Fira Code', monospace;
-            font-size: 1rem;
-            width: 100%;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 14px;
             outline: none;
-            caret-color: #58a6ff;
+            caret-color: var(--accent);
         }
-        input.cli-input::placeholder { color: #484f58; opacity: 0.5; }
 
-        /* --- LOADER CONTENT --- */
-        .log-line { margin: 4px 0; display: block; }
-        .success { color: #3fb950; }
-        .warn { color: #d29922; }
-        .cmd { color: #c9d1d9; }
-        .cursor {
-            display: inline-block; width: 8px; height: 16px;
-            background: #58a6ff; animation: blink 1s step-end infinite;
-            vertical-align: middle; margin-left: 5px;
+        .input-field::placeholder {
+            color: var(--text-muted);
+            opacity: 0.5;
         }
-        @keyframes blink { 50% { opacity: 0; } }
 
-        /* --- VIEWER & UTILS --- */
-        #viewer {
+        .cursor-blink {
+            display: inline-block;
+            width: 8px;
+            height: 18px;
+            background: var(--accent);
+            animation: blink 1s step-end infinite;
+            margin-left: 2px;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .hint {
+            color: var(--text-muted);
+            font-size: 11px;
+            margin-top: 12px;
+            opacity: 0.6;
+        }
+
+        .hint kbd {
+            padding: 2px 6px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 10px;
+        }
+
+        /* Recent */
+        .recent {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            opacity: 0;
+            animation: fadeIn 0.5s ease 0.6s forwards;
+        }
+
+        .recent-title {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+        }
+
+        .recent-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .recent-item {
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 12px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .recent-item:hover {
+            background: var(--border);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        /* ====================== BOOT SEQUENCE ====================== */
+        .boot-sequence {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 13px;
+            padding: 20px 0;
+        }
+
+        .boot-sequence.active {
+            display: flex;
+        }
+
+        .boot-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .boot-line.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .boot-line .status {
+            width: 60px;
+            text-align: right;
+        }
+
+        .boot-line .status.ok { color: var(--green); }
+        .boot-line .status.loading { color: var(--yellow); }
+        .boot-line .status.error { color: var(--red); }
+
+        .boot-line .text {
+            color: var(--text-muted);
+        }
+
+        .boot-line .text.highlight {
+            color: var(--text);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 16px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--purple));
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        /* ====================== EDITOR VIEW ====================== */
+        .editor-container {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
+            transition: opacity 0.5s ease;
+        }
+
+        .editor-container.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            gap: 8px;
+            flex-wrap: wrap;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.5s ease 0.2s;
+        }
+
+        .editor-container.active .toolbar {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toolbar-left, .toolbar-center, .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover { color: var(--text); border-color: var(--accent); background: var(--border); }
+
+        .note-name {
+            font-size: 14px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .note-name::before {
+            content: '📝';
+        }
+
+        .lang-select {
+            padding: 6px 28px 6px 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 11px;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath fill='%236b7280' d='M0 2l4 4 4-4z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .lang-select:hover, .lang-select:focus {
+            border-color: var(--accent);
+        }
+
+        .toolbar-btn {
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .toolbar-btn:hover { color: var(--text); border-color: var(--accent); background: var(--border); }
+        .toolbar-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        .divider {
+            width: 1px;
+            height: 20px;
+            background: var(--border);
+            margin: 0 4px;
+        }
+
+        #monaco-container { 
+            flex: 1;
+            opacity: 0;
+            transition: opacity 0.5s ease 0.4s;
+        }
+
+        .editor-container.active #monaco-container {
+            opacity: 1;
+        }
+
+        .statusbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px 12px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease 0.3s;
+        }
+
+        .editor-container.active .statusbar {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .statusbar-left, .statusbar-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+
+        .status-dot.saving {
+            background: var(--yellow);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse { 50% { opacity: 0.5; } }
+
+        .clickable {
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .clickable:hover {
+            background: var(--bg-tertiary);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 18px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--green);
+            border-radius: 8px;
+            font-size: 12px;
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.show { 
+            opacity: 1; 
+            transform: translateY(0) scale(1); 
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: auto;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .modal-close {
+            background: none;
             border: none;
-            /* Match background to body to prevent white flash during transition */
-            background: #0d1117;
-            z-index: 10;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .modal-close:hover { color: var(--text); }
+
+        .shortcut-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .shortcut-item:last-child { border: none; }
+        .shortcut-key {
+            display: flex;
+            gap: 4px;
+        }
+        .key {
+            padding: 4px 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 10px;
+            color: var(--accent);
         }
 
-        #toggle-btn {
-            position: fixed; bottom: 20px; right: 20px; z-index: 50;
-            padding: 8px 12px; background: #222; color: #fff;
-            border: 1px solid #444; border-radius: 4px; cursor: pointer;
-            font-family: 'Fira Code', monospace; font-size: 0.75rem;
-            opacity: 0; transition: opacity 0.5s; pointer-events: none;
+        /* Mobile */
+        @media (max-width: 768px) {
+            .toolbar-btn span { display: none; }
+            .toolbar-center { display: none; }
+            .divider { display: none; }
+            .ascii-art { font-size: 8px; }
+            .terminal { width: 95%; }
         }
-        #toggle-btn.visible { opacity: 0.6; pointer-events: auto; }
-        #toggle-btn.visible:hover { opacity: 1; }
-
-        .cache-reset { position: fixed; bottom: 10px; left: 10px; color: #444; font-size: 10px; cursor: pointer; z-index: 100; font-family: 'Fira Code', monospace; text-decoration: none; opacity: 0.3; transition: opacity 0.2s;}
-        .cache-reset:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
+    <div class="glow-orb orb1"></div>
+    <div class="glow-orb orb2"></div>
 
-    <div id="dashboard" class="view-section terminal-container">
-        <div class="terminal-window">
+    <!-- Terminal Login -->
+    <div class="terminal-wrapper" id="terminalWrapper">
+        <div class="terminal" id="terminal">
             <div class="terminal-header">
-                <div class="dot red"></div>
-                <div class="dot yellow"></div>
-                <div class="dot green"></div>
-                <span class="header-title">notes — 80x24</span>
+                <div class="terminal-dots">
+                    <div class="dot red"></div>
+                    <div class="dot yellow"></div>
+                    <div class="dot green"></div>
+                </div>
+                <div class="terminal-title">notes@cloud ~ zsh</div>
             </div>
             <div class="terminal-body">
-                <div><span class="keyword">require</span>(<span class="string">'./arjunchakri_notes_v2'</span>);</div>
-                <br>
-                <div class="comment">// Zero Login. Zero Setup. Minimalist notes.</div>
-                <div class="comment">// Accessible from anywhere.</div>
-                <br>
-                <div class="command-prompt">
-                    <span class="prompt-symbol">➜</span>
-                    <input type="text" id="topicInput" class="cli-input" placeholder="Name of your note" autocomplete="off" spellcheck="false" onkeypress="handleEnter(event)">
+                <!-- Landing Content -->
+                <div id="landingContent">
+                    <pre class="ascii-art">
+ ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
+ ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
+ ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
+ ██║╚██╗██║██║   ██║   ██║   ██╔══╝  ╚════██║
+ ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
+ ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝</pre>
+                    <p class="welcome-text">Real-time collaborative notes • <span>Synced</span></p>
+                    
+                    <div class="input-area">
+                        <div class="prompt-line">
+                            <span class="prompt">guest</span>
+                            <span class="prompt-path">~/notes</span>
+                            <span class="prompt-symbol">❯</span>
+                            <input type="text" id="noteInput" class="input-field" placeholder="enter note name..." autocomplete="off" autofocus>
+                        </div>
+                        <p class="hint">Press <kbd>Enter</kbd> to connect</p>
+                    </div>
+
+                    <div class="recent" id="recent" style="display: none;">
+                        <div class="recent-title">↳ Recent Sessions</div>
+                        <div class="recent-list" id="recentList"></div>
+                    </div>
+                </div>
+
+                <!-- Boot Sequence -->
+                <div class="boot-sequence" id="bootSequence">
+                    <div class="boot-line" data-delay="0">
+                        <span class="status ok">[INFO]</span>
+                        <span class="text">Initializing connection...</span>
+                    </div>
+                    <div class="boot-line" data-delay="300">
+                        <span class="status ok">[OK]</span>
+                        <span class="text">SSH tunnel established</span>
+                    </div>
+                    <div class="boot-line" data-delay="600">
+                        <span class="status loading">[....]</span>
+                        <span class="text">Authenticating session</span>
+                    </div>
+                    <div class="boot-line" data-delay="900">
+                        <span class="status ok">[OK]</span>
+                        <span class="text">Session verified</span>
+                    </div>
+                    <div class="boot-line" data-delay="1200">
+                        <span class="status loading">[....]</span>
+                        <span class="text">Loading note: <span class="highlight" id="bootNoteName">-</span></span>
+                    </div>
+                    <div class="boot-line" data-delay="1500">
+                        <span class="status ok">[OK]</span>
+                        <span class="text">Firebase sync ready</span>
+                    </div>
+                    <div class="boot-line" data-delay="1800">
+                        <span class="status ok">[OK]</span>
+                        <span class="text highlight">✓ Connection established</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="loader" class="view-section terminal-container">
-        <div class="terminal-window">
-            <div class="terminal-header">
-                <div class="dot red"></div>
-                <div class="dot yellow"></div>
-                <div class="dot green"></div>
-                <span class="header-title">boot_sequence</span>
+    <!-- Editor View -->
+    <div class="editor-container" id="editorContainer">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button class="back-btn" onclick="goHome()" title="Disconnect">←</button>
+                <span class="note-name" id="noteName">note</span>
             </div>
-            <div class="terminal-body" id="term-logs">
-                <span class="log-line">> init process...</span>
-                <span class="cursor"></span>
+
+            <div class="toolbar-center">
+                <select class="lang-select" id="langSelect" onchange="changeLanguage()" title="Language">
+                    <option value="plaintext">Plain Text</option>
+                    <option value="markdown">Markdown</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="typescript">TypeScript</option>
+                    <option value="python">Python</option>
+                    <option value="java">Java</option>
+                    <option value="cpp">C++</option>
+                    <option value="csharp">C#</option>
+                    <option value="go">Go</option>
+                    <option value="rust">Rust</option>
+                    <option value="sql">SQL</option>
+                    <option value="json">JSON</option>
+                    <option value="xml">XML</option>
+                    <option value="html">HTML</option>
+                    <option value="css">CSS</option>
+                    <option value="yaml">YAML</option>
+                    <option value="shell">Shell</option>
+                </select>
+
+                <div class="divider"></div>
+
+                <button class="toolbar-btn" id="wrapBtn" onclick="toggleWrap()" title="Word Wrap">
+                    ↩ <span>Wrap</span>
+                </button>
+                <button class="toolbar-btn" id="minimapBtn" onclick="toggleMinimap()" title="Minimap">
+                    ▮ <span>Map</span>
+                </button>
+            </div>
+
+            <div class="toolbar-right">
+                <button class="toolbar-btn" onclick="showShortcuts()" title="Shortcuts">⌨</button>
+                <button class="toolbar-btn" onclick="copyLink()" title="Share">🔗 <span>Share</span></button>
+                <button class="toolbar-btn" onclick="downloadNote()" title="Download">⬇ <span>Save</span></button>
+            </div>
+        </div>
+
+        <div id="monaco-container"></div>
+
+        <div class="statusbar">
+            <div class="statusbar-left">
+                <div class="status-item">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Synced</span>
+                </div>
+                <span id="cursorPos" class="clickable" onclick="goToLine()" title="Go to Line">Ln 1, Col 1</span>
+            </div>
+            <div class="statusbar-right">
+                <span id="selectionInfo"></span>
+                <span id="charCount">0 chars</span>
+                <span id="lineCount">1 lines</span>
+                <span id="langDisplay" class="clickable" onclick="document.getElementById('langSelect').focus()">Plain Text</span>
             </div>
         </div>
     </div>
 
-    <button id="toggle-btn" onclick="toggleViewMode()">Toggle Mode</button>
-    <a href="#" class="cache-reset" onclick="resetCache()">[RESET_CACHE]</a>
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
 
-    <iframe id="viewer" class="view-section"></iframe>
+    <!-- Shortcuts Modal -->
+    <div class="modal" id="shortcutsModal" onclick="hideShortcuts()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-title">
+                ⌨️ Keyboard Shortcuts
+                <button class="modal-close" onclick="hideShortcuts()">×</button>
+            </div>
+            <div class="shortcut-list">
+                <div class="shortcut-item"><span>Save</span><div class="shortcut-key"><span class="key">Ctrl</span><span class="key">S</span></div></div>
+                <div class="shortcut-item"><span>Find</span><div class="shortcut-key"><span class="key">Ctrl</span><span class="key">F</span></div></div>
+                <div class="shortcut-item"><span>Find & Replace</span><div class="shortcut-key"><span class="key">Ctrl</span><span class="key">H</span></div></div>
+                <div class="shortcut-item"><span>Go to Line</span><div class="shortcut-key"><span class="key">Ctrl</span><span class="key">G</span></div></div>
+                <div class="shortcut-item"><span>Select All Occurrences</span><div class="shortcut-key"><span class="key">Ctrl</span><span class="key">Shift</span><span class="key">L</span></div></div>
+                <div class="shortcut-item"><span>Multi-cursor</span><div class="shortcut-key"><span class="key">Ctrl</span><span class="key">Alt</span><span class="key">↑/↓</span></div></div>
+                <div class="shortcut-item"><span>Move Line</span><div class="shortcut-key"><span class="key">Alt</span><span class="key">↑/↓</span></div></div>
+                <div class="shortcut-item"><span>Copy Line</span><div class="shortcut-key"><span class="key">Shift</span><span class="key">Alt</span><span class="key">↑/↓</span></div></div>
+                <div class="shortcut-item"><span>Delete Line</span><div class="shortcut-key"><span class="key">Ctrl</span><span class="key">Shift</span><span class="key">K</span></div></div>
+                <div class="shortcut-item"><span>Toggle Comment</span><div class="shortcut-key"><span class="key">Ctrl</span><span class="key">/</span></div></div>
+                <div class="shortcut-item"><span>Fold/Unfold</span><div class="shortcut-key"><span class="key">Ctrl</span><span class="key">Shift</span><span class="key">[/]</span></div></div>
+                <div class="shortcut-item"><span>Command Palette</span><div class="shortcut-key"><span class="key">F1</span></div></div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5Fy4CHje4vEyBdUdyw02WNhZoZKdGUtn0MLAA7dAB0o7EbDBHxc5GyE9S0qN0AawY1A/exec";
-        /*
-        Above script if you want to host your own version on Google App Scripts Engine
-        
-        // Version 6 on 3 Jan 2026, 18:51
-        
-        function doGet(e) {
-            var key = e.parameter.key;
-            if (!key) key = 'dashboard';
+        // ==========================================
+        // Firebase
+        // ==========================================
+        firebase.initializeApp({
+            apiKey: "AIzaSyCibTNoAZEu37Lih8PM5I5neXXpUUmKA_A",
+            databaseURL: "https://arjunchakri-commonutil-db-dnd-default-rtdb.firebaseio.com",
+        });
+        const db = firebase.database();
 
-            // 1. Search for existing file
-            var files = DriveApp.getFilesByName(key);
+        // ==========================================
+        // State
+        // ==========================================
+        let editor = null;
+        let currentNote = null;
+        let saveTimeout = null;
+        let lastSaved = '';
+        let isLocalChange = false;
+        let unsubscribe = null;
+        let wordWrap = true;
+        let minimapEnabled = false;
+
+        const RECENT_KEY = 'notes_recent';
+        const PREFS_KEY = 'notes_prefs';
+
+        // ==========================================
+        // Utils
+        // ==========================================
+        const $ = id => document.getElementById(id);
+        const sanitize = s => s.trim().toLowerCase().replace(/[.$#\[\]\/]/g, '-');
+        const wait = ms => new Promise(r => setTimeout(r, ms));
+
+        function getPrefs() {
+            try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; }
+            catch { return {}; }
+        }
+
+        function savePrefs(prefs) {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({ ...getPrefs(), ...prefs }));
+        }
+
+        function showToast(msg) {
+            const t = $('toast');
+            t.innerHTML = `<span style="color: var(--green)">✓</span> ${msg}`;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        function setStatus(saving) {
+            $('statusDot').className = saving ? 'status-dot saving' : 'status-dot';
+            $('statusText').textContent = saving ? 'Saving...' : 'Synced';
+        }
+
+        function updateStats() {
+            if (!editor) return;
+            const text = editor.getValue();
+            const pos = editor.getPosition();
+            const sel = editor.getSelection();
             
-            if (files.hasNext()) {
-                return ContentService.createTextOutput(files.next().getId());
+            $('charCount').textContent = `${text.length} chars`;
+            $('lineCount').textContent = `${text.split('\n').length} lines`;
+            
+            if (pos) $('cursorPos').textContent = `Ln ${pos.lineNumber}, Col ${pos.column}`;
+
+            if (sel && !sel.isEmpty()) {
+                const selectedText = editor.getModel().getValueInRange(sel);
+                $('selectionInfo').textContent = `(${selectedText.length} sel)`;
             } else {
-                // 2. Create new file if not found
-                var doc = DocumentApp.create(key);
-                var body = doc.getBody();
-                var file = DriveApp.getFileById(doc.getId());
-                
-                // 3. Set Permissions (Public Edit)
-                file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
-                
-                // 4. APPLY STYLES (The Fix)
-                styleAsCodeEditor(body);
-                
-                // 5. Add Header
-                body.setText("// Notes: " + key + "\n\n");
-                
-                doc.saveAndClose();
-                return ContentService.createTextOutput(doc.getId());
+                $('selectionInfo').textContent = '';
             }
+        }
+
+        // ==========================================
+        // Recent
+        // ==========================================
+        function getRecent() {
+            try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; }
+            catch { return []; }
+        }
+
+        function addRecent(note) {
+            let r = getRecent().filter(n => n !== note);
+            r.unshift(note);
+            localStorage.setItem(RECENT_KEY, JSON.stringify(r.slice(0, 8)));
+        }
+
+        function renderRecent() {
+            const r = getRecent();
+            if (!r.length) return;
+            $('recent').style.display = 'block';
+            $('recentList').innerHTML = r.map(n => 
+                `<span class="recent-item" onclick="connectToNote('${n}')">${n}</span>`
+            ).join('');
+        }
+
+        // ==========================================
+        // Firebase
+        // ==========================================
+        function getRef(note) {
+            return db.ref(`notes/${sanitize(note)}`);
+        }
+
+        async function loadNote(note) {
+            const snap = await getRef(note).once('value');
+            return snap.val() || { content: '', language: 'plaintext' };
+        }
+
+        async function saveNote(note, content, language) {
+            isLocalChange = true;
+            await getRef(note).set({ content, language, updatedAt: Date.now() });
+            setTimeout(() => { isLocalChange = false; }, 100);
+        }
+
+        function subscribe(note, cb) {
+            const ref = getRef(note);
+            const handler = ref.on('value', snap => cb(snap.val() || { content: '', language: 'plaintext' }));
+            return () => ref.off('value', handler);
+        }
+
+        // ==========================================
+        // Boot Animation
+        // ==========================================
+        async function runBootSequence(noteName) {
+            $('landingContent').style.display = 'none';
+            $('bootSequence').classList.add('active');
+            $('bootNoteName').textContent = noteName;
+
+            const lines = $('bootSequence').querySelectorAll('.boot-line');
+            const progress = $('progressFill');
+
+            for (let i = 0; i < lines.length; i++) {
+                await wait(parseInt(lines[i].dataset.delay) || 200);
+                lines[i].classList.add('visible');
+                progress.style.width = `${((i + 1) / lines.length) * 100}%`;
+                
+                // Update loading status to OK after a moment
+                const status = lines[i].querySelector('.status.loading');
+                if (status) {
+                    await wait(200);
+                    status.textContent = '[OK]';
+                    status.classList.remove('loading');
+                    status.classList.add('ok');
+                }
             }
 
-            function styleAsCodeEditor(body) {
-            var bgColor = "#1e1e1e"; // Dark Grey
-            var textColor = "#d4d4d4"; // Light Grey
-            var font = "Roboto Mono"; 
+            await wait(400);
+
+            // Expand terminal
+            $('terminal').classList.add('expanding');
+            $('terminalWrapper').classList.add('expanding');
+
+            await wait(600);
+
+            // Show editor
+            $('editorContainer').classList.add('active');
+            $('terminalWrapper').style.display = 'none';
+        }
+
+        // ==========================================
+        // Navigation
+        // ==========================================
+        function goHome() {
+            if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+            window.location.href = window.location.pathname;
+        }
+
+        async function connectToNote(noteName) {
+            if (!noteName) return;
             
-            // --- LAYOUT SETTINGS ---
-            // 1. Landscape Mode (Swap A4 dimensions: 595pt x 842pt)
-            // We use standard point sizes. 842 = Width, 595 = Height.
-            body.setPageWidth(842);
-            body.setPageHeight(595);
+            currentNote = noteName;
+            document.title = `${noteName} — Notes`;
+            $('noteName').textContent = noteName;
+
+            await runBootSequence(noteName);
             
-            // 2. End-to-End (Zero Margins)
-            // Note: We leave a tiny 10pt padding so text doesn't touch the screen edge exactly
-            body.setMarginTop(10);
-            body.setMarginBottom(10);
-            body.setMarginLeft(10); 
-            body.setMarginRight(10);
+            try {
+                const data = await loadNote(noteName);
+                await initEditor(noteName, data);
+                addRecent(noteName);
 
-            // --- STYLE SETTINGS ---
-            var style = {};
-            style[DocumentApp.Attribute.BACKGROUND_COLOR] = bgColor;
-            style[DocumentApp.Attribute.FOREGROUND_COLOR] = textColor;
-            style[DocumentApp.Attribute.FONT_FAMILY] = font;
-            style[DocumentApp.Attribute.FONT_SIZE] = 11;
-            
-            // Apply attributes
-            body.setAttributes(style);
-        }
-        */
-        
-        
-        
-        const CACHE_PREFIX = "note_cache_";
+                // Real-time sync
+                unsubscribe = subscribe(noteName, (newData) => {
+                    if (!isLocalChange && editor && newData.content !== editor.getValue()) {
+                        const pos = editor.getPosition();
+                        const scroll = editor.getScrollTop();
+                        editor.setValue(newData.content || '');
+                        if (pos) editor.setPosition(pos);
+                        editor.setScrollTop(scroll);
+                        lastSaved = newData.content || '';
+                        
+                        if (newData.language && newData.language !== $('langSelect').value) {
+                            $('langSelect').value = newData.language;
+                            monaco.editor.setModelLanguage(editor.getModel(), newData.language);
+                            $('langDisplay').textContent = $('langSelect').selectedOptions[0]?.text || 'Plain Text';
+                        }
+                    }
+                });
 
-        let currentFileId = null;
-        let isMinimalMode = true;
+                // Update URL without reload
+                history.pushState({}, '', `?n=${encodeURIComponent(noteName)}`);
+                
+                setTimeout(() => editor?.focus(), 100);
 
-        // --- Logger Logic ---
-        function log(msg, type = "") {
-            const container = document.getElementById('term-logs');
-            const cursor = document.querySelector('.cursor');
-            const line = document.createElement('span');
-            line.className = "log-line " + type;
-            line.innerText = "> " + msg;
-            container.insertBefore(line, cursor);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        async function runBootSequence(key, isCached) {
-            const container = document.getElementById('term-logs');
-            container.innerHTML = '<span class="log-line">> init process...</span><span class="cursor"></span>';
-
-            await wait(200);
-            log(`target: ${key}`, "cmd");
-
-            await wait(300);
-            if(isCached) {
-                log("cache hit: [MEMORY]", "success");
-                log("expanding workspace...", "warn");
-            } else {
-                log("querying upstream...", "cmd");
-                log("handshake: drive_api", "cmd");
+            } catch (err) {
+                console.error(err);
+                showToast('Connection failed');
             }
         }
 
-        function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-        // --- Core View Switching ---
-        function switchView(viewId) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            const target = document.getElementById(viewId);
-            if(target) target.classList.add('active');
-
-            if(viewId === 'dashboard') {
-                setTimeout(() => document.getElementById('topicInput').focus(), 100);
-            }
+        function openNote() {
+            const n = $('noteInput').value.trim();
+            if (n) connectToNote(n);
         }
 
-        function getNoteKey() {
-            const qs = window.location.search;
-            return (qs && qs.length > 1) ? decodeURIComponent(qs.substring(1)) : null;
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href);
+            showToast('Link copied!');
         }
 
-        function loadViewer(fileId) {
-            currentFileId = fileId;
-            const iframe = document.getElementById('viewer');
-            const toggleBtn = document.getElementById('toggle-btn');
-
-            iframe.src = `https://docs.google.com/document/d/${fileId}/edit?rm=minimal`;
-
-            iframe.onload = async () => {
-                log("rendering gui...", "cmd");
-                await wait(500);
-                log("SESSION ESTABLISHED.", "success");
-                await wait(200);
-
-                // Trigger the soft transformation
-                switchView('viewer');
-
-                setTimeout(() => toggleBtn.classList.add('visible'), 600);
-            };
+        function downloadNote() {
+            if (!editor || !currentNote) return;
+            const lang = $('langSelect').value;
+            const ext = { javascript: 'js', typescript: 'ts', python: 'py', java: 'java', cpp: 'cpp', csharp: 'cs', go: 'go', rust: 'rs', sql: 'sql', json: 'json', xml: 'xml', html: 'html', css: 'css', yaml: 'yml', shell: 'sh', markdown: 'md', plaintext: 'txt' };
+            const blob = new Blob([editor.getValue()], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${currentNote}.${ext[lang] || 'txt'}`;
+            a.click();
+            showToast('Downloaded!');
         }
 
-        // --- Main Execution ---
-        const noteKey = getNoteKey();
+        function goToLine() {
+            if (editor) editor.trigger('keyboard', 'editor.action.gotoLine', {});
+        }
 
-        if (!noteKey) {
-            document.title = "Terminal Notes";
-            switchView('dashboard');
-        } else {
-            document.title = `./${noteKey}`;
-            switchView('loader');
+        function showShortcuts() { $('shortcutsModal').classList.add('show'); }
+        function hideShortcuts() { $('shortcutsModal').classList.remove('show'); }
 
-            const cachedId = localStorage.getItem(CACHE_PREFIX + noteKey);
+        // ==========================================
+        // Editor Controls
+        // ==========================================
+        function changeLanguage() {
+            if (!editor) return;
+            const lang = $('langSelect').value;
+            monaco.editor.setModelLanguage(editor.getModel(), lang);
+            $('langDisplay').textContent = $('langSelect').selectedOptions[0].text;
+            savePrefs({ language: lang });
+            triggerSave();
+        }
 
-            if (cachedId) {
-                runBootSequence(noteKey, true);
-                loadViewer(cachedId);
-            } else {
-                runBootSequence(noteKey, false);
+        function toggleWrap() {
+            if (!editor) return;
+            wordWrap = !wordWrap;
+            editor.updateOptions({ wordWrap: wordWrap ? 'on' : 'off' });
+            $('wrapBtn').classList.toggle('active', wordWrap);
+            savePrefs({ wordWrap });
+        }
 
-                fetch(`${APPS_SCRIPT_URL}?key=${encodeURIComponent(noteKey)}`)
-                    .then(r => r.text())
-                    .then(async fileId => {
-                        if (fileId.includes("Error") || fileId.length < 5) throw new Error(fileId);
+        function toggleMinimap() {
+            if (!editor) return;
+            minimapEnabled = !minimapEnabled;
+            editor.updateOptions({ minimap: { enabled: minimapEnabled } });
+            $('minimapBtn').classList.toggle('active', minimapEnabled);
+            savePrefs({ minimap: minimapEnabled });
+        }
 
-                        await wait(400);
-                        log("id recv: " + fileId.substring(0,8)+"...", "success");
-                        log("permissions: [WRITE]", "warn");
+        function triggerSave() {
+            setStatus(true);
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(async () => {
+                const text = editor.getValue();
+                const lang = $('langSelect').value;
+                await saveNote(currentNote, text, lang);
+                lastSaved = text;
+                setStatus(false);
+            }, 400);
+        }
 
-                        localStorage.setItem(CACHE_PREFIX + noteKey, fileId);
-                        loadViewer(fileId);
-                    })
-                    .catch(err => {
-                        log("FATAL: " + err.message, "error"); // Red text if error defined in CSS
-                        console.error(err);
+        // ==========================================
+        // Monaco Editor
+        // ==========================================
+        async function initEditor(note, data) {
+            return new Promise(resolve => {
+                require.config({ 
+                    paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' }
+                });
+
+                require(['vs/editor/editor.main'], function() {
+                    monaco.editor.defineTheme('notes-dark', {
+                        base: 'vs-dark',
+                        inherit: true,
+                        rules: [
+                            { token: 'comment', foreground: '6a737d', fontStyle: 'italic' },
+                            { token: 'keyword', foreground: 'ff7b72' },
+                            { token: 'string', foreground: 'a5d6ff' },
+                            { token: 'number', foreground: '79c0ff' },
+                            { token: 'type', foreground: 'ffa657' },
+                        ],
+                        colors: {
+                            'editor.background': '#0a0a0f',
+                            'editor.foreground': '#e6edf3',
+                            'editor.lineHighlightBackground': '#12131a66',
+                            'editor.selectionBackground': '#264f7844',
+                            'editorCursor.foreground': '#58a6ff',
+                            'editorLineNumber.foreground': '#4a4a5a',
+                            'editorLineNumber.activeForeground': '#e6edf3',
+                            'editorIndentGuide.background': '#1a1b26',
+                            'editorIndentGuide.activeBackground': '#2a2d3a',
+                            'editorBracketMatch.background': '#2a2d3a55',
+                            'editorBracketMatch.border': '#58a6ff',
+                            'minimap.background': '#0a0a0f',
+                            'scrollbarSlider.background': '#4a4a5a33',
+                            'scrollbarSlider.hoverBackground': '#4a4a5a66',
+                        }
                     });
+
+                    const prefs = getPrefs();
+                    wordWrap = prefs.wordWrap !== false;
+                    minimapEnabled = prefs.minimap === true;
+                    const lang = data.language || prefs.language || 'plaintext';
+
+                    editor = monaco.editor.create($('monaco-container'), {
+                        value: data.content || '',
+                        language: lang,
+                        theme: 'notes-dark',
+                        fontFamily: "'Fira Code', 'JetBrains Mono', monospace",
+                        fontSize: 14,
+                        fontLigatures: true,
+                        lineHeight: 22,
+                        padding: { top: 16, bottom: 16 },
+                        automaticLayout: true,
+                        minimap: { enabled: minimapEnabled, scale: 1, showSlider: 'mouseover', renderCharacters: true, maxColumn: 80 },
+                        lineNumbers: 'on',
+                        renderLineHighlight: 'all',
+                        scrollBeyondLastLine: false,
+                        smoothScrolling: true,
+                        mouseWheelZoom: true,
+                        wordWrap: wordWrap ? 'on' : 'off',
+                        wrappingIndent: 'indent',
+                        cursorBlinking: 'smooth',
+                        cursorSmoothCaretAnimation: 'on',
+                        cursorWidth: 2,
+                        matchBrackets: 'always',
+                        bracketPairColorization: { enabled: true },
+                        guides: { indentation: true, bracketPairs: true, highlightActiveIndentation: true },
+                        folding: true,
+                        foldingStrategy: 'indentation',
+                        showFoldingControls: 'mouseover',
+                        autoClosingBrackets: 'always',
+                        autoClosingQuotes: 'always',
+                        autoIndent: 'full',
+                        formatOnPaste: true,
+                        quickSuggestions: true,
+                        tabCompletion: 'on',
+                        tabSize: 2,
+                        renderWhitespace: 'selection',
+                        links: true,
+                        stickyScroll: { enabled: true, maxLineCount: 3 },
+                    });
+
+                    lastSaved = data.content || '';
+                    $('langSelect').value = lang;
+                    $('langDisplay').textContent = $('langSelect').selectedOptions[0]?.text || 'Plain Text';
+                    $('wrapBtn').classList.toggle('active', wordWrap);
+                    $('minimapBtn').classList.toggle('active', minimapEnabled);
+
+                    editor.onDidChangeModelContent(() => { updateStats(); triggerSave(); });
+                    editor.onDidChangeCursorPosition(updateStats);
+                    editor.onDidChangeCursorSelection(updateStats);
+
+                    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, async () => {
+                        clearTimeout(saveTimeout);
+                        await saveNote(currentNote, editor.getValue(), $('langSelect').value);
+                        lastSaved = editor.getValue();
+                        setStatus(false);
+                        showToast('Saved!');
+                    });
+
+                    updateStats();
+                    resolve(editor);
+                });
+            });
+        }
+
+        // ==========================================
+        // Init
+        // ==========================================
+        async function init() {
+            const params = new URLSearchParams(window.location.search);
+            const note = params.get('n');
+
+            if (note) {
+                // Direct link - run boot sequence
+                connectToNote(note);
+            } else {
+                // Landing page
+                document.title = 'Notes';
+                renderRecent();
+                $('noteInput').addEventListener('keypress', e => {
+                    if (e.key === 'Enter') openNote();
+                });
             }
         }
 
-        // --- Utils ---
-        function toggleViewMode() {
-            if (!currentFileId) return;
-            const iframe = document.getElementById('viewer');
-            isMinimalMode = !isMinimalMode;
-            iframe.src = `https://docs.google.com/document/d/${currentFileId}/edit${isMinimalMode ? '?rm=minimal' : ''}`;
-        }
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') hideShortcuts();
+        });
 
-        function goToTopic() {
-            const input = document.getElementById('topicInput');
-            let val = input.value.trim();
-            if(val.startsWith("./")) val = val.substring(2);
-            if(val) window.location.search = `?${val}`;
-        }
-
-        function handleEnter(e) {
-            if (e.key === 'Enter') goToTopic();
-        }
-
-        function resetCache() {
-            localStorage.clear();
-            location.reload();
-        }
+        init();
     </script>
 </body>
 </html>
