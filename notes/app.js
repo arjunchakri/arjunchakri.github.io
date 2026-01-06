@@ -266,6 +266,7 @@ function setupPresence(note) {
     // Listen for presence changes
     presenceRef.on('value', snap => {
         const data = snap.val() || {};
+        const previousCount = Object.keys(collaborators).length;
         collaborators = {};
         const now = Date.now();
         
@@ -277,6 +278,13 @@ function setupPresence(note) {
                 }
             }
         });
+        
+        const currentCount = Object.keys(collaborators).length;
+        
+        // Clean up our cursor data if no one else is online (saves bandwidth)
+        if (currentCount === 0 && previousCount > 0) {
+            cursorsRef.child(myUserId).remove();
+        }
         
         updateOnlineUsersBar();
     });
@@ -320,6 +328,9 @@ function updateOnlineUsersBar() {
 
 function broadcastCursor() {
     if (!editor || !cursorsRef) return;
+    
+    // Only broadcast if other users are online (saves Firebase bandwidth)
+    if (Object.keys(collaborators).length === 0) return;
     
     const pos = editor.getPosition();
     const sel = editor.getSelection();
