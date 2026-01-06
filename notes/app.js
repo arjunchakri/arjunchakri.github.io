@@ -600,7 +600,7 @@ function failBootStep(stepId, errorMsg) {
 }
 
 async function finishBootSequence() {
-    await wait(200);
+    await wait(150);
     
     const terminal = $('terminal');
     const terminalWrapper = $('terminalWrapper');
@@ -609,28 +609,47 @@ async function finishBootSequence() {
     // Remove loading animation
     if (terminal) terminal.classList.remove('loading');
     
-    // Start morphing - fade out terminal content first
+    // Mark body and wrapper as transitioning
+    document.body.classList.add('transitioning');
+    if (terminalWrapper) terminalWrapper.classList.add('transitioning');
+    
+    // Phase 1: Terminal content fades out while card starts expanding
     if (terminal) terminal.classList.add('expanding');
-    if (terminalWrapper) terminalWrapper.classList.add('expanding');
     
-    await wait(300);
+    // Wait for content to fade
+    await wait(250);
     
-    // Show editor underneath as terminal expands
+    // Phase 2: Prepare editor container underneath (still hidden)
     if (editorContainer) {
         editorContainer.classList.add('morphing');
+    }
+    
+    // Wait for terminal to fully expand
+    await wait(350);
+    
+    // Phase 3: Cross-fade - reveal editor as terminal fades
+    if (editorContainer) {
+        editorContainer.classList.add('reveal');
         editorContainer.classList.add('active');
     }
     
-    await wait(400);
+    // Simultaneously fade out terminal
+    if (terminal) terminal.classList.add('fade-out');
     
-    // Hide terminal wrapper
-    if (terminalWrapper) terminalWrapper.style.opacity = '0';
+    await wait(300);
     
+    // Phase 4: Cleanup
+    if (terminalWrapper) {
+        terminalWrapper.style.display = 'none';
+    }
+    
+    // Remove transition classes after a moment
     await wait(200);
-    
-    // Final cleanup
-    if (terminalWrapper) terminalWrapper.style.display = 'none';
-    if (editorContainer) editorContainer.classList.remove('morphing');
+    document.body.classList.remove('transitioning');
+    if (editorContainer) {
+        editorContainer.classList.remove('morphing');
+        editorContainer.classList.remove('reveal');
+    }
 }
 
 // ==========================================
