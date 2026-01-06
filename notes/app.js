@@ -502,40 +502,250 @@ function logIceCandidate(candidate, direction) {
     const parts = candidate.candidate?.split(' ') || [];
     const type = parts[7] || 'unknown'; // host, srflx, relay
     const protocol = parts[2] || 'unknown';
-    console.log(`ICE ${direction}: ${type} (${protocol})`, candidate.candidate?.substring(0, 80));
+    const emoji = type === 'relay' ? '🔄' : type === 'srflx' ? '🌐' : '🏠';
+    console.log(`${emoji} ICE ${direction}: ${type} (${protocol})`, candidate.candidate?.substring(0, 80));
 }
 
+// Test TURN server connectivity
+async function testTurnConnectivity() {
+    console.log('🔧 Testing TURN server connectivity...');
+    const pc = new RTCPeerConnection(rtcConfig);
+    
+    return new Promise((resolve) => {
+        let hasRelay = false;
+        let hasSrflx = false;
+        let hasHost = false;
+        const candidates = [];
+        
+        pc.onicecandidate = (e) => {
+            if (e.candidate) {
+                const parts = e.candidate.candidate.split(' ');
+                const type = parts[7];
+                const ip = parts[4];
+                candidates.push({ type, ip });
+                if (type === 'relay') hasRelay = true;
+                if (type === 'srflx') hasSrflx = true;
+                if (type === 'host') hasHost = true;
+            }
+        };
+        
+        pc.onicegatheringstatechange = () => {
+            if (pc.iceGatheringState === 'complete') {
+                pc.close();
+                console.log('📋 ICE candidates found:', candidates);
+                if (hasRelay) {
+                    console.log('✅ TURN server working - relay candidates available');
+                } else if (hasSrflx) {
+                    console.warn('⚠️ TURN not working, only STUN available - cross-network may fail');
+                    console.log('💡 Devices on SAME WiFi should still work via host candidates');
+                } else if (hasHost) {
+                    console.warn('⚠️ Only local candidates - may only work on same network');
+                } else {
+                    console.error('❌ No candidates at all - check network/firewall');
+                }
+                resolve({ hasRelay, hasSrflx, hasHost, candidates });
+            }
+        };
+        
+        // Create dummy data channel to trigger ICE gathering
+        pc.createDataChannel('test');
+        pc.createOffer().then(offer => pc.setLocalDescription(offer));
+        
+        // Timeout after 10 seconds
+        setTimeout(() => {
+            pc.close();
+            resolve({ hasRelay, hasSrflx, hasHost, candidates });
+        }, 10000);
+    });
+}
+
+// Debug function - shows visual panel on page (works on iPad!)
+window.debugWebRTC = async function() {
+    // Create debug panel
+    let panel = document.getElementById('debugPanel');
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'debugPanel';
+        panel.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a1a2e;
+            border: 2px solid #58a6ff;
+            border-radius: 12px;
+            padding: 20px;
+            z-index: 99999;
+            min-width: 320px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 13px;
+            color: #e6edf3;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        `;
+        document.body.appendChild(panel);
+    }
+    
+    const addLine = (text, color = '#e6edf3') => {
+        const line = document.createElement('div');
+        line.style.cssText = `margin: 4px 0; color: ${color};`;
+        line.textContent = text;
+        panel.appendChild(line);
+    };
+    
+    const addHeader = (text) => {
+        const h = document.createElement('div');
+        h.style.cssText = 'margin: 12px 0 8px 0; font-weight: bold; color: #58a6ff; border-bottom: 1px solid #333;';
+        h.textContent = text;
+        panel.appendChild(h);
+    };
+    
+    // Clear and add close button
+    panel.innerHTML = '';
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕ Close';
+    closeBtn.style.cssText = `
+        position: absolute; top: 10px; right: 10px;
+        background: #f85149; color: white; border: none;
+        padding: 5px 10px; border-radius: 4px; cursor: pointer;
+    `;
+    closeBtn.onclick = () => panel.remove();
+    panel.appendChild(closeBtn);
+    
+    addHeader('🔧 WebRTC Debug');
+    addLine(`User ID: ${myUserId}`);
+    addLine(`Note: ${currentNote || 'none'}`);
+    addLine(`Online users: ${Object.keys(collaborators).length}`);
+    addLine(`Peer connections: ${Object.keys(peerConnections).length}`);
+    
+    addHeader('📡 Testing Connectivity...');
+    addLine('Please wait...', '#ffd700');
+    
+    const result = await testTurnConnectivity();
+    
+    // Remove "Please wait"
+    panel.lastChild.remove();
+    
+    addHeader('📋 ICE Candidates Found');
+    if (result.candidates && result.candidates.length > 0) {
+        result.candidates.forEach(c => {
+            const emoji = c.type === 'relay' ? '🔄' : c.type === 'srflx' ? '🌐' : '🏠';
+            addLine(`${emoji} ${c.type}: ${c.ip}`, c.type === 'relay' ? '#3fb950' : '#e6edf3');
+        });
+    } else {
+        addLine('No candidates found!', '#f85149');
+    }
+    
+    addHeader('📊 Results');
+    addLine(`✓ Local (host): ${result.hasHost ? 'YES ✅' : 'NO ❌'}`, result.hasHost ? '#3fb950' : '#f85149');
+    addLine(`✓ STUN (srflx): ${result.hasSrflx ? 'YES ✅' : 'NO ❌'}`, result.hasSrflx ? '#3fb950' : '#ffd700');
+    addLine(`✓ TURN (relay): ${result.hasRelay ? 'YES ✅' : 'NO ❌'}`, result.hasRelay ? '#3fb950' : '#f85149');
+    
+    addHeader('💡 Diagnosis');
+    if (result.hasRelay) {
+        addLine('All good! Cross-network transfer should work.', '#3fb950');
+    } else if (result.hasSrflx && result.hasHost) {
+        addLine('⚠️ No TURN relay - cross-network may fail', '#ffd700');
+        addLine('Same WiFi should work if router allows', '#ffd700');
+    } else if (result.hasHost) {
+        addLine('⚠️ Only local candidates found', '#ffd700');
+        addLine('Check: Router AP Isolation setting', '#e6edf3');
+        addLine('Check: Both devices on same WiFi?', '#e6edf3');
+    } else {
+        addLine('❌ No candidates - check firewall!', '#f85149');
+    }
+    
+    // Add copy button
+    const copyBtn = document.createElement('button');
+    copyBtn.textContent = '📋 Copy Debug Info';
+    copyBtn.style.cssText = `
+        margin-top: 15px; background: #238636; color: white; 
+        border: none; padding: 8px 16px; border-radius: 6px; 
+        cursor: pointer; width: 100%;
+    `;
+    copyBtn.onclick = () => {
+        const text = `WebRTC Debug:
+User: ${myUserId}
+Host: ${result.hasHost}
+STUN: ${result.hasSrflx}
+TURN: ${result.hasRelay}
+Candidates: ${result.candidates?.map(c => c.type + ':' + c.ip).join(', ')}`;
+        navigator.clipboard.writeText(text).then(() => {
+            copyBtn.textContent = '✅ Copied!';
+            setTimeout(() => copyBtn.textContent = '📋 Copy Debug Info', 2000);
+        });
+    };
+    panel.appendChild(copyBtn);
+    
+    return result;
+};
+
+// Triple-tap anywhere to open debug (for mobile)
+let tapCount = 0;
+let tapTimer = null;
+document.addEventListener('touchend', () => {
+    tapCount++;
+    if (tapCount === 3) {
+        window.debugWebRTC();
+        tapCount = 0;
+    }
+    clearTimeout(tapTimer);
+    tapTimer = setTimeout(() => tapCount = 0, 500);
+});
+
 // WebRTC configuration with multiple TURN server fallbacks
+// IMPORTANT: Free TURN servers are unreliable. For production, get your own at:
+// - https://www.metered.ca/tools/openrelay/ (500MB free/month)
+// - https://www.twilio.com/stun-turn (free trial)
 const rtcConfig = {
     iceServers: [
-        // Google STUN servers
+        // Google STUN servers (always work for discovery)
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
         { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' },
         
-        // Metered.ca free TURN servers (more reliable)
+        // Free TURN server options (try multiple)
+        // NUMB STUN/TURN (free, requires email registration at numb.viagenie.ca)
+        {
+            urls: 'turn:numb.viagenie.ca',
+            username: 'webrtc@live.com',
+            credential: 'muazkh'
+        },
+        {
+            urls: 'turn:numb.viagenie.ca:3478',
+            username: 'webrtc@live.com', 
+            credential: 'muazkh'
+        },
+        
+        // OpenRelay TURN servers
+        {
+            urls: 'turn:openrelay.metered.ca:80',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+        },
+        {
+            urls: 'turn:openrelay.metered.ca:443',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+        },
+        {
+            urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+        },
+        
+        // Metered relay
         {
             urls: 'turn:a.relay.metered.ca:80',
             username: 'e8dd65c92ae01231e6201be5',
             credential: 'wC+MN4EH/PFNzj3X'
         },
         {
-            urls: 'turn:a.relay.metered.ca:80?transport=tcp',
-            username: 'e8dd65c92ae01231e6201be5',
-            credential: 'wC+MN4EH/PFNzj3X'
-        },
-        {
             urls: 'turn:a.relay.metered.ca:443',
-            username: 'e8dd65c92ae01231e6201be5',
-            credential: 'wC+MN4EH/PFNzj3X'
-        },
-        {
-            urls: 'turn:a.relay.metered.ca:443?transport=tcp',
-            username: 'e8dd65c92ae01231e6201be5',
-            credential: 'wC+MN4EH/PFNzj3X'
-        },
-        {
-            urls: 'turns:a.relay.metered.ca:443?transport=tcp',
             username: 'e8dd65c92ae01231e6201be5',
             credential: 'wC+MN4EH/PFNzj3X'
         }
@@ -737,13 +947,35 @@ async function handleFileAccepted(data) {
             console.log('✅ File transfer connection established!');
         }
         if (pc.iceConnectionState === 'failed') {
-            console.error('❌ ICE connection failed - may need TURN server');
-            showToast('Connection failed - check network');
-            hideTransferModal();
-            activeFileTransfer = null;
+            console.error('❌ ICE connection failed - attempting ICE restart');
+            // Try ICE restart before giving up
+            pc.restartIce();
+            pc.createOffer({ iceRestart: true }).then(offer => {
+                return pc.setLocalDescription(offer);
+            }).then(() => {
+                fileTransferRef.push({
+                    type: 'webrtc-offer',
+                    from: myUserId,
+                    to: data.from,
+                    sdp: pc.localDescription.sdp,
+                    iceRestart: true
+                });
+            }).catch(err => {
+                console.error('ICE restart failed:', err);
+                showToast('Connection failed - devices may not be able to connect');
+                hideTransferModal();
+                activeFileTransfer = null;
+            });
         }
         if (pc.iceConnectionState === 'disconnected') {
-            console.warn('⚠️ ICE disconnected - attempting recovery');
+            console.warn('⚠️ ICE disconnected - waiting for recovery...');
+            // Give it 5 seconds to recover before restarting
+            setTimeout(() => {
+                if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
+                    console.log('Still disconnected, restarting ICE...');
+                    pc.restartIce();
+                }
+            }, 5000);
         }
     };
     
@@ -836,9 +1068,11 @@ async function handleWebRTCOffer(data) {
             console.log('✅ File transfer connection established (receiver)!');
         }
         if (pc.iceConnectionState === 'failed') {
-            console.error('❌ ICE connection failed (receiver)');
-            showToast('Connection failed');
-            hideTransferModal();
+            console.error('❌ ICE connection failed (receiver) - may need ICE restart from sender');
+            showToast('Connection failed - waiting for retry...');
+        }
+        if (pc.iceConnectionState === 'disconnected') {
+            console.warn('⚠️ ICE disconnected (receiver) - waiting for reconnection...');
         }
     };
     
@@ -2027,6 +2261,15 @@ async function stopScreenShare() {
 async function init() {
     const params = new URLSearchParams(window.location.search);
     const note = params.get('n');
+
+    // Test TURN connectivity in background
+    testTurnConnectivity().then(result => {
+        window.hasTurnRelay = result.hasRelay;
+        if (!result.hasRelay) {
+            console.warn('⚠️ TURN servers not available - file transfer/screenshare may not work across networks');
+            console.log('💡 To fix: Sign up for free TURN at https://www.metered.ca/tools/openrelay/');
+        }
+    });
 
     if (note) {
         connectToNote(note);
