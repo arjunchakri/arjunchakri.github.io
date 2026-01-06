@@ -1,0 +1,34 @@
+{
+    "name": "Find My",
+    "short_name": "Find My",
+    "description": "Share your location with friends in real-time",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#1c1c1e",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": ["navigation", "social"],
+    "shortcuts": [
+        {
+            "name": "Join Room",
+            "short_name": "Join",
+            "description": "Join an existing room",
+            "url": "./index.html",
+            "icons": [
+                {
+                    "src": "icon.svg",
+                    "sizes": "any"
+                }
+            ]
+        }
+    ]
+}
+

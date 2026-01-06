@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0a0f">
+    <title>Find My</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Google Fonts - Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: rgba(18, 18, 26, 0.8);
+            --accent-primary: #00f5d4;
+            --accent-secondary: #7b61ff;
+            --accent-warm: #fbbf24;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --text-muted: rgba(255, 255, 255, 0.3);
+            --danger: #ff6b6b;
+            --success: #00f5d4;
+            --border-glow: rgba(0, 245, 212, 0.3);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+        
+        /* Animated background */
+        .bg-animated {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            overflow: hidden;
+        }
+        
+        .bg-gradient {
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            top: -25%;
+            left: -25%;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(123, 97, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(0, 245, 212, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(251, 191, 36, 0.05) 0%, transparent 50%);
+            animation: bgFloat 20s ease-in-out infinite;
+        }
+        
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(2%, 2%) rotate(1deg); }
+            66% { transform: translate(-2%, 1%) rotate(-1deg); }
+        }
+        
+        /* Floating orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.5;
+            animation: orbFloat 15s ease-in-out infinite;
+        }
+        
+        .orb-1 {
+            width: 300px;
+            height: 300px;
+            background: var(--accent-primary);
+            top: 10%;
+            right: -10%;
+            animation-delay: 0s;
+        }
+        
+        .orb-2 {
+            width: 250px;
+            height: 250px;
+            background: var(--accent-secondary);
+            bottom: 20%;
+            left: -10%;
+            animation-delay: -5s;
+        }
+        
+        .orb-3 {
+            width: 200px;
+            height: 200px;
+            background: var(--accent-warm);
+            top: 50%;
+            left: 50%;
+            animation-delay: -10s;
+            opacity: 0.3;
+        }
+        
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -30px) scale(1.1); }
+            50% { transform: translate(-20px, 20px) scale(0.9); }
+            75% { transform: translate(20px, 30px) scale(1.05); }
+        }
+        
+        /* Grid pattern overlay */
+        .grid-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+        }
+        
+        /* Glass morphism */
+        .glass {
+            background: var(--bg-card);
+            backdrop-filter: blur(40px) saturate(150%);
+            -webkit-backdrop-filter: blur(40px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .glass-strong {
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(60px) saturate(180%);
+            -webkit-backdrop-filter: blur(60px) saturate(180%);
+        }
+        
+        /* Screen container */
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            padding: 60px 24px 40px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.95);
+        }
+        
+        @supports (padding-top: env(safe-area-inset-top)) {
+            .screen {
+                padding-top: calc(60px + env(safe-area-inset-top));
+                padding-bottom: calc(40px + env(safe-area-inset-bottom));
+            }
+        }
+        
+        /* Staggered animations */
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+        .stagger-5 { animation-delay: 0.5s; }
+        
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-in {
+            animation: fadeSlideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            opacity: 0;
+        }
+        
+        /* Logo animation */
+        .logo-container {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+        
+        .logo-ring {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: var(--accent-primary);
+            animation: logoSpin 3s linear infinite;
+        }
+        
+        .logo-ring-2 {
+            width: 140px;
+            height: 140px;
+            border-top-color: var(--accent-secondary);
+            animation-duration: 4s;
+            animation-direction: reverse;
+            opacity: 0.5;
+        }
+        
+        @keyframes logoSpin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .logo-icon {
+            font-size: 56px;
+            z-index: 1;
+            animation: logoPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        /* Typography */
+        .title {
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: var(--text-primary);
+        }
+        
+        .title span {
+            background: linear-gradient(135deg, #ffffff 0%, var(--accent-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+        
+        /* Input styles */
+        .input-group {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 18px 20px;
+            font-size: 17px;
+            font-weight: 500;
+            font-family: inherit;
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .input-field::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+        
+        .input-field:focus {
+            border-color: var(--accent-primary);
+            background: rgba(0, 245, 212, 0.03);
+            box-shadow: 
+                0 0 0 4px rgba(0, 245, 212, 0.1),
+                0 10px 40px -10px rgba(0, 245, 212, 0.2);
+        }
+        
+        .input-field:focus::placeholder {
+            opacity: 0.5;
+        }
+        
+        /* Room code input special styling */
+        .input-room-code {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 8px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        
+        /* Buttons */
+        .btn {
+            position: relative;
+            width: 100%;
+            padding: 18px 24px;
+            font-size: 17px;
+            font-weight: 600;
+            font-family: inherit;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, #00d4aa 100%);
+            color: #0a0a0f;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #ff5252 100%);
+            color: white;
+        }
+        
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        /* Badge styles */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .badge-new {
+            background: rgba(0, 245, 212, 0.15);
+            color: var(--accent-primary);
+            border: 1px solid rgba(0, 245, 212, 0.3);
+        }
+        
+        .badge-existing {
+            background: rgba(123, 97, 255, 0.15);
+            color: var(--accent-secondary);
+            border: 1px solid rgba(123, 97, 255, 0.3);
+        }
+        
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: badgePulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes badgePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+        
+        /* Back button */
+        .back-btn {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--accent-primary);
+            background: rgba(0, 245, 212, 0.1);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+        
+        .back-btn:hover {
+            background: rgba(0, 245, 212, 0.2);
+        }
+        
+        @supports (top: env(safe-area-inset-top)) {
+            .back-btn {
+                top: calc(60px + env(safe-area-inset-top));
+            }
+        }
+        
+        /* Map styles */
+        #map {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1;
+        }
+        
+        #mapScreen {
+            z-index: 50;
+        }
+        
+        #mapScreen.hidden {
+            display: none;
+        }
+        
+        /* Custom map markers */
+        .marker-me {
+            position: relative;
+            width: 32px;
+            height: 32px;
+        }
+        
+        .marker-me-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 
+                0 4px 15px rgba(0, 245, 212, 0.5),
+                0 0 30px rgba(0, 245, 212, 0.3);
+            z-index: 2;
+        }
+        
+        .marker-me-pulse {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            animation: markerPulse 2s ease-out infinite;
+        }
+        
+        @keyframes markerPulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.6;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(4);
+                opacity: 0;
+            }
+        }
+        
+        .marker-friend {
+            position: relative;
+        }
+        
+        .marker-friend-dot {
+            width: 18px;
+            height: 18px;
+            background: var(--accent-secondary);
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 4px 15px rgba(123, 97, 255, 0.5);
+        }
+        
+        .marker-label {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            white-space: nowrap;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .marker-label::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(10, 10, 15, 0.9);
+        }
+        
+        /* Top bar */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 50px 20px 16px;
+        }
+        
+        @supports (padding-top: env(safe-area-inset-top)) {
+            .top-bar {
+                padding-top: calc(50px + env(safe-area-inset-top));
+            }
+        }
+        
+        .top-bar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .top-bar-btn {
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .top-bar-btn-leave {
+            background: rgba(255, 107, 107, 0.15);
+            color: var(--danger);
+        }
+        
+        .top-bar-btn-leave:hover {
+            background: rgba(255, 107, 107, 0.25);
+        }
+        
+        .top-bar-btn-share {
+            background: rgba(0, 245, 212, 0.15);
+            color: var(--accent-primary);
+        }
+        
+        .top-bar-btn-share:hover {
+            background: rgba(0, 245, 212, 0.25);
+        }
+        
+        .room-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .room-code {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: var(--text-primary);
+        }
+        
+        /* Tracking badge */
+        .tracking-badge {
+            position: fixed;
+            top: 110px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-primary);
+            background: rgba(0, 245, 212, 0.1);
+            border: 1px solid rgba(0, 245, 212, 0.3);
+            border-radius: 30px;
+            animation: badgeSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes badgeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+        }
+        
+        .tracking-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            animation: trackingPulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes trackingPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 245, 212, 0.5); }
+            50% { opacity: 0.8; box-shadow: 0 0 0 8px rgba(0, 245, 212, 0); }
+        }
+        
+        @supports (top: env(safe-area-inset-top)) {
+            .tracking-badge {
+                top: calc(110px + env(safe-area-inset-top));
+            }
+        }
+        
+        /* FAB */
+        .fab {
+            position: fixed;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 99;
+        }
+        
+        .fab:active {
+            transform: scale(0.9);
+        }
+        
+        .fab-center {
+            bottom: 220px;
+            right: 20px;
+            background: rgba(10, 10, 15, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .fab-center:hover {
+            background: rgba(20, 20, 30, 0.95);
+            border-color: var(--accent-primary);
+        }
+        
+        .fab-center svg {
+            stroke: var(--accent-primary);
+        }
+        
+        /* Bottom sheet */
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            border-radius: 28px 28px 0 0;
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+            transform: translateY(0);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .sheet-handle {
+            width: 40px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin: 12px auto 20px;
+        }
+        
+        .sheet-content {
+            padding: 0 20px 20px;
+        }
+        
+        /* Tracking button */
+        .tracking-btn {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 18px 24px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: inherit;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .tracking-btn-start {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, #00d4aa 100%);
+            color: #0a0a0f;
+        }
+        
+        .tracking-btn-stop {
+            background: linear-gradient(135deg, var(--danger) 0%, #ff5252 100%);
+            color: white;
+        }
+        
+        .tracking-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .tracking-btn-icon {
+            width: 20px;
+            height: 20px;
+        }
+        
+        /* People section */
+        .people-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 20px 0 12px;
+        }
+        
+        .people-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .people-count {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+        
+        .people-list {
+            max-height: 180px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .people-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .people-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .people-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+        
+        /* Person card */
+        .person-card {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .person-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(4px);
+        }
+        
+        .person-card:active {
+            transform: scale(0.98);
+        }
+        
+        .person-avatar {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            margin-right: 14px;
+            flex-shrink: 0;
+        }
+        
+        .person-avatar::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 10px;
+            height: 10px;
+            background: var(--success);
+            border: 2px solid var(--bg-primary);
+            border-radius: 50%;
+        }
+        
+        .person-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .person-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .person-status {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        .person-arrow {
+            color: var(--text-muted);
+            transition: transform 0.3s;
+        }
+        
+        .person-card:hover .person-arrow {
+            transform: translateX(4px);
+            color: var(--accent-primary);
+        }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+        }
+        
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+        
+        .empty-text {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .empty-subtext {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        
+        /* Loading overlay */
+        .loading-overlay {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .spinner {
+            width: 48px;
+            height: 48px;
+            position: relative;
+        }
+        
+        .spinner-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 3px solid transparent;
+            border-radius: 50%;
+        }
+        
+        .spinner-ring-1 {
+            border-top-color: var(--accent-primary);
+            animation: spinnerRotate 1s linear infinite;
+        }
+        
+        .spinner-ring-2 {
+            border-right-color: var(--accent-secondary);
+            animation: spinnerRotate 1.5s linear infinite reverse;
+        }
+        
+        @keyframes spinnerRotate {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        
+        /* Leaflet overrides */
+        .leaflet-control-attribution {
+            display: none !important;
+        }
+        
+        .leaflet-control-zoom {
+            border: none !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+            border-radius: 12px !important;
+            overflow: hidden;
+        }
+        
+        .leaflet-control-zoom a {
+            width: 40px !important;
+            height: 40px !important;
+            line-height: 40px !important;
+            font-size: 18px !important;
+            background: rgba(10, 10, 15, 0.9) !important;
+            color: white !important;
+            border: none !important;
+            border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+        }
+        
+        .leaflet-control-zoom a:last-child {
+            border-bottom: none !important;
+        }
+        
+        .leaflet-control-zoom a:hover {
+            background: rgba(20, 20, 30, 0.95) !important;
+            color: var(--accent-primary) !important;
+        }
+        
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            padding: 14px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            z-index: 9999;
+            opacity: 0;
+            animation: toastIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        @keyframes toastIn {
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
+        .toast.toast-out {
+            animation: toastOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        @keyframes toastOut {
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+        }
+        
+        /* Hint text */
+        .hint-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: center;
+            max-width: 280px;
+            margin: 20px auto 0;
+            line-height: 1.6;
+        }
+        
+        /* Footer text */
+        .footer-text {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        
+        @supports (bottom: env(safe-area-inset-bottom)) {
+            .footer-text {
+                bottom: calc(30px + env(safe-area-inset-bottom));
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animated">
+        <div class="bg-gradient"></div>
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="grid-pattern"></div>
+    </div>
+    
+    <!-- Room Screen -->
+    <div id="roomScreen" class="screen">
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <div class="logo-container animate-in stagger-1">
+                <div class="logo-ring"></div>
+                <div class="logo-ring logo-ring-2"></div>
+                <div class="logo-icon">📍</div>
+            </div>
+            
+            <h1 class="title animate-in stagger-2"><span>Find My</span></h1>
+            <p class="subtitle animate-in stagger-3" style="margin-top: 8px;">Share location with friends</p>
+            
+            <div style="width: 100%; max-width: 340px; margin-top: 40px;">
+                <div class="input-group animate-in stagger-3">
+                    <input 
+                        type="text" 
+                        id="roomIdInput" 
+                        class="input-field input-room-code" 
+                        placeholder="ROOM"
+                        autocomplete="off"
+                        autocapitalize="characters"
+                        maxlength="12"
+                    >
+                </div>
+                <div class="input-group animate-in stagger-4">
+                    <input 
+                        type="text" 
+                        id="userNameInput" 
+                        class="input-field" 
+                        placeholder="Your name"
+                        autocomplete="off"
+                    >
+                </div>
+                <button id="joinRoomBtn" class="btn btn-primary btn-icon animate-in stagger-5">
+                    Continue
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <p class="hint-text animate-in stagger-5">
+                Enter any room code. New codes create rooms, existing codes join them.
+            </p>
+        </div>
+        
+        <p class="footer-text">Your location is only shared while tracking</p>
+    </div>
+    
+    <!-- Password Screen -->
+    <div id="passwordScreen" class="screen hidden">
+        <button id="backToRoomBtn" class="back-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back
+        </button>
+        
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <div class="logo-container animate-in stagger-1">
+                <div class="logo-ring"></div>
+                <div class="logo-icon" id="passwordIcon">🔒</div>
+            </div>
+            
+            <div id="newRoomBadge" class="badge badge-new hidden animate-in stagger-2">
+                <span class="badge-dot"></span>
+                New Room
+            </div>
+            <div id="existingRoomBadge" class="badge badge-existing hidden animate-in stagger-2">
+                <span class="badge-dot"></span>
+                Existing Room
+            </div>
+            
+            <h1 class="title animate-in stagger-2" id="passwordTitle" style="font-size: 28px;"><span>Set Password</span></h1>
+            <p class="subtitle animate-in stagger-3" id="passwordSubtitle" style="margin-top: 8px;">Create a password for this room</p>
+            
+            <div style="width: 100%; max-width: 340px; margin-top: 40px;">
+                <div class="input-group animate-in stagger-4">
+                    <input 
+                        type="password" 
+                        id="passwordInput" 
+                        class="input-field" 
+                        placeholder="Password"
+                        autocomplete="off"
+                    >
+                </div>
+                <button id="confirmPasswordBtn" class="btn btn-primary btn-icon animate-in stagger-5">
+                    <span id="confirmBtnText">Create Room</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Map Screen -->
+    <div id="mapScreen" class="hidden">
+        <!-- Map -->
+        <div id="map"></div>
+        
+        <!-- Top Bar -->
+        <div class="top-bar glass-strong">
+            <div class="top-bar-content">
+                <button id="leaveRoomBtn" class="top-bar-btn top-bar-btn-leave">Leave</button>
+                <div style="text-align: center;">
+                    <div class="room-title">Room</div>
+                    <div class="room-code" id="roomTitle">XXXXX</div>
+                </div>
+                <button id="shareRoomBtn" class="top-bar-btn top-bar-btn-share">Share</button>
+            </div>
+        </div>
+        
+        <!-- Tracking Badge -->
+        <div id="trackingBadge" class="tracking-badge hidden">
+            <div class="tracking-dot"></div>
+            <span>Tracking Active</span>
+        </div>
+        
+        <!-- Center FAB -->
+        <div id="centerMeFab" class="fab fab-center">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 2v4m0 12v4M2 12h4m12 0h4"/>
+            </svg>
+        </div>
+        
+        <!-- Bottom Sheet -->
+        <div class="bottom-sheet glass-strong">
+            <div class="sheet-handle"></div>
+            <div class="sheet-content">
+                <!-- Tracking Button -->
+                <button id="trackingBtn" class="tracking-btn tracking-btn-start">
+                    <svg class="tracking-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                        <circle cx="12" cy="9" r="2.5"/>
+                    </svg>
+                    <span id="trackingBtnText">Start Tracking</span>
+                </button>
+                
+                <!-- People Section -->
+                <div class="people-header">
+                    <span class="people-title">People</span>
+                    <span class="people-count" id="peopleCount">0 online</span>
+                </div>
+                
+                <div id="peopleList" class="people-list">
+                    <div class="empty-state">
+                        <div class="empty-icon">👥</div>
+                        <p class="empty-text">No one else is here yet</p>
+                        <p class="empty-subtext">Share the room code with friends</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="screen loading-overlay hidden">
+        <div class="spinner">
+            <div class="spinner-ring spinner-ring-1"></div>
+            <div class="spinner-ring spinner-ring-2"></div>
+        </div>
+        <p class="loading-text" id="loadingText">Connecting...</p>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Firebase v10+ SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, get, onValue, push, remove, onDisconnect, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCibTNoAZEu37Lih8PM5I5neXXpUUmKA_A",
+            authDomain: "arjunchakri-commonutil-db-dnd.firebaseapp.com",
+            databaseURL: "https://arjunchakri-commonutil-db-dnd-default-rtdb.firebaseio.com",
+            projectId: "arjunchakri-commonutil-db-dnd",
+            storageBucket: "arjunchakri-commonutil-db-dnd.firebasestorage.app",
+            messagingSenderId: "427544663337",
+            appId: "1:427544663337:web:7d76d4095003960d6a9338"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        // App State
+        const state = {
+            roomId: null,
+            userId: null,
+            userName: null,
+            isTracking: false,
+            watchId: null,
+            wakeLock: null,
+            map: null,
+            myMarker: null,
+            myTrail: null,
+            friendMarkers: {},
+            friendTrails: {},
+            myHistory: [],
+            unsubscribers: []
+        };
+        
+        // DOM Elements
+        const elements = {
+            roomScreen: document.getElementById('roomScreen'),
+            passwordScreen: document.getElementById('passwordScreen'),
+            mapScreen: document.getElementById('mapScreen'),
+            loadingOverlay: document.getElementById('loadingOverlay'),
+            loadingText: document.getElementById('loadingText'),
+            roomIdInput: document.getElementById('roomIdInput'),
+            userNameInput: document.getElementById('userNameInput'),
+            passwordInput: document.getElementById('passwordInput'),
+            passwordTitle: document.getElementById('passwordTitle'),
+            passwordSubtitle: document.getElementById('passwordSubtitle'),
+            passwordIcon: document.getElementById('passwordIcon'),
+            newRoomBadge: document.getElementById('newRoomBadge'),
+            existingRoomBadge: document.getElementById('existingRoomBadge'),
+            confirmBtnText: document.getElementById('confirmBtnText'),
+            joinRoomBtn: document.getElementById('joinRoomBtn'),
+            backToRoomBtn: document.getElementById('backToRoomBtn'),
+            confirmPasswordBtn: document.getElementById('confirmPasswordBtn'),
+            leaveRoomBtn: document.getElementById('leaveRoomBtn'),
+            shareRoomBtn: document.getElementById('shareRoomBtn'),
+            roomTitle: document.getElementById('roomTitle'),
+            trackingBtn: document.getElementById('trackingBtn'),
+            trackingBtnText: document.getElementById('trackingBtnText'),
+            trackingBadge: document.getElementById('trackingBadge'),
+            centerMeFab: document.getElementById('centerMeFab'),
+            peopleList: document.getElementById('peopleList'),
+            peopleCount: document.getElementById('peopleCount')
+        };
+        
+        // Avatar colors - vibrant palette
+        const avatarColors = [
+            '#ff6b6b', '#ffa502', '#ffd93d', '#6bcb77',
+            '#00d4aa', '#4d96ff', '#7b61ff', '#ff61dc', '#ff8fab'
+        ];
+        
+        function getAvatarColor(name) {
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return avatarColors[Math.abs(hash) % avatarColors.length];
+        }
+        
+        function generateUserId() {
+            return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        function showScreen(screen) {
+            [elements.roomScreen, elements.passwordScreen, elements.mapScreen, elements.loadingOverlay].forEach(s => {
+                s.classList.add('hidden');
+            });
+            screen.classList.remove('hidden');
+            
+            // Re-trigger animations
+            screen.querySelectorAll('.animate-in').forEach(el => {
+                el.style.animation = 'none';
+                el.offsetHeight; // Trigger reflow
+                el.style.animation = null;
+            });
+        }
+        
+        function showLoading(text = 'Connecting...') {
+            elements.loadingText.textContent = text;
+            showScreen(elements.loadingOverlay);
+        }
+        
+        function showToast(message) {
+            // Remove existing toasts
+            document.querySelectorAll('.toast').forEach(t => t.remove());
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('toast-out');
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+        
+        // Initialize Map
+        function initMap() {
+            if (state.map) return;
+            
+            state.map = L.map('map', {
+                zoomControl: true,
+                attributionControl: false
+            }).setView([37.7749, -122.4194], 15);
+            
+            // Dark elegant map tiles
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19
+            }).addTo(state.map);
+            
+            state.map.zoomControl.setPosition('bottomleft');
+        }
+        
+        // Create custom marker
+        function createMarker(lat, lng, isMe, name) {
+            const markerHtml = isMe ? `
+                <div class="marker-me">
+                    <div class="marker-me-pulse"></div>
+                    <div class="marker-me-dot"></div>
+                </div>
+            ` : `
+                <div class="marker-friend">
+                    <div class="marker-label">${name}</div>
+                    <div class="marker-friend-dot"></div>
+                </div>
+            `;
+            
+            const icon = L.divIcon({
+                html: markerHtml,
+                className: 'custom-marker',
+                iconSize: isMe ? [32, 32] : [18, 18],
+                iconAnchor: isMe ? [16, 16] : [9, 9]
+            });
+            
+            return L.marker([lat, lng], { icon });
+        }
+        
+        // Update my location on map
+        function updateMyLocation(lat, lng) {
+            if (!state.map) return;
+            
+            if (!state.myMarker) {
+                state.myMarker = createMarker(lat, lng, true, state.userName);
+                state.myMarker.addTo(state.map);
+                state.map.setView([lat, lng], 16);
+            } else {
+                state.myMarker.setLatLng([lat, lng]);
+            }
+            
+            state.myHistory.push([lat, lng]);
+            
+            if (state.myTrail) {
+                state.myTrail.setLatLngs(state.myHistory);
+            } else if (state.myHistory.length > 1) {
+                state.myTrail = L.polyline(state.myHistory, {
+                    color: '#00f5d4',
+                    weight: 4,
+                    opacity: 0.8,
+                    lineCap: 'round',
+                    lineJoin: 'round'
+                }).addTo(state.map);
+            }
+        }
+        
+        // Update friend location on map
+        function updateFriendLocation(userId, data) {
+            if (!state.map || userId === state.userId) return;
+            
+            const lat = data.lat;
+            const lng = data.lng;
+            const name = data.name || 'Unknown';
+            
+            if (!state.friendMarkers[userId]) {
+                state.friendMarkers[userId] = createMarker(lat, lng, false, name);
+                state.friendMarkers[userId].addTo(state.map);
+                state.friendTrails[userId] = [];
+            } else {
+                state.friendMarkers[userId].setLatLng([lat, lng]);
+            }
+            
+            state.friendTrails[userId].push([lat, lng]);
+            
+            if (!state.friendMarkers[userId].trail && state.friendTrails[userId].length > 1) {
+                state.friendMarkers[userId].trail = L.polyline(state.friendTrails[userId], {
+                    color: '#7b61ff',
+                    weight: 3,
+                    opacity: 0.6,
+                    lineCap: 'round',
+                    lineJoin: 'round'
+                }).addTo(state.map);
+            } else if (state.friendMarkers[userId].trail) {
+                state.friendMarkers[userId].trail.setLatLngs(state.friendTrails[userId]);
+            }
+        }
+        
+        // Remove friend from map
+        function removeFriend(userId) {
+            if (state.friendMarkers[userId]) {
+                state.map.removeLayer(state.friendMarkers[userId]);
+                if (state.friendMarkers[userId].trail) {
+                    state.map.removeLayer(state.friendMarkers[userId].trail);
+                }
+                delete state.friendMarkers[userId];
+                delete state.friendTrails[userId];
+            }
+        }
+        
+        // Update people list
+        function updatePeopleList(users) {
+            const otherUsers = Object.entries(users || {}).filter(([id]) => id !== state.userId);
+            
+            elements.peopleCount.textContent = `${otherUsers.length + 1} online`;
+            
+            if (otherUsers.length === 0) {
+                elements.peopleList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">👥</div>
+                        <p class="empty-text">No one else is here yet</p>
+                        <p class="empty-subtext">Share the room code with friends</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            elements.peopleList.innerHTML = otherUsers.map(([id, data]) => {
+                const name = data.name || 'Unknown';
+                const initial = name.charAt(0).toUpperCase();
+                const color = getAvatarColor(name);
+                const lastSeen = data.timestamp ? new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'now';
+                
+                return `
+                    <div class="person-card" data-user-id="${id}">
+                        <div class="person-avatar" style="background: ${color}">${initial}</div>
+                        <div class="person-info">
+                            <div class="person-name">${name}</div>
+                            <div class="person-status">Updated ${lastSeen}</div>
+                        </div>
+                        <svg class="person-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </div>
+                `;
+            }).join('');
+            
+            elements.peopleList.querySelectorAll('.person-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const userId = card.dataset.userId;
+                    if (state.friendMarkers[userId]) {
+                        const latLng = state.friendMarkers[userId].getLatLng();
+                        state.map.setView(latLng, 17, { animate: true, duration: 0.5 });
+                    }
+                });
+            });
+        }
+        
+        // Start location tracking
+        async function startTracking() {
+            if (state.isTracking) return;
+            
+            try {
+                if ('wakeLock' in navigator) {
+                    state.wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {
+                console.log('Wake lock failed:', err);
+            }
+            
+            if ('geolocation' in navigator) {
+                state.watchId = navigator.geolocation.watchPosition(
+                    (position) => {
+                        const { latitude, longitude, accuracy } = position.coords;
+                        
+                        updateMyLocation(latitude, longitude);
+                        
+                        const locationData = {
+                            lat: latitude,
+                            lng: longitude,
+                            accuracy: accuracy,
+                            name: state.userName,
+                            timestamp: serverTimestamp()
+                        };
+                        
+                        set(ref(db, `findmy/rooms/${state.roomId}/active/${state.userId}`), locationData);
+                        
+                        push(ref(db, `findmy/rooms/${state.roomId}/history/${state.userId}`), {
+                            lat: latitude,
+                            lng: longitude,
+                            timestamp: serverTimestamp()
+                        });
+                    },
+                    (error) => {
+                        console.error('Geolocation error:', error);
+                        showToast('Location access denied');
+                        stopTracking();
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 5000,
+                        timeout: 10000
+                    }
+                );
+                
+                state.isTracking = true;
+                elements.trackingBtn.classList.remove('tracking-btn-start');
+                elements.trackingBtn.classList.add('tracking-btn-stop');
+                elements.trackingBtnText.textContent = 'Stop Tracking';
+                elements.trackingBadge.classList.remove('hidden');
+            } else {
+                showToast('Geolocation not supported');
+            }
+        }
+        
+        // Stop location tracking
+        function stopTracking() {
+            if (state.watchId !== null) {
+                navigator.geolocation.clearWatch(state.watchId);
+                state.watchId = null;
+            }
+            
+            if (state.wakeLock) {
+                state.wakeLock.release();
+                state.wakeLock = null;
+            }
+            
+            state.isTracking = false;
+            elements.trackingBtn.classList.add('tracking-btn-start');
+            elements.trackingBtn.classList.remove('tracking-btn-stop');
+            elements.trackingBtnText.textContent = 'Start Tracking';
+            elements.trackingBadge.classList.add('hidden');
+        }
+        
+        // Check if room exists
+        async function checkRoomExists(roomId) {
+            const snapshot = await get(ref(db, `findmy/rooms/${roomId}`));
+            return snapshot.exists();
+        }
+        
+        // Get room password
+        async function getRoomPassword(roomId) {
+            const snapshot = await get(ref(db, `findmy/rooms/${roomId}/password`));
+            return snapshot.val();
+        }
+        
+        // Create room
+        async function createRoom(roomId, password) {
+            await set(ref(db, `findmy/rooms/${roomId}/password`), password);
+            await set(ref(db, `findmy/rooms/${roomId}/createdAt`), serverTimestamp());
+        }
+        
+        // Join room
+        async function joinRoom(roomId) {
+            state.roomId = roomId;
+            
+            const userRef = ref(db, `findmy/rooms/${roomId}/active/${state.userId}`);
+            onDisconnect(userRef).remove();
+            
+            const activeSnapshot = await get(ref(db, `findmy/rooms/${roomId}/active`));
+            const users = activeSnapshot.val() || {};
+            
+            Object.entries(users).forEach(([id, data]) => {
+                if (id !== state.userId) {
+                    updateFriendLocation(id, data);
+                    
+                    get(ref(db, `findmy/rooms/${roomId}/history/${id}`)).then(histSnapshot => {
+                        const history = histSnapshot.val() || {};
+                        const points = Object.values(history).sort((a, b) => a.timestamp - b.timestamp);
+                        state.friendTrails[id] = points.map(p => [p.lat, p.lng]);
+                        if (state.friendMarkers[id] && points.length > 1) {
+                            state.friendMarkers[id].trail = L.polyline(state.friendTrails[id], {
+                                color: '#7b61ff',
+                                weight: 3,
+                                opacity: 0.6,
+                                lineCap: 'round',
+                                lineJoin: 'round'
+                            }).addTo(state.map);
+                        }
+                    });
+                }
+            });
+            
+            updatePeopleList(users);
+            
+            const unsubActive = onValue(ref(db, `findmy/rooms/${roomId}/active`), (snapshot) => {
+                const users = snapshot.val() || {};
+                
+                Object.entries(users).forEach(([id, data]) => {
+                    updateFriendLocation(id, data);
+                });
+                
+                Object.keys(state.friendMarkers).forEach(id => {
+                    if (!users[id]) {
+                        removeFriend(id);
+                    }
+                });
+                
+                updatePeopleList(users);
+            });
+            
+            state.unsubscribers.push(() => unsubActive());
+            
+            elements.roomTitle.textContent = roomId;
+            showScreen(elements.mapScreen);
+            
+            setTimeout(() => {
+                initMap();
+                state.map.invalidateSize();
+                
+                const firstUser = Object.values(users)[0];
+                if (firstUser) {
+                    state.map.setView([firstUser.lat, firstUser.lng], 15);
+                }
+            }, 100);
+        }
+        
+        // Leave room
+        function leaveRoom() {
+            stopTracking();
+            
+            if (state.roomId && state.userId) {
+                remove(ref(db, `findmy/rooms/${state.roomId}/active/${state.userId}`));
+            }
+            
+            state.unsubscribers.forEach(unsub => unsub());
+            state.unsubscribers = [];
+            
+            if (state.map) {
+                if (state.myMarker) state.map.removeLayer(state.myMarker);
+                if (state.myTrail) state.map.removeLayer(state.myTrail);
+                Object.keys(state.friendMarkers).forEach(id => removeFriend(id));
+            }
+            
+            state.roomId = null;
+            state.myMarker = null;
+            state.myTrail = null;
+            state.myHistory = [];
+            state.friendMarkers = {};
+            state.friendTrails = {};
+            
+            showScreen(elements.roomScreen);
+        }
+        
+        // Event Listeners
+        let pendingRoomId = null;
+        let isNewRoom = false;
+        
+        elements.joinRoomBtn.addEventListener('click', async () => {
+            const roomId = elements.roomIdInput.value.trim().toUpperCase();
+            const userName = elements.userNameInput.value.trim();
+            
+            if (!roomId) {
+                showToast('Please enter a room code');
+                return;
+            }
+            
+            if (!userName) {
+                showToast('Please enter your name');
+                return;
+            }
+            
+            showLoading('Checking room...');
+            
+            try {
+                const exists = await checkRoomExists(roomId);
+                
+                pendingRoomId = roomId;
+                state.userName = userName;
+                state.userId = generateUserId();
+                
+                if (exists) {
+                    isNewRoom = false;
+                    elements.passwordIcon.textContent = '🔐';
+                    elements.passwordTitle.innerHTML = '<span>Enter Password</span>';
+                    elements.passwordSubtitle.textContent = `Joining room ${roomId}`;
+                    elements.newRoomBadge.classList.add('hidden');
+                    elements.existingRoomBadge.classList.remove('hidden');
+                    elements.confirmBtnText.textContent = 'Join Room';
+                } else {
+                    isNewRoom = true;
+                    elements.passwordIcon.textContent = '🔒';
+                    elements.passwordTitle.innerHTML = '<span>Set Password</span>';
+                    elements.passwordSubtitle.textContent = `Creating room ${roomId}`;
+                    elements.newRoomBadge.classList.remove('hidden');
+                    elements.existingRoomBadge.classList.add('hidden');
+                    elements.confirmBtnText.textContent = 'Create Room';
+                }
+                
+                elements.passwordInput.value = '';
+                elements.passwordInput.placeholder = isNewRoom ? 'Create a password' : 'Enter password';
+                showScreen(elements.passwordScreen);
+            } catch (err) {
+                console.error(err);
+                showToast('Connection error');
+                showScreen(elements.roomScreen);
+            }
+        });
+        
+        elements.backToRoomBtn.addEventListener('click', () => {
+            showScreen(elements.roomScreen);
+        });
+        
+        elements.confirmPasswordBtn.addEventListener('click', async () => {
+            const password = elements.passwordInput.value.trim();
+            
+            if (!password) {
+                showToast('Please enter a password');
+                return;
+            }
+            
+            showLoading(isNewRoom ? 'Creating room...' : 'Joining room...');
+            
+            try {
+                if (isNewRoom) {
+                    await createRoom(pendingRoomId, password);
+                    showToast('Room created!');
+                } else {
+                    const storedPassword = await getRoomPassword(pendingRoomId);
+                    if (storedPassword !== password) {
+                        showToast('Incorrect password');
+                        showScreen(elements.passwordScreen);
+                        return;
+                    }
+                }
+                
+                await joinRoom(pendingRoomId);
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to join room');
+                showScreen(elements.roomScreen);
+            }
+        });
+        
+        elements.trackingBtn.addEventListener('click', () => {
+            if (state.isTracking) {
+                stopTracking();
+            } else {
+                startTracking();
+            }
+        });
+        
+        elements.leaveRoomBtn.addEventListener('click', () => {
+            if (confirm('Leave this room?')) {
+                leaveRoom();
+            }
+        });
+        
+        elements.shareRoomBtn.addEventListener('click', async () => {
+            const shareData = {
+                title: 'Find My',
+                text: `Join my room: ${state.roomId}`,
+                url: `${window.location.origin}${window.location.pathname}?room=${state.roomId}`
+            };
+            
+            try {
+                if (navigator.share) {
+                    await navigator.share(shareData);
+                } else {
+                    await navigator.clipboard.writeText(`Join my Find My room: ${state.roomId}`);
+                    showToast('Room code copied!');
+                }
+            } catch (err) {
+                console.log('Share failed:', err);
+            }
+        });
+        
+        elements.centerMeFab.addEventListener('click', () => {
+            if (state.myMarker) {
+                const latLng = state.myMarker.getLatLng();
+                state.map.setView(latLng, 17, { animate: true, duration: 0.5 });
+            } else if (state.isTracking) {
+                showToast('Getting your location...');
+            } else {
+                showToast('Start tracking to see your location');
+            }
+        });
+        
+        // Handle visibility change
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState === 'visible' && state.isTracking && !state.wakeLock) {
+                try {
+                    state.wakeLock = await navigator.wakeLock.request('screen');
+                } catch (err) {
+                    console.log('Wake lock reacquisition failed:', err);
+                }
+            }
+        });
+        
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => {
+                console.log('SW registration failed:', err);
+            });
+        }
+        
+        // Check for room in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomFromUrl = urlParams.get('room');
+        if (roomFromUrl) {
+            elements.roomIdInput.value = roomFromUrl.toUpperCase();
+        }
+        
+        // Load saved username
+        const savedName = localStorage.getItem('findmy_username');
+        if (savedName) {
+            elements.userNameInput.value = savedName;
+        }
+        
+        // Save username on change
+        elements.userNameInput.addEventListener('change', () => {
+            localStorage.setItem('findmy_username', elements.userNameInput.value);
+        });
+        
+        // Handle enter key
+        elements.roomIdInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') elements.userNameInput.focus();
+        });
+        
+        elements.userNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') elements.joinRoomBtn.click();
+        });
+        
+        elements.passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') elements.confirmPasswordBtn.click();
+        });
+    </script>
+</body>
+</html>
