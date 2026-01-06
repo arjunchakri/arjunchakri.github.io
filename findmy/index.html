@@ -575,8 +575,13 @@
         
         /* Leaflet custom styles */
         .leaflet-container {
-            background: #0a0f1c !important;
+            background: #1a1a2e !important;
             font-family: inherit;
+        }
+        
+        /* Dark mode filter for map tiles */
+        .leaflet-tile-pane {
+            filter: brightness(0.7) invert(1) contrast(1.1) hue-rotate(200deg) saturate(0.4) brightness(0.8);
         }
         
         .leaflet-control-zoom {
@@ -595,7 +600,7 @@
         }
         
         .leaflet-control-attribution {
-            background: rgba(10,15,28,0.8) !important;
+            background: rgba(26,26,46,0.9) !important;
             color: var(--text-muted) !important;
             font-size: 10px !important;
         }
@@ -704,9 +709,13 @@
         /* Install Overlay */
         .install-overlay {
             position: fixed;
-            inset: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             z-index: 9999;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.92);
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
@@ -715,12 +724,14 @@
             padding: 24px;
             opacity: 0;
             visibility: hidden;
-            transition: all 0.3s;
+            pointer-events: none;
+            transition: all 0.3s ease;
         }
         
         .install-overlay.active {
             opacity: 1;
             visibility: visible;
+            pointer-events: auto;
         }
         
         .install-card {
@@ -841,27 +852,22 @@
         /* iOS Arrow pointing to Share button */
         .ios-arrow {
             position: fixed;
-            bottom: calc(100% - 80px);
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             flex-direction: column;
             align-items: center;
-            animation: bounceArrow 1s ease-in-out infinite;
+            animation: bounceArrowDown 1s ease-in-out infinite;
             z-index: 10000;
         }
         
         .ios-arrow.hidden { display: none; }
         
-        @keyframes bounceArrow {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            50% { transform: translateX(-50%) translateY(-10px); }
-        }
-        
         .ios-arrow svg {
             width: 40px;
             height: 40px;
-            fill: var(--accent);
+            color: var(--accent);
             filter: drop-shadow(0 0 10px var(--accent-glow));
         }
         
@@ -872,8 +878,9 @@
             border-radius: 20px;
             font-size: 13px;
             font-weight: 600;
-            margin-top: 8px;
+            margin-bottom: 8px;
             white-space: nowrap;
+            order: -1;
         }
         
         /* Android Chrome menu indicator */
@@ -1109,10 +1116,12 @@
     
     <!-- Install Overlay -->
     <div class="install-overlay" id="installOverlay">
-        <!-- iOS Arrow -->
+        <!-- iOS Arrow pointing to Share button at bottom -->
         <div class="ios-arrow hidden" id="iosArrow">
-            <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-            <span class="ios-arrow-text">Tap Share button</span>
+            <span class="ios-arrow-text">Tap ⬆️ Share button below</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M19 12l-7 7-7-7"/>
+            </svg>
         </div>
         
         <!-- Android Arrow -->
@@ -1282,10 +1291,9 @@
                 zoomControl: false
             });
             
-            // Dark theme tiles (CartoDB Dark Matter)
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-                subdomains: 'abcd',
+            // OpenStreetMap tiles (CSS filtered to dark theme)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
                 maxZoom: 19
             }).addTo(state.map);
             
@@ -1950,7 +1958,9 @@
         
         // Auto-show install overlay on page load if in browser (not standalone PWA)
         if (!isStandalone() && !isDismissed()) {
-            setTimeout(() => showInstallOverlay(), 500);
+            // Longer delay for iOS Safari to fully load
+            const delay = /iPhone|iPad|iPod/.test(navigator.userAgent) ? 1000 : 500;
+            setTimeout(() => showInstallOverlay(), delay);
         }
         
         // Handle native install prompt (Chrome/Edge)
