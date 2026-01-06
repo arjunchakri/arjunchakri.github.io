@@ -522,13 +522,33 @@ const rtcConfig = {
     iceCandidatePoolSize: 10
 };
 
+// Track processed signals to avoid duplicates
+let processedSignals = new Set();
+let activeFileTransfer = null; // Track current active transfer
+
 function setupFileTransfer(note) {
     fileTransferRef = db.ref(`file-transfers/${sanitize(note)}`);
     
     // Listen for incoming file signals
     fileTransferRef.on('child_added', snapshot => {
         const data = snapshot.val();
+        const signalKey = snapshot.key;
+        
         if (!data || data.to !== myUserId) return;
+        
+        // Prevent duplicate processing
+        const signalId = `${signalKey}_${data.type}_${data.from}`;
+        if (processedSignals.has(signalId)) {
+            snapshot.ref.remove();
+            return;
+        }
+        processedSignals.add(signalId);
+        
+        // Clean old signal IDs (keep last 100)
+        if (processedSignals.size > 100) {
+            const arr = Array.from(processedSignals);
+            processedSignals = new Set(arr.slice(-50));
+        }
         
         console.log('File transfer signal:', data.type, data);
         
@@ -636,11 +656,24 @@ async function acceptFile() {
 }
 
 async function handleFileAccepted(data) {
-    // Receiver accepted - now sender initiates WebRTC connection
+    // Prevent duplicate accept handling
+    if (activeFileTransfer === data.from) {
+        console.log('Already handling transfer with', data.from);
+        return;
+    }
+    
+    // Close any existing connection to this peer
+    if (peerConnections[data.from]) {
+        try { peerConnections[data.from].close(); } catch(e) {}
+        delete peerConnections[data.from];
+    }
+    
+    activeFileTransfer = data.from;
     updateTransferStatus('Establishing connection...');
     
     const pc = new RTCPeerConnection(rtcConfig);
     peerConnections[data.from] = pc;
+    pendingFileIceCandidates[data.from] = [];
 
     // Create data channel for file transfer
     const channel = pc.createDataChannel('fileTransfer', { ordered: true });
@@ -656,6 +689,11 @@ async function handleFileAccepted(data) {
         console.error('Channel error:', e);
         showToast('Transfer failed');
         hideTransferModal();
+        activeFileTransfer = null;
+    };
+    
+    channel.onclose = () => {
+        activeFileTransfer = null;
     };
 
     pc.onicecandidate = (event) => {
@@ -671,11 +709,18 @@ async function handleFileAccepted(data) {
 
     pc.oniceconnectionstatechange = () => {
         console.log('ICE state:', pc.iceConnectionState);
+        if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+            showToast('Connection failed - try again');
+            hideTransferModal();
+            activeFileTransfer = null;
+        }
     };
 
     // Create and send offer
     const offerDesc = await pc.createOffer();
     await pc.setLocalDescription(offerDesc);
+    
+    console.log('Sending WebRTC offer to', data.from);
 
     await fileTransferRef.push({
         type: 'webrtc-offer',
@@ -691,6 +736,17 @@ let pendingFileIceCandidates = {};
 async function handleWebRTCOffer(data) {
     // Receiver gets WebRTC offer from sender
     console.log('Received WebRTC offer from', data.from);
+    
+    // Check if we already have a connection in progress
+    if (peerConnections[data.from] && peerConnections[data.from].signalingState !== 'closed') {
+        console.log('Already have connection with', data.from, '- state:', peerConnections[data.from].signalingState);
+        return;
+    }
+    
+    // Close any existing connection
+    if (peerConnections[data.from]) {
+        try { peerConnections[data.from].close(); } catch(e) {}
+    }
     
     const pc = new RTCPeerConnection(rtcConfig);
     peerConnections[data.from] = pc;
@@ -774,11 +830,25 @@ async function handleWebRTCAnswer(data) {
     // Sender receives answer from receiver
     console.log('Received WebRTC answer from', data.from);
     const pc = peerConnections[data.from];
-    if (pc) {
+    
+    if (!pc) {
+        console.log('No peer connection for', data.from);
+        return;
+    }
+    
+    // Check if we can accept an answer (must be in have-local-offer state)
+    if (pc.signalingState !== 'have-local-offer') {
+        console.log('Cannot set answer in state:', pc.signalingState);
+        return;
+    }
+    
+    try {
         await pc.setRemoteDescription({ type: 'answer', sdp: data.sdp });
+        console.log('Set remote description successfully');
         
         // Add any buffered ICE candidates
-        if (pendingFileIceCandidates[data.from]) {
+        if (pendingFileIceCandidates[data.from] && pendingFileIceCandidates[data.from].length > 0) {
+            console.log('Adding', pendingFileIceCandidates[data.from].length, 'buffered ICE candidates');
             for (const candidate of pendingFileIceCandidates[data.from]) {
                 try {
                     await pc.addIceCandidate(new RTCIceCandidate(candidate));
@@ -788,6 +858,8 @@ async function handleWebRTCAnswer(data) {
             }
             pendingFileIceCandidates[data.from] = [];
         }
+    } catch (e) {
+        console.error('Failed to set remote description:', e);
     }
 }
 
@@ -1497,11 +1569,23 @@ function setupScreenshare(note) {
             switchView('screenshare');
             updatePlaceholderForViewing(data.sharerName, data.type);
             
+            // Request the sharer to send us an offer
+            console.log('Requesting screenshare offer from', data.sharerId);
+            screenshareRef.child('signals').push({
+                type: 'request-offer',
+                from: myUserId,
+                to: data.sharerId,
+                timestamp: Date.now()
+            });
+            
         } else if (!data && remoteSharerInfo) {
             // Sharing stopped
             hideLiveIndicator();
             remoteSharerInfo = null;
             hideRemoteVideo();
+        } else if (data && data.sharerId === myUserId) {
+            // We are the sharer - show live indicator for ourselves
+            showLiveIndicator(myUserName, data.type);
         }
     });
     
@@ -1510,8 +1594,16 @@ function setupScreenshare(note) {
         const data = snap.val();
         if (!data || data.to !== myUserId) return;
         
+        console.log('Screenshare signal:', data.type, 'from', data.from);
+        
         try {
-            if (data.type === 'offer') {
+            if (data.type === 'request-offer') {
+                // Someone wants us to send them an offer
+                if (isSharing && localStream) {
+                    console.log('Sending offer to requesting user', data.from);
+                    await createScreenShareOffer(data.from);
+                }
+            } else if (data.type === 'offer') {
                 await handleScreenShareOffer(data);
             } else if (data.type === 'answer') {
                 await handleScreenShareAnswer(data);
@@ -1634,10 +1726,23 @@ async function startSharing(type) {
 }
 
 async function createScreenShareOffer(peerId) {
+    console.log('Creating screenshare offer for', peerId);
+    
+    // Close existing connection if any
+    if (screensharePeers[peerId]) {
+        try { screensharePeers[peerId].close(); } catch(e) {}
+    }
+    
     const pc = new RTCPeerConnection(rtcConfig);
     screensharePeers[peerId] = pc;
+    pendingIceCandidates[peerId] = [];
     
     // Add local stream
+    if (!localStream) {
+        console.error('No local stream to share');
+        return;
+    }
+    
     localStream.getTracks().forEach(track => {
         pc.addTrack(track, localStream);
     });
@@ -1654,31 +1759,49 @@ async function createScreenShareOffer(peerId) {
         }
     };
     
-    // Create and send offer
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
+    pc.oniceconnectionstatechange = () => {
+        console.log('Screenshare ICE state for', peerId, ':', pc.iceConnectionState);
+    };
     
-    await screenshareRef.child('signals').push({
-        type: 'offer',
-        from: myUserId,
-        to: peerId,
-        sdp: offer.sdp
-    });
+    // Create and send offer
+    try {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        
+        await screenshareRef.child('signals').push({
+            type: 'offer',
+            from: myUserId,
+            to: peerId,
+            sdp: offer.sdp
+        });
+        console.log('Sent screenshare offer to', peerId);
+    } catch (e) {
+        console.error('Failed to create screenshare offer:', e);
+    }
 }
 
 async function handleScreenShareOffer(data) {
+    console.log('Handling screenshare offer from', data.from);
+    
+    // Close existing connection if any
+    if (screensharePeers[data.from]) {
+        try { screensharePeers[data.from].close(); } catch(e) {}
+    }
+    
     const pc = new RTCPeerConnection(rtcConfig);
     screensharePeers[data.from] = pc;
     pendingIceCandidates[data.from] = [];
     
     // Handle incoming stream
     pc.ontrack = e => {
+        console.log('Received remote track:', e.track.kind);
         const remoteVideo = $('remoteVideo');
         const placeholder = $('screensharePlaceholder');
         
         if (remoteVideo && e.streams[0]) {
             remoteVideo.srcObject = e.streams[0];
             remoteVideo.style.display = 'block';
+            console.log('Set remote video stream');
         }
         if (placeholder) placeholder.style.display = 'none';
     };
@@ -1695,40 +1818,67 @@ async function handleScreenShareOffer(data) {
         }
     };
     
-    // Set remote description and create answer
-    await pc.setRemoteDescription({ type: 'offer', sdp: data.sdp });
+    pc.oniceconnectionstatechange = () => {
+        console.log('Viewer ICE state:', pc.iceConnectionState);
+    };
     
-    // Add any pending ICE candidates
-    if (pendingIceCandidates[data.from]) {
-        for (const candidate of pendingIceCandidates[data.from]) {
-            await pc.addIceCandidate(new RTCIceCandidate(candidate));
-        }
-        pendingIceCandidates[data.from] = [];
-    }
-    
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    
-    await screenshareRef.child('signals').push({
-        type: 'answer',
-        from: myUserId,
-        to: data.from,
-        sdp: answer.sdp
-    });
-}
-
-async function handleScreenShareAnswer(data) {
-    const pc = screensharePeers[data.from];
-    if (pc) {
-        await pc.setRemoteDescription({ type: 'answer', sdp: data.sdp });
+    try {
+        // Set remote description and create answer
+        await pc.setRemoteDescription({ type: 'offer', sdp: data.sdp });
+        console.log('Set remote description from offer');
         
         // Add any pending ICE candidates
-        if (pendingIceCandidates[data.from]) {
+        if (pendingIceCandidates[data.from] && pendingIceCandidates[data.from].length > 0) {
+            console.log('Adding', pendingIceCandidates[data.from].length, 'pending ICE candidates');
             for (const candidate of pendingIceCandidates[data.from]) {
                 await pc.addIceCandidate(new RTCIceCandidate(candidate));
             }
             pendingIceCandidates[data.from] = [];
         }
+        
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        console.log('Created and set local answer');
+        
+        await screenshareRef.child('signals').push({
+            type: 'answer',
+            from: myUserId,
+            to: data.from,
+            sdp: answer.sdp
+        });
+        console.log('Sent answer to', data.from);
+    } catch (e) {
+        console.error('Failed to handle screenshare offer:', e);
+    }
+}
+
+async function handleScreenShareAnswer(data) {
+    console.log('Handling screenshare answer from', data.from);
+    const pc = screensharePeers[data.from];
+    if (!pc) {
+        console.log('No peer connection for', data.from);
+        return;
+    }
+    
+    if (pc.signalingState !== 'have-local-offer') {
+        console.log('Cannot set answer in state:', pc.signalingState);
+        return;
+    }
+    
+    try {
+        await pc.setRemoteDescription({ type: 'answer', sdp: data.sdp });
+        console.log('Set remote description from answer');
+        
+        // Add any pending ICE candidates
+        if (pendingIceCandidates[data.from] && pendingIceCandidates[data.from].length > 0) {
+            console.log('Adding', pendingIceCandidates[data.from].length, 'pending ICE candidates');
+            for (const candidate of pendingIceCandidates[data.from]) {
+                await pc.addIceCandidate(new RTCIceCandidate(candidate));
+            }
+            pendingIceCandidates[data.from] = [];
+        }
+    } catch (e) {
+        console.error('Failed to handle screenshare answer:', e);
     }
 }
 
