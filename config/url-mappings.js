@@ -18,8 +18,8 @@ const urlMappings = {
     'cv': 'res/ArjunChakravarthyResume.pdf',
 
     // GitHub
-    'github': 'https://github.com/arjunchakri',
-    'gh': 'https://github.com/arjunchakri',
+    'github': 'https://github.com/arjunchakri/arjunchakri.github.io',
+    'gh': 'https://github.com/arjunchakri/arjunchakri.github.io',
 
     // Portfolio sections
     'portfolio': '#portfolio',
