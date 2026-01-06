@@ -496,30 +496,53 @@ let expectedFileInfo = null;
 
 const CHUNK_SIZE = 16384; // 16KB chunks for WebRTC
 
+// Helper to log ICE candidate info
+function logIceCandidate(candidate, direction) {
+    if (!candidate) return;
+    const parts = candidate.candidate?.split(' ') || [];
+    const type = parts[7] || 'unknown'; // host, srflx, relay
+    const protocol = parts[2] || 'unknown';
+    console.log(`ICE ${direction}: ${type} (${protocol})`, candidate.candidate?.substring(0, 80));
+}
+
+// WebRTC configuration with multiple TURN server fallbacks
 const rtcConfig = {
     iceServers: [
+        // Google STUN servers
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
         { urls: 'stun:stun2.l.google.com:19302' },
-        { urls: 'stun:stun3.l.google.com:19302' },
-        // Free TURN servers from Open Relay Project
-        { 
-            urls: 'turn:openrelay.metered.ca:80',
-            username: 'openrelayproject',
-            credential: 'openrelayproject'
+        
+        // Metered.ca free TURN servers (more reliable)
+        {
+            urls: 'turn:a.relay.metered.ca:80',
+            username: 'e8dd65c92ae01231e6201be5',
+            credential: 'wC+MN4EH/PFNzj3X'
         },
-        { 
-            urls: 'turn:openrelay.metered.ca:443',
-            username: 'openrelayproject',
-            credential: 'openrelayproject'
+        {
+            urls: 'turn:a.relay.metered.ca:80?transport=tcp',
+            username: 'e8dd65c92ae01231e6201be5',
+            credential: 'wC+MN4EH/PFNzj3X'
         },
-        { 
-            urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-            username: 'openrelayproject',
-            credential: 'openrelayproject'
+        {
+            urls: 'turn:a.relay.metered.ca:443',
+            username: 'e8dd65c92ae01231e6201be5',
+            credential: 'wC+MN4EH/PFNzj3X'
+        },
+        {
+            urls: 'turn:a.relay.metered.ca:443?transport=tcp',
+            username: 'e8dd65c92ae01231e6201be5',
+            credential: 'wC+MN4EH/PFNzj3X'
+        },
+        {
+            urls: 'turns:a.relay.metered.ca:443?transport=tcp',
+            username: 'e8dd65c92ae01231e6201be5',
+            credential: 'wC+MN4EH/PFNzj3X'
         }
     ],
-    iceCandidatePoolSize: 10
+    iceCandidatePoolSize: 10,
+    bundlePolicy: 'max-bundle',
+    rtcpMuxPolicy: 'require'
 };
 
 // Track processed signals to avoid duplicates
@@ -698,6 +721,7 @@ async function handleFileAccepted(data) {
 
     pc.onicecandidate = (event) => {
         if (event.candidate) {
+            logIceCandidate(event.candidate, 'OUT (sender)');
             fileTransferRef.push({
                 type: 'ice',
                 from: myUserId,
@@ -708,12 +732,23 @@ async function handleFileAccepted(data) {
     };
 
     pc.oniceconnectionstatechange = () => {
-        console.log('ICE state:', pc.iceConnectionState);
-        if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
-            showToast('Connection failed - try again');
+        console.log('File transfer ICE state:', pc.iceConnectionState);
+        if (pc.iceConnectionState === 'connected') {
+            console.log('✅ File transfer connection established!');
+        }
+        if (pc.iceConnectionState === 'failed') {
+            console.error('❌ ICE connection failed - may need TURN server');
+            showToast('Connection failed - check network');
             hideTransferModal();
             activeFileTransfer = null;
         }
+        if (pc.iceConnectionState === 'disconnected') {
+            console.warn('⚠️ ICE disconnected - attempting recovery');
+        }
+    };
+    
+    pc.onicegatheringstatechange = () => {
+        console.log('ICE gathering state:', pc.iceGatheringState);
     };
 
     // Create and send offer
@@ -785,6 +820,7 @@ async function handleWebRTCOffer(data) {
 
     pc.onicecandidate = (event) => {
         if (event.candidate) {
+            logIceCandidate(event.candidate, 'OUT (receiver)');
             fileTransferRef.push({
                 type: 'ice',
                 from: myUserId,
@@ -795,7 +831,19 @@ async function handleWebRTCOffer(data) {
     };
     
     pc.oniceconnectionstatechange = () => {
-        console.log('File transfer ICE state:', pc.iceConnectionState);
+        console.log('File transfer ICE state (receiver):', pc.iceConnectionState);
+        if (pc.iceConnectionState === 'connected') {
+            console.log('✅ File transfer connection established (receiver)!');
+        }
+        if (pc.iceConnectionState === 'failed') {
+            console.error('❌ ICE connection failed (receiver)');
+            showToast('Connection failed');
+            hideTransferModal();
+        }
+    };
+    
+    pc.onicegatheringstatechange = () => {
+        console.log('ICE gathering state (receiver):', pc.iceGatheringState);
     };
 
     // Set remote description and create answer
@@ -864,10 +912,13 @@ async function handleWebRTCAnswer(data) {
 }
 
 async function handleIceCandidate(data) {
+    logIceCandidate(data.candidate, 'IN');
+    
     const pc = peerConnections[data.from];
     if (pc && pc.remoteDescription) {
         try {
             await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+            console.log('✅ Added ICE candidate');
         } catch (e) {
             console.warn('Failed to add ICE candidate:', e);
         }
@@ -877,7 +928,7 @@ async function handleIceCandidate(data) {
             pendingFileIceCandidates[data.from] = [];
         }
         pendingFileIceCandidates[data.from].push(data.candidate);
-        console.log('Buffered ICE candidate for', data.from);
+        console.log('📦 Buffered ICE candidate for', data.from);
     }
 }
 
@@ -1750,6 +1801,7 @@ async function createScreenShareOffer(peerId) {
     // ICE candidates
     pc.onicecandidate = e => {
         if (e.candidate) {
+            logIceCandidate(e.candidate, 'OUT (sharer)');
             screenshareRef.child('signals').push({
                 type: 'ice',
                 from: myUserId,
@@ -1761,6 +1813,16 @@ async function createScreenShareOffer(peerId) {
     
     pc.oniceconnectionstatechange = () => {
         console.log('Screenshare ICE state for', peerId, ':', pc.iceConnectionState);
+        if (pc.iceConnectionState === 'connected') {
+            console.log('✅ Screenshare connected to', peerId);
+        }
+        if (pc.iceConnectionState === 'failed') {
+            console.error('❌ Screenshare failed to', peerId);
+        }
+    };
+    
+    pc.onicegatheringstatechange = () => {
+        console.log('Screenshare ICE gathering:', pc.iceGatheringState);
     };
     
     // Create and send offer
@@ -1809,6 +1871,7 @@ async function handleScreenShareOffer(data) {
     // ICE candidates
     pc.onicecandidate = e => {
         if (e.candidate) {
+            logIceCandidate(e.candidate, 'OUT (viewer)');
             screenshareRef.child('signals').push({
                 type: 'ice',
                 from: myUserId,
@@ -1820,6 +1883,17 @@ async function handleScreenShareOffer(data) {
     
     pc.oniceconnectionstatechange = () => {
         console.log('Viewer ICE state:', pc.iceConnectionState);
+        if (pc.iceConnectionState === 'connected') {
+            console.log('✅ Viewer connected to stream!');
+        }
+        if (pc.iceConnectionState === 'failed') {
+            console.error('❌ Viewer connection failed');
+            showToast('Failed to connect to stream');
+        }
+    };
+    
+    pc.onicegatheringstatechange = () => {
+        console.log('Viewer ICE gathering:', pc.iceGatheringState);
     };
     
     try {
@@ -1883,15 +1957,23 @@ async function handleScreenShareAnswer(data) {
 }
 
 async function handleScreenShareIce(data) {
+    logIceCandidate(data.candidate, 'IN (screenshare)');
+    
     const pc = screensharePeers[data.from];
     if (pc && pc.remoteDescription) {
-        await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+        try {
+            await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+            console.log('✅ Added screenshare ICE candidate');
+        } catch (e) {
+            console.warn('Failed to add screenshare ICE:', e);
+        }
     } else {
         // Buffer ICE candidates until remote description is set
         if (!pendingIceCandidates[data.from]) {
             pendingIceCandidates[data.from] = [];
         }
         pendingIceCandidates[data.from].push(data.candidate);
+        console.log('📦 Buffered screenshare ICE candidate');
     }
 }
 
