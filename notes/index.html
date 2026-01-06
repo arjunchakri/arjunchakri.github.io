@@ -125,14 +125,17 @@
                         <span class="tab-icon">📝</span>
                         <span>Code</span>
                     </button>
-                    <button class="view-tab" onclick="switchView('whiteboard')" id="whiteboardTab">
-                        <span class="tab-icon">🎨</span>
-                        <span>Board</span>
-                    </button>
                     <button class="view-tab" onclick="switchView('screenshare')" id="screenshareTab">
                         <span class="tab-icon">🖥️</span>
                         <span>Screen</span>
                     </button>
+                </div>
+                
+                <!-- Live indicator when someone is sharing -->
+                <div class="live-indicator" id="liveIndicator" style="display:none">
+                    <span class="live-dot"></span>
+                    <span class="live-text">LIVE</span>
+                    <span class="live-user" id="liveUser"></span>
                 </div>
                 
                 <div class="online-users" id="onlineUsers"></div>
@@ -225,52 +228,20 @@
             <!-- Code Editor -->
             <div id="monaco-container"></div>
             
-            <!-- Whiteboard -->
-            <div class="whiteboard-container" id="whiteboardContainer">
-                <div class="whiteboard-toolbar">
-                    <div class="tool-group">
-                        <button class="tool-btn active" onclick="setTool('pen')" id="toolPen" title="Pen (P)">✏️</button>
-                        <button class="tool-btn" onclick="setTool('highlighter')" id="toolHighlighter" title="Highlighter (H)">🖍️</button>
-                        <button class="tool-btn" onclick="setTool('eraser')" id="toolEraser" title="Eraser (E)">🧹</button>
-                    </div>
-                    <div class="tool-group">
-                        <button class="tool-btn" onclick="setTool('line')" id="toolLine" title="Line (L)">📏</button>
-                        <button class="tool-btn" onclick="setTool('rect')" id="toolRect" title="Rectangle (R)">⬜</button>
-                        <button class="tool-btn" onclick="setTool('ellipse')" id="toolEllipse" title="Ellipse (O)">⭕</button>
-                        <button class="tool-btn" onclick="setTool('arrow')" id="toolArrow" title="Arrow (A)">➡️</button>
-                        <button class="tool-btn" onclick="setTool('text')" id="toolText" title="Text (T)">📝</button>
-                    </div>
-                    <div class="color-picker-group">
-                        <div class="color-swatch active" style="background:#ffffff" onclick="setColor('#ffffff')"></div>
-                        <div class="color-swatch" style="background:#ff6b6b" onclick="setColor('#ff6b6b')"></div>
-                        <div class="color-swatch" style="background:#4ecdc4" onclick="setColor('#4ecdc4')"></div>
-                        <div class="color-swatch" style="background:#45b7d1" onclick="setColor('#45b7d1')"></div>
-                        <div class="color-swatch" style="background:#96ceb4" onclick="setColor('#96ceb4')"></div>
-                        <div class="color-swatch" style="background:#ffeaa7" onclick="setColor('#ffeaa7')"></div>
-                        <div class="color-swatch" style="background:#a29bfe" onclick="setColor('#a29bfe')"></div>
-                    </div>
-                    <div class="stroke-width-group">
-                        <span class="stroke-width-label">2px</span>
-                        <input type="range" class="stroke-width-slider" id="strokeWidth" min="1" max="20" value="2" oninput="setStrokeWidth(this.value)">
-                    </div>
-                    <div class="tool-group">
-                        <button class="tool-btn" onclick="undoCanvas()" title="Undo (Ctrl+Z)">↩️</button>
-                        <button class="tool-btn" onclick="redoCanvas()" title="Redo (Ctrl+Y)">↪️</button>
-                        <button class="tool-btn" onclick="clearCanvas()" title="Clear All">🗑️</button>
-                    </div>
-                </div>
-                <div class="whiteboard-canvas-wrapper" id="canvasWrapper">
-                    <canvas id="whiteboardCanvas"></canvas>
-                </div>
-            </div>
-            
             <!-- Screenshare -->
             <div class="screenshare-container" id="screenshareContainer">
                 <div class="screenshare-toolbar">
+                    <!-- Desktop: Screen share button -->
                     <button class="screenshare-btn" id="startShareBtn" onclick="startScreenShare()">
                         <span>🖥️</span>
-                        <span>Start Sharing</span>
+                        <span>Share Screen</span>
                     </button>
+                    <!-- Mobile: Camera share button -->
+                    <button class="screenshare-btn camera-btn" id="startCameraBtn" onclick="startCameraShare()">
+                        <span>📷</span>
+                        <span>Share Camera</span>
+                    </button>
+                    <!-- Stop button -->
                     <button class="screenshare-btn stop" id="stopShareBtn" onclick="stopScreenShare()" style="display:none">
                         <span>⏹️</span>
                         <span>Stop Sharing</span>
@@ -279,9 +250,13 @@
                 <div class="screenshare-video-container" id="videoContainer">
                     <div class="screenshare-placeholder" id="screensharePlaceholder">
                         <div class="screenshare-placeholder-icon">🖥️</div>
-                        <div class="screenshare-placeholder-text">Click "Start Sharing" to share your screen</div>
+                        <div class="screenshare-placeholder-text" id="placeholderText">Click to share your screen or camera</div>
+                        <div class="screenshare-placeholder-sub" id="placeholderSub">Other users will see your stream in real-time</div>
                     </div>
-                    <video id="screenshareVideo" autoplay playsinline style="display:none"></video>
+                    <!-- Local preview (when you're sharing) -->
+                    <video id="localVideo" autoplay playsinline muted style="display:none"></video>
+                    <!-- Remote stream (when someone else is sharing) -->
+                    <video id="remoteVideo" autoplay playsinline style="display:none"></video>
                 </div>
             </div>
         </div>

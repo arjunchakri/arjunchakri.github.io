@@ -471,6 +471,16 @@ function cleanupPresence() {
     if (fileTransferRef && myUserId) {
         fileTransferRef.child(myUserId).remove();
     }
+    // Cleanup file transfer peer connections
+    Object.values(peerConnections).forEach(pc => {
+        try { pc.close(); } catch(e) {}
+    });
+    peerConnections = {};
+    // Cleanup screenshare peer connections
+    Object.values(screensharePeers).forEach(pc => {
+        try { pc.close(); } catch(e) {}
+    });
+    screensharePeers = {};
 }
 
 // ==========================================
@@ -489,8 +499,27 @@ const CHUNK_SIZE = 16384; // 16KB chunks for WebRTC
 const rtcConfig = {
     iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-    ]
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        // Free TURN servers from Open Relay Project
+        { 
+            urls: 'turn:openrelay.metered.ca:80',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+        },
+        { 
+            urls: 'turn:openrelay.metered.ca:443',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+        },
+        { 
+            urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+        }
+    ],
+    iceCandidatePoolSize: 10
 };
 
 function setupFileTransfer(note) {
@@ -656,12 +685,16 @@ async function handleFileAccepted(data) {
     });
 }
 
+// Buffer for ICE candidates that arrive before remote description is set
+let pendingFileIceCandidates = {};
+
 async function handleWebRTCOffer(data) {
     // Receiver gets WebRTC offer from sender
-    console.log('Received WebRTC offer');
+    console.log('Received WebRTC offer from', data.from);
     
     const pc = new RTCPeerConnection(rtcConfig);
     peerConnections[data.from] = pc;
+    pendingFileIceCandidates[data.from] = [];
 
     // Handle incoming data channel
     pc.ondatachannel = (event) => {
@@ -704,9 +737,26 @@ async function handleWebRTCOffer(data) {
             });
         }
     };
+    
+    pc.oniceconnectionstatechange = () => {
+        console.log('File transfer ICE state:', pc.iceConnectionState);
+    };
 
     // Set remote description and create answer
     await pc.setRemoteDescription({ type: 'offer', sdp: data.sdp });
+    
+    // Add any buffered ICE candidates
+    if (pendingFileIceCandidates[data.from]) {
+        for (const candidate of pendingFileIceCandidates[data.from]) {
+            try {
+                await pc.addIceCandidate(new RTCIceCandidate(candidate));
+            } catch (e) {
+                console.warn('Failed to add buffered ICE candidate:', e);
+            }
+        }
+        pendingFileIceCandidates[data.from] = [];
+    }
+    
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
 
@@ -716,21 +766,46 @@ async function handleWebRTCOffer(data) {
         to: data.from,
         sdp: answer.sdp
     });
+    
+    console.log('Sent WebRTC answer to', data.from);
 }
 
 async function handleWebRTCAnswer(data) {
     // Sender receives answer from receiver
-    console.log('Received WebRTC answer');
+    console.log('Received WebRTC answer from', data.from);
     const pc = peerConnections[data.from];
     if (pc) {
         await pc.setRemoteDescription({ type: 'answer', sdp: data.sdp });
+        
+        // Add any buffered ICE candidates
+        if (pendingFileIceCandidates[data.from]) {
+            for (const candidate of pendingFileIceCandidates[data.from]) {
+                try {
+                    await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                } catch (e) {
+                    console.warn('Failed to add buffered ICE candidate:', e);
+                }
+            }
+            pendingFileIceCandidates[data.from] = [];
+        }
     }
 }
 
-function handleIceCandidate(data) {
+async function handleIceCandidate(data) {
     const pc = peerConnections[data.from];
-    if (pc && data.candidate) {
-        pc.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(console.error);
+    if (pc && pc.remoteDescription) {
+        try {
+            await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+        } catch (e) {
+            console.warn('Failed to add ICE candidate:', e);
+        }
+    } else {
+        // Buffer the ICE candidate until remote description is set
+        if (!pendingFileIceCandidates[data.from]) {
+            pendingFileIceCandidates[data.from] = [];
+        }
+        pendingFileIceCandidates[data.from].push(data.candidate);
+        console.log('Buffered ICE candidate for', data.from);
     }
 }
 
@@ -1050,6 +1125,9 @@ async function connectToNote(noteName) {
         try {
             setupFileTransfer(noteName);
         } catch (e) { console.warn('File transfer setup failed:', e); }
+        try {
+            setupScreenshare(noteName);
+        } catch (e) { console.warn('Screenshare setup failed:', e); }
         await wait(200);
         completeBootStep('boot-collab', 90);
 
@@ -1382,17 +1460,10 @@ function switchView(view) {
     
     // Update containers
     const monacoContainer = $('monaco-container');
-    const whiteboardContainer = $('whiteboardContainer');
     const screenshareContainer = $('screenshareContainer');
     
     if (monacoContainer) monacoContainer.style.display = view === 'code' ? 'block' : 'none';
-    if (whiteboardContainer) whiteboardContainer.classList.toggle('active', view === 'whiteboard');
     if (screenshareContainer) screenshareContainer.classList.toggle('active', view === 'screenshare');
-    
-    // Initialize whiteboard if needed
-    if (view === 'whiteboard' && !whiteboardInitialized) {
-        initWhiteboard();
-    }
     
     // Focus editor if code view
     if (view === 'code' && editor) {
@@ -1401,577 +1472,106 @@ function switchView(view) {
 }
 
 // ==========================================
-// Whiteboard (Coding Board)
+// Screenshare & Camera Share (WebRTC)
 // ==========================================
-let whiteboardInitialized = false;
-let canvas, ctx;
-let isDrawing = false;
-let currentTool = 'pen';
-let currentColor = '#ffffff';
-let currentStrokeWidth = 2;
-let paths = [];
-let currentPath = null;
-let undoStack = [];
-let redoStack = [];
-let startX, startY;
-let shapePreview = null;
-
-// Smooth stroke settings using perfect-freehand algorithm concepts
-const smoothing = 0.5;
-const thinning = 0.5;
-const streamline = 0.5;
-
-function initWhiteboard() {
-    canvas = $('whiteboardCanvas');
-    if (!canvas) return;
-    
-    ctx = canvas.getContext('2d');
-    whiteboardInitialized = true;
-    
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-    
-    // Mouse events
-    canvas.addEventListener('mousedown', handlePointerDown);
-    canvas.addEventListener('mousemove', handlePointerMove);
-    canvas.addEventListener('mouseup', handlePointerUp);
-    canvas.addEventListener('mouseleave', handlePointerUp);
-    
-    // Touch events (Apple Pencil support)
-    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-    canvas.addEventListener('touchend', handleTouchEnd);
-    canvas.addEventListener('touchcancel', handleTouchEnd);
-    
-    // Pointer events for pressure sensitivity
-    canvas.addEventListener('pointerdown', handlePointerDown);
-    canvas.addEventListener('pointermove', handlePointerMove);
-    canvas.addEventListener('pointerup', handlePointerUp);
-    
-    // Load saved whiteboard data
-    loadWhiteboardData();
-}
-
-function resizeCanvas() {
-    const wrapper = $('canvasWrapper');
-    if (!wrapper || !canvas) return;
-    
-    const rect = wrapper.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    canvas.style.width = rect.width + 'px';
-    canvas.style.height = rect.height + 'px';
-    
-    ctx.scale(dpr, dpr);
-    redrawCanvas();
-}
-
-function handleTouchStart(e) {
-    e.preventDefault();
-    const touch = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    handlePointerDown({
-        clientX: touch.clientX,
-        clientY: touch.clientY,
-        pressure: touch.force || 0.5,
-        target: canvas
-    });
-}
-
-function handleTouchMove(e) {
-    e.preventDefault();
-    const touch = e.touches[0];
-    handlePointerMove({
-        clientX: touch.clientX,
-        clientY: touch.clientY,
-        pressure: touch.force || 0.5,
-        buttons: 1
-    });
-}
-
-function handleTouchEnd(e) {
-    handlePointerUp(e);
-}
-
-function handlePointerDown(e) {
-    if (e.target !== canvas) return;
-    
-    isDrawing = true;
-    const rect = canvas.getBoundingClientRect();
-    startX = e.clientX - rect.left;
-    startY = e.clientY - rect.top;
-    
-    const pressure = e.pressure || 0.5;
-    
-    if (currentTool === 'pen' || currentTool === 'highlighter' || currentTool === 'eraser') {
-        currentPath = {
-            tool: currentTool,
-            color: currentTool === 'eraser' ? '#1a1a2e' : currentColor,
-            width: currentTool === 'eraser' ? currentStrokeWidth * 5 : currentStrokeWidth,
-            opacity: currentTool === 'highlighter' ? 0.4 : 1,
-            points: [{ x: startX, y: startY, pressure }]
-        };
-    } else {
-        // Shape tools
-        currentPath = {
-            tool: currentTool,
-            color: currentColor,
-            width: currentStrokeWidth,
-            startX, startY,
-            endX: startX,
-            endY: startY
-        };
-    }
-}
-
-function handlePointerMove(e) {
-    if (!isDrawing || !currentPath) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const pressure = e.pressure || 0.5;
-    
-    if (currentTool === 'pen' || currentTool === 'highlighter' || currentTool === 'eraser') {
-        currentPath.points.push({ x, y, pressure });
-        drawSmoothPath(currentPath);
-    } else {
-        // Shape preview
-        currentPath.endX = x;
-        currentPath.endY = y;
-        redrawCanvas();
-        drawShape(currentPath, true);
-    }
-}
-
-function handlePointerUp(e) {
-    if (!isDrawing) return;
-    isDrawing = false;
-    
-    if (currentPath) {
-        // Shape recognition for freehand drawings
-        if ((currentTool === 'pen') && currentPath.points && currentPath.points.length > 10) {
-            const recognizedShape = recognizeShape(currentPath.points);
-            if (recognizedShape) {
-                currentPath = recognizedShape;
-            }
-        }
-        
-        paths.push(currentPath);
-        undoStack.push([...paths]);
-        redoStack = [];
-        saveWhiteboardData();
-    }
-    
-    currentPath = null;
-    redrawCanvas();
-}
-
-function drawSmoothPath(path) {
-    if (!path.points || path.points.length < 2) return;
-    
-    redrawCanvas();
-    
-    ctx.save();
-    ctx.globalAlpha = path.opacity || 1;
-    ctx.strokeStyle = path.color;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    
-    // Draw smooth curve using quadratic bezier
-    ctx.beginPath();
-    ctx.moveTo(path.points[0].x, path.points[0].y);
-    
-    for (let i = 1; i < path.points.length - 1; i++) {
-        const p0 = path.points[i - 1];
-        const p1 = path.points[i];
-        const p2 = path.points[i + 1];
-        
-        // Variable width based on pressure
-        const width = path.width * (0.5 + p1.pressure * 0.5);
-        ctx.lineWidth = width;
-        
-        // Smooth curve
-        const mx = (p1.x + p2.x) / 2;
-        const my = (p1.y + p2.y) / 2;
-        ctx.quadraticCurveTo(p1.x, p1.y, mx, my);
-    }
-    
-    // Last point
-    const lastPoint = path.points[path.points.length - 1];
-    ctx.lineTo(lastPoint.x, lastPoint.y);
-    ctx.stroke();
-    ctx.restore();
-}
-
-function drawShape(shape, isPreview = false) {
-    ctx.save();
-    ctx.strokeStyle = shape.color;
-    ctx.lineWidth = shape.width;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    
-    if (isPreview) {
-        ctx.setLineDash([5, 5]);
-        ctx.globalAlpha = 0.7;
-    }
-    
-    const { startX, startY, endX, endY } = shape;
-    
-    ctx.beginPath();
-    
-    switch (shape.tool) {
-        case 'line':
-            ctx.moveTo(startX, startY);
-            ctx.lineTo(endX, endY);
-            break;
-            
-        case 'rect':
-            ctx.rect(startX, startY, endX - startX, endY - startY);
-            break;
-            
-        case 'ellipse':
-            const radiusX = Math.abs(endX - startX) / 2;
-            const radiusY = Math.abs(endY - startY) / 2;
-            const centerX = startX + (endX - startX) / 2;
-            const centerY = startY + (endY - startY) / 2;
-            ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
-            break;
-            
-        case 'arrow':
-            drawArrow(ctx, startX, startY, endX, endY);
-            break;
-            
-        case 'recognized-rect':
-            ctx.rect(shape.x, shape.y, shape.width, shape.height);
-            break;
-            
-        case 'recognized-ellipse':
-            ctx.ellipse(shape.centerX, shape.centerY, shape.radiusX, shape.radiusY, 0, 0, Math.PI * 2);
-            break;
-            
-        case 'recognized-line':
-            ctx.moveTo(shape.x1, shape.y1);
-            ctx.lineTo(shape.x2, shape.y2);
-            break;
-    }
-    
-    ctx.stroke();
-    ctx.restore();
-}
-
-function drawArrow(ctx, x1, y1, x2, y2) {
-    const headLength = 15;
-    const angle = Math.atan2(y2 - y1, x2 - x1);
-    
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.moveTo(x2, y2);
-    ctx.lineTo(x2 - headLength * Math.cos(angle - Math.PI / 6), y2 - headLength * Math.sin(angle - Math.PI / 6));
-    ctx.moveTo(x2, y2);
-    ctx.lineTo(x2 - headLength * Math.cos(angle + Math.PI / 6), y2 - headLength * Math.sin(angle + Math.PI / 6));
-}
-
-// Shape recognition for auto-correction
-function recognizeShape(points) {
-    if (points.length < 10) return null;
-    
-    const bounds = getBounds(points);
-    const aspectRatio = bounds.width / bounds.height;
-    const closed = isShapeClosed(points);
-    const corners = detectCorners(points);
-    
-    // Check if it's roughly a rectangle (4 corners, closed)
-    if (closed && corners.length >= 3 && corners.length <= 5) {
-        if (aspectRatio > 0.7 && aspectRatio < 1.4) {
-            // Square-ish
-            const size = Math.max(bounds.width, bounds.height);
-            return {
-                tool: 'recognized-rect',
-                color: currentColor,
-                width: currentStrokeWidth,
-                x: bounds.minX,
-                y: bounds.minY,
-                width: size,
-                height: size
-            };
-        } else {
-            // Rectangle
-            return {
-                tool: 'recognized-rect',
-                color: currentColor,
-                width: currentStrokeWidth,
-                x: bounds.minX,
-                y: bounds.minY,
-                width: bounds.width,
-                height: bounds.height
-            };
-        }
-    }
-    
-    // Check if it's roughly a circle/ellipse (closed, smooth, no corners)
-    if (closed && corners.length <= 2) {
-        const circularity = calculateCircularity(points, bounds);
-        if (circularity > 0.7) {
-            return {
-                tool: 'recognized-ellipse',
-                color: currentColor,
-                width: currentStrokeWidth,
-                centerX: bounds.minX + bounds.width / 2,
-                centerY: bounds.minY + bounds.height / 2,
-                radiusX: bounds.width / 2,
-                radiusY: bounds.height / 2
-            };
-        }
-    }
-    
-    // Check if it's a straight line
-    if (!closed && isLineShape(points)) {
-        return {
-            tool: 'recognized-line',
-            color: currentColor,
-            width: currentStrokeWidth,
-            x1: points[0].x,
-            y1: points[0].y,
-            x2: points[points.length - 1].x,
-            y2: points[points.length - 1].y
-        };
-    }
-    
-    return null;
-}
-
-function getBounds(points) {
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    points.forEach(p => {
-        minX = Math.min(minX, p.x);
-        minY = Math.min(minY, p.y);
-        maxX = Math.max(maxX, p.x);
-        maxY = Math.max(maxY, p.y);
-    });
-    return { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
-}
-
-function isShapeClosed(points) {
-    if (points.length < 10) return false;
-    const first = points[0];
-    const last = points[points.length - 1];
-    const dist = Math.sqrt(Math.pow(last.x - first.x, 2) + Math.pow(last.y - first.y, 2));
-    const bounds = getBounds(points);
-    const threshold = Math.min(bounds.width, bounds.height) * 0.2;
-    return dist < threshold;
-}
-
-function detectCorners(points) {
-    const corners = [];
-    const threshold = 30; // degrees
-    
-    for (let i = 2; i < points.length - 2; i++) {
-        const p1 = points[i - 2];
-        const p2 = points[i];
-        const p3 = points[i + 2];
-        
-        const angle1 = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-        const angle2 = Math.atan2(p3.y - p2.y, p3.x - p2.x);
-        let angleDiff = Math.abs(angle2 - angle1) * 180 / Math.PI;
-        
-        if (angleDiff > 180) angleDiff = 360 - angleDiff;
-        
-        if (angleDiff > threshold) {
-            corners.push(i);
-            i += 5; // Skip nearby points
-        }
-    }
-    
-    return corners;
-}
-
-function calculateCircularity(points, bounds) {
-    const centerX = bounds.minX + bounds.width / 2;
-    const centerY = bounds.minY + bounds.height / 2;
-    const avgRadius = (bounds.width + bounds.height) / 4;
-    
-    let variance = 0;
-    points.forEach(p => {
-        const dist = Math.sqrt(Math.pow(p.x - centerX, 2) + Math.pow(p.y - centerY, 2));
-        variance += Math.pow(dist - avgRadius, 2);
-    });
-    variance /= points.length;
-    
-    return 1 - Math.min(1, variance / (avgRadius * avgRadius));
-}
-
-function isLineShape(points) {
-    if (points.length < 5) return false;
-    
-    const first = points[0];
-    const last = points[points.length - 1];
-    const lineLength = Math.sqrt(Math.pow(last.x - first.x, 2) + Math.pow(last.y - first.y, 2));
-    
-    if (lineLength < 30) return false;
-    
-    // Check if all points are close to the line
-    let totalDeviation = 0;
-    points.forEach(p => {
-        const dist = pointToLineDistance(p, first, last);
-        totalDeviation += dist;
-    });
-    
-    const avgDeviation = totalDeviation / points.length;
-    return avgDeviation < lineLength * 0.1;
-}
-
-function pointToLineDistance(point, lineStart, lineEnd) {
-    const A = point.x - lineStart.x;
-    const B = point.y - lineStart.y;
-    const C = lineEnd.x - lineStart.x;
-    const D = lineEnd.y - lineStart.y;
-    
-    const dot = A * C + B * D;
-    const lenSq = C * C + D * D;
-    let param = -1;
-    
-    if (lenSq !== 0) param = dot / lenSq;
-    
-    let xx, yy;
-    
-    if (param < 0) {
-        xx = lineStart.x;
-        yy = lineStart.y;
-    } else if (param > 1) {
-        xx = lineEnd.x;
-        yy = lineEnd.y;
-    } else {
-        xx = lineStart.x + param * C;
-        yy = lineStart.y + param * D;
-    }
-    
-    return Math.sqrt(Math.pow(point.x - xx, 2) + Math.pow(point.y - yy, 2));
-}
-
-function redrawCanvas() {
-    if (!ctx || !canvas) return;
-    
-    const wrapper = $('canvasWrapper');
-    if (!wrapper) return;
-    
-    ctx.clearRect(0, 0, wrapper.offsetWidth, wrapper.offsetHeight);
-    
-    paths.forEach(path => {
-        if (path.points) {
-            drawSmoothPath(path);
-        } else {
-            drawShape(path);
-        }
-    });
-}
-
-function setTool(tool) {
-    currentTool = tool;
-    document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
-    $(`tool${tool.charAt(0).toUpperCase() + tool.slice(1)}`)?.classList.add('active');
-    
-    // Update cursor
-    if (canvas) {
-        canvas.style.cursor = tool === 'eraser' ? 'cell' : 'crosshair';
-    }
-}
-
-function setColor(color) {
-    currentColor = color;
-    document.querySelectorAll('.color-swatch').forEach(swatch => {
-        swatch.classList.toggle('active', swatch.style.background === color);
-    });
-}
-
-function setStrokeWidth(width) {
-    currentStrokeWidth = parseInt(width);
-    const label = document.querySelector('.stroke-width-label');
-    if (label) label.textContent = width + 'px';
-}
-
-function undoCanvas() {
-    if (paths.length > 0) {
-        redoStack.push(paths.pop());
-        redrawCanvas();
-        saveWhiteboardData();
-    }
-}
-
-function redoCanvas() {
-    if (redoStack.length > 0) {
-        paths.push(redoStack.pop());
-        redrawCanvas();
-        saveWhiteboardData();
-    }
-}
-
-function clearCanvas() {
-    if (paths.length > 0 && confirm('Clear the entire whiteboard?')) {
-        undoStack.push([...paths]);
-        paths = [];
-        redrawCanvas();
-        saveWhiteboardData();
-    }
-}
-
-function saveWhiteboardData() {
-    if (!currentNote) return;
-    db.ref(`whiteboards/${sanitize(currentNote)}`).set({
-        paths: JSON.stringify(paths),
-        updatedAt: Date.now()
-    });
-}
-
-function loadWhiteboardData() {
-    if (!currentNote) return;
-    db.ref(`whiteboards/${sanitize(currentNote)}`).on('value', snap => {
-        const data = snap.val();
-        if (data && data.paths) {
-            try {
-                paths = JSON.parse(data.paths);
-                redrawCanvas();
-            } catch (e) {
-                console.error('Failed to load whiteboard:', e);
-            }
-        }
-    });
-}
-
-// ==========================================
-// Screenshare
-// ==========================================
-let screenStream = null;
+let localStream = null;
 let isSharing = false;
+let screenshareRef = null;
+let screensharePeers = {};
+let remoteSharerInfo = null;
+let pendingIceCandidates = {};
+
+// Setup screenshare signaling
+function setupScreenshare(note) {
+    screenshareRef = db.ref(`screenshare/${sanitize(note)}`);
+    
+    // Listen for screenshare status changes
+    screenshareRef.child('active').on('value', snap => {
+        const data = snap.val();
+        if (data && data.sharerId !== myUserId) {
+            // Someone else is sharing
+            remoteSharerInfo = data;
+            showLiveIndicator(data.sharerName, data.type);
+            
+            // Auto-switch to screenshare view
+            switchView('screenshare');
+            updatePlaceholderForViewing(data.sharerName, data.type);
+            
+        } else if (!data && remoteSharerInfo) {
+            // Sharing stopped
+            hideLiveIndicator();
+            remoteSharerInfo = null;
+            hideRemoteVideo();
+        }
+    });
+    
+    // Listen for WebRTC signaling
+    screenshareRef.child('signals').on('child_added', async snap => {
+        const data = snap.val();
+        if (!data || data.to !== myUserId) return;
+        
+        try {
+            if (data.type === 'offer') {
+                await handleScreenShareOffer(data);
+            } else if (data.type === 'answer') {
+                await handleScreenShareAnswer(data);
+            } else if (data.type === 'ice') {
+                await handleScreenShareIce(data);
+            }
+        } catch (e) {
+            console.error('Screenshare signal error:', e);
+        }
+        
+        snap.ref.remove();
+    });
+}
+
+function showLiveIndicator(name, type) {
+    const indicator = $('liveIndicator');
+    const userEl = $('liveUser');
+    if (indicator) {
+        indicator.style.display = 'flex';
+        if (userEl) userEl.textContent = `• ${name} (${type === 'camera' ? '📷' : '🖥️'})`;
+    }
+}
+
+function hideLiveIndicator() {
+    const indicator = $('liveIndicator');
+    if (indicator) indicator.style.display = 'none';
+}
+
+function updatePlaceholderForViewing(name, type) {
+    const placeholder = $('screensharePlaceholder');
+    const text = $('placeholderText');
+    const sub = $('placeholderSub');
+    const icon = document.querySelector('.screenshare-placeholder-icon');
+    
+    if (placeholder) placeholder.style.display = 'flex';
+    if (icon) icon.textContent = '⏳';
+    if (text) text.textContent = `Connecting to ${name}'s ${type === 'camera' ? 'camera' : 'screen'}...`;
+    if (sub) sub.textContent = 'Please wait while the connection is established';
+}
+
+function resetPlaceholder() {
+    const placeholder = $('screensharePlaceholder');
+    const text = $('placeholderText');
+    const sub = $('placeholderSub');
+    const icon = document.querySelector('.screenshare-placeholder-icon');
+    
+    if (placeholder) placeholder.style.display = 'flex';
+    if (icon) icon.textContent = '🖥️';
+    if (text) text.textContent = 'Click to share your screen or camera';
+    if (sub) sub.textContent = 'Other users will see your stream in real-time';
+}
 
 async function startScreenShare() {
     try {
-        screenStream = await navigator.mediaDevices.getDisplayMedia({
+        localStream = await navigator.mediaDevices.getDisplayMedia({
             video: { cursor: 'always' },
             audio: false
         });
         
-        const video = $('screenshareVideo');
-        const placeholder = $('screensharePlaceholder');
-        
-        video.srcObject = screenStream;
-        video.style.display = 'block';
-        placeholder.style.display = 'none';
-        
-        $('startShareBtn').style.display = 'none';
-        $('stopShareBtn').style.display = 'flex';
-        
-        isSharing = true;
-        
-        // Handle stream ending (user clicks stop in browser UI)
-        screenStream.getVideoTracks()[0].onended = () => {
-            stopScreenShare();
-        };
-        
-        showToast('Screen sharing started');
-        
+        await startSharing('screen');
     } catch (err) {
         console.error('Screen share failed:', err);
         if (err.name !== 'AbortError') {
@@ -1980,24 +1580,213 @@ async function startScreenShare() {
     }
 }
 
-function stopScreenShare() {
-    if (screenStream) {
-        screenStream.getTracks().forEach(track => track.stop());
-        screenStream = null;
+async function startCameraShare() {
+    try {
+        localStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: false
+        });
+        
+        await startSharing('camera');
+    } catch (err) {
+        console.error('Camera share failed:', err);
+        showToast('Failed to access camera');
     }
-    
-    const video = $('screenshareVideo');
+}
+
+async function startSharing(type) {
+    // Show local preview
+    const localVideo = $('localVideo');
     const placeholder = $('screensharePlaceholder');
     
-    video.srcObject = null;
-    video.style.display = 'none';
-    placeholder.style.display = 'flex';
+    if (localVideo) {
+        localVideo.srcObject = localStream;
+        localVideo.style.display = 'block';
+    }
+    if (placeholder) placeholder.style.display = 'none';
     
-    $('startShareBtn').style.display = 'flex';
-    $('stopShareBtn').style.display = 'none';
+    // Update UI
+    $('startShareBtn')?.style && ($('startShareBtn').style.display = 'none');
+    $('startCameraBtn')?.style && ($('startCameraBtn').style.display = 'none');
+    $('stopShareBtn')?.style && ($('stopShareBtn').style.display = 'flex');
     
+    isSharing = true;
+    
+    // Broadcast that we're sharing
+    await screenshareRef.child('active').set({
+        sharerId: myUserId,
+        sharerName: myUserName,
+        type: type,
+        startedAt: Date.now()
+    });
+    
+    showLiveIndicator(myUserName, type);
+    
+    // Handle stream ending
+    localStream.getVideoTracks()[0].onended = () => stopScreenShare();
+    
+    // Send offer to all online users
+    Object.keys(collaborators).forEach(peerId => {
+        createScreenShareOffer(peerId);
+    });
+    
+    showToast(`${type === 'camera' ? 'Camera' : 'Screen'} sharing started`);
+}
+
+async function createScreenShareOffer(peerId) {
+    const pc = new RTCPeerConnection(rtcConfig);
+    screensharePeers[peerId] = pc;
+    
+    // Add local stream
+    localStream.getTracks().forEach(track => {
+        pc.addTrack(track, localStream);
+    });
+    
+    // ICE candidates
+    pc.onicecandidate = e => {
+        if (e.candidate) {
+            screenshareRef.child('signals').push({
+                type: 'ice',
+                from: myUserId,
+                to: peerId,
+                candidate: e.candidate.toJSON()
+            });
+        }
+    };
+    
+    // Create and send offer
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    
+    await screenshareRef.child('signals').push({
+        type: 'offer',
+        from: myUserId,
+        to: peerId,
+        sdp: offer.sdp
+    });
+}
+
+async function handleScreenShareOffer(data) {
+    const pc = new RTCPeerConnection(rtcConfig);
+    screensharePeers[data.from] = pc;
+    pendingIceCandidates[data.from] = [];
+    
+    // Handle incoming stream
+    pc.ontrack = e => {
+        const remoteVideo = $('remoteVideo');
+        const placeholder = $('screensharePlaceholder');
+        
+        if (remoteVideo && e.streams[0]) {
+            remoteVideo.srcObject = e.streams[0];
+            remoteVideo.style.display = 'block';
+        }
+        if (placeholder) placeholder.style.display = 'none';
+    };
+    
+    // ICE candidates
+    pc.onicecandidate = e => {
+        if (e.candidate) {
+            screenshareRef.child('signals').push({
+                type: 'ice',
+                from: myUserId,
+                to: data.from,
+                candidate: e.candidate.toJSON()
+            });
+        }
+    };
+    
+    // Set remote description and create answer
+    await pc.setRemoteDescription({ type: 'offer', sdp: data.sdp });
+    
+    // Add any pending ICE candidates
+    if (pendingIceCandidates[data.from]) {
+        for (const candidate of pendingIceCandidates[data.from]) {
+            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+        pendingIceCandidates[data.from] = [];
+    }
+    
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    
+    await screenshareRef.child('signals').push({
+        type: 'answer',
+        from: myUserId,
+        to: data.from,
+        sdp: answer.sdp
+    });
+}
+
+async function handleScreenShareAnswer(data) {
+    const pc = screensharePeers[data.from];
+    if (pc) {
+        await pc.setRemoteDescription({ type: 'answer', sdp: data.sdp });
+        
+        // Add any pending ICE candidates
+        if (pendingIceCandidates[data.from]) {
+            for (const candidate of pendingIceCandidates[data.from]) {
+                await pc.addIceCandidate(new RTCIceCandidate(candidate));
+            }
+            pendingIceCandidates[data.from] = [];
+        }
+    }
+}
+
+async function handleScreenShareIce(data) {
+    const pc = screensharePeers[data.from];
+    if (pc && pc.remoteDescription) {
+        await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+    } else {
+        // Buffer ICE candidates until remote description is set
+        if (!pendingIceCandidates[data.from]) {
+            pendingIceCandidates[data.from] = [];
+        }
+        pendingIceCandidates[data.from].push(data.candidate);
+    }
+}
+
+function hideRemoteVideo() {
+    const remoteVideo = $('remoteVideo');
+    if (remoteVideo) {
+        remoteVideo.srcObject = null;
+        remoteVideo.style.display = 'none';
+    }
+    resetPlaceholder();
+}
+
+async function stopScreenShare() {
+    // Stop local stream
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+    }
+    
+    // Close all peer connections
+    Object.values(screensharePeers).forEach(pc => pc.close());
+    screensharePeers = {};
+    
+    // Update UI
+    const localVideo = $('localVideo');
+    if (localVideo) {
+        localVideo.srcObject = null;
+        localVideo.style.display = 'none';
+    }
+    
+    resetPlaceholder();
+    
+    $('startShareBtn')?.style && ($('startShareBtn').style.display = 'flex');
+    $('startCameraBtn')?.style && ($('startCameraBtn').style.display = 'flex');
+    $('stopShareBtn')?.style && ($('stopShareBtn').style.display = 'none');
+    
+    // Clear Firebase
+    if (isSharing && screenshareRef) {
+        await screenshareRef.child('active').remove();
+    }
+    
+    hideLiveIndicator();
     isSharing = false;
-    showToast('Screen sharing stopped');
+    
+    showToast('Sharing stopped');
 }
 
 // ==========================================
@@ -2025,22 +1814,6 @@ document.addEventListener('keydown', e => {
         closeAllDropdowns();
     }
     
-    // Whiteboard shortcuts
-    if (currentView === 'whiteboard') {
-        if (e.ctrlKey || e.metaKey) {
-            if (e.key === 'z') { e.preventDefault(); undoCanvas(); }
-            if (e.key === 'y') { e.preventDefault(); redoCanvas(); }
-        } else {
-            if (e.key === 'p') setTool('pen');
-            if (e.key === 'h') setTool('highlighter');
-            if (e.key === 'e') setTool('eraser');
-            if (e.key === 'l') setTool('line');
-            if (e.key === 'r') setTool('rect');
-            if (e.key === 'o') setTool('ellipse');
-            if (e.key === 'a') setTool('arrow');
-            if (e.key === 't') setTool('text');
-        }
-    }
 });
 
 document.addEventListener('click', e => {

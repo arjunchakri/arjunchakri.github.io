@@ -1064,124 +1064,46 @@ body::before {
     font-size: 12px;
 }
 
-/* ====================== WHITEBOARD ====================== */
-.whiteboard-container {
-    flex: 1;
-    display: none;
-    flex-direction: column;
-    background: var(--bg-primary);
-    position: relative;
-}
-.whiteboard-container.active {
-    display: flex;
-}
-
-.whiteboard-toolbar {
+/* ====================== LIVE INDICATOR ====================== */
+.live-indicator {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border);
-    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 12px;
+    background: rgba(248, 113, 113, 0.15);
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    border-radius: 20px;
+    margin-left: 12px;
+    animation: liveGlow 2s ease-in-out infinite;
 }
-
-.tool-group {
-    display: flex;
-    gap: 4px;
-    padding: 4px;
-    background: var(--bg-tertiary);
-    border-radius: 8px;
+@keyframes liveGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(248, 113, 113, 0); }
 }
-
-.tool-btn {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    border-radius: 6px;
-    color: var(--text-muted);
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.15s;
-}
-.tool-btn:hover {
-    background: var(--bg-secondary);
-    color: var(--text);
-}
-.tool-btn.active {
-    background: var(--accent);
-    color: white;
-}
-
-.color-picker-group {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-.color-swatch {
-    width: 24px;
-    height: 24px;
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--red);
     border-radius: 50%;
-    border: 2px solid var(--border);
-    cursor: pointer;
-    transition: all 0.15s;
+    animation: livePulse 1s ease-in-out infinite;
 }
-.color-swatch:hover {
-    transform: scale(1.1);
+@keyframes livePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
 }
-.color-swatch.active {
-    border-color: var(--text);
-    box-shadow: 0 0 0 2px var(--accent);
+.live-text {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--red);
+    letter-spacing: 1px;
 }
-
-.stroke-width-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0 8px;
-}
-.stroke-width-slider {
-    width: 80px;
-    height: 4px;
-    -webkit-appearance: none;
-    background: var(--bg-tertiary);
-    border-radius: 2px;
-    cursor: pointer;
-}
-.stroke-width-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 14px;
-    height: 14px;
-    background: var(--accent);
-    border-radius: 50%;
-    cursor: pointer;
-}
-.stroke-width-label {
+.live-user {
     font-size: 10px;
     color: var(--text-muted);
-    min-width: 24px;
-}
-
-.whiteboard-canvas-wrapper {
-    flex: 1;
-    position: relative;
+    max-width: 100px;
     overflow: hidden;
-    background: #1a1a2e;
-    background-image: 
-        radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0);
-    background-size: 24px 24px;
-}
-
-#whiteboardCanvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    touch-action: none;
-    cursor: crosshair;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* ====================== SCREENSHARE ====================== */
@@ -1222,6 +1144,7 @@ body::before {
 }
 .screenshare-btn:hover {
     filter: brightness(1.1);
+    transform: translateY(-1px);
 }
 .screenshare-btn.stop {
     background: var(--red);
@@ -1230,6 +1153,22 @@ body::before {
     opacity: 0.5;
     cursor: not-allowed;
 }
+.screenshare-btn.camera-btn {
+    background: var(--green);
+}
+
+/* Hide screen share on mobile, show camera instead */
+@media (max-width: 768px), (pointer: coarse) {
+    #startShareBtn {
+        display: none !important;
+    }
+}
+/* Hide camera on desktop */
+@media (min-width: 769px) and (pointer: fine) {
+    #startCameraBtn {
+        display: none !important;
+    }
+}
 
 .screenshare-video-container {
     flex: 1;
@@ -1237,37 +1176,63 @@ body::before {
     align-items: center;
     justify-content: center;
     padding: 16px;
-    background: #000;
+    background: linear-gradient(135deg, #0a0a12 0%, #1a1a2e 100%);
+    position: relative;
 }
 
-#screenshareVideo {
+#localVideo, #remoteVideo {
     max-width: 100%;
     max-height: 100%;
-    border-radius: 8px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+/* Watching indicator overlay */
+.watching-overlay {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(0,0,0,0.7);
+    border-radius: 20px;
+    backdrop-filter: blur(8px);
+}
+.watching-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--red);
+    border-radius: 50%;
+    animation: livePulse 1s ease-in-out infinite;
+}
+.watching-text {
+    font-size: 11px;
+    color: white;
+    font-weight: 500;
 }
 
 .screenshare-placeholder {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     color: var(--text-muted);
+    text-align: center;
+    padding: 20px;
 }
 .screenshare-placeholder-icon {
     font-size: 64px;
     opacity: 0.3;
 }
 .screenshare-placeholder-text {
-    font-size: 14px;
+    font-size: 15px;
+    color: var(--text);
 }
-
-/* Whiteboard shape preview */
-.shape-preview {
-    position: absolute;
-    pointer-events: none;
-    border: 2px dashed var(--accent);
-    background: rgba(88, 166, 255, 0.1);
+.screenshare-placeholder-sub {
+    font-size: 12px;
+    opacity: 0.6;
 }
 
 /* Mobile */
@@ -1277,8 +1242,9 @@ body::before {
     .online-users { display: none; }
     .user-badge .user-name { display: none; }
     .dropdown-menu { right: -20px; min-width: 200px; }
-    .view-tabs { display: none; }
-    .whiteboard-toolbar { gap: 4px; padding: 6px; }
-    .tool-btn { width: 32px; height: 32px; font-size: 14px; }
+    .view-tabs { margin-left: 8px; }
+    .view-tab span:not(.tab-icon) { display: none; }
+    .live-indicator { margin-left: 8px; padding: 4px 8px; }
+    .live-user { display: none; }
 }
 
