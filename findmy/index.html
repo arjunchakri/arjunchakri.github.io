@@ -375,6 +375,28 @@
         .center-fab:hover { border-color: var(--accent); }
         .center-fab svg { stroke: var(--accent); }
         
+        /* Fit All FAB */
+        .fit-all-fab {
+            position: fixed;
+            bottom: 240px;
+            right: 20px;
+            z-index: 100;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .fit-all-fab:hover { border-color: var(--success); }
+        .fit-all-fab svg { stroke: var(--success); }
+        
         /* Bottom Sheet */
         .bottom-sheet {
             position: fixed;
@@ -551,9 +573,51 @@
             to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
         
-        /* Google Maps custom styles */
-        .gm-style-cc, .gm-style a[href^="https://maps.google.com/maps"] {
-            display: none !important;
+        /* Leaflet custom styles */
+        .leaflet-container {
+            background: #0a0f1c !important;
+            font-family: inherit;
+        }
+        
+        .leaflet-control-zoom {
+            border: none !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3) !important;
+        }
+        
+        .leaflet-control-zoom a {
+            background: var(--bg-card) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+        }
+        
+        .leaflet-control-zoom a:hover {
+            background: rgba(255,255,255,0.1) !important;
+        }
+        
+        .leaflet-control-attribution {
+            background: rgba(10,15,28,0.8) !important;
+            color: var(--text-muted) !important;
+            font-size: 10px !important;
+        }
+        
+        .leaflet-control-attribution a {
+            color: var(--accent) !important;
+        }
+        
+        /* Marker label tooltip */
+        .marker-label {
+            background: rgba(0,0,0,0.9) !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 10px !important;
+            padding: 4px 10px !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+        }
+        
+        .marker-label::before {
+            border-bottom-color: rgba(0,0,0,0.9) !important;
         }
         
         /* Custom marker styles */
@@ -990,6 +1054,16 @@
             </svg>
         </div>
         
+        <!-- Fit All FAB -->
+        <div class="fit-all-fab" id="fitAllFab">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8" cy="8" r="2" fill="currentColor"/>
+                <circle cx="16" cy="16" r="2" fill="currentColor"/>
+                <circle cx="16" cy="8" r="2" fill="currentColor"/>
+            </svg>
+        </div>
+        
         <!-- Tracking Indicator -->
         <div class="tracking-indicator" id="trackingIndicator">
             <div class="tracking-dot"></div>
@@ -1068,8 +1142,9 @@
         </div>
     </div>
 
-    <!-- Google Maps API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBNLrJhOMz6idD05pzfn5lhA-TAw-mAZCU&libraries=geometry"></script>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <!-- Firebase v10+ SDK -->
     <script type="module">
@@ -1155,6 +1230,7 @@
             trackingIndicator: document.getElementById('trackingIndicator'),
             trackingText: document.getElementById('trackingText'),
             centerMeFab: document.getElementById('centerMeFab'),
+            fitAllFab: document.getElementById('fitAllFab'),
             bottomSheet: document.getElementById('bottomSheet'),
             sheetHeader: document.getElementById('sheetHeader'),
             peopleList: document.getElementById('peopleList'),
@@ -1196,67 +1272,48 @@
             return colors[Math.abs(hash) % colors.length];
         }
         
-        // Google Maps Dark Style
-        const mapStyles = [
-            { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
-            { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] },
-            { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
-            { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "#4b6878" }] },
-            { featureType: "landscape.man_made", elementType: "geometry.stroke", stylers: [{ color: "#334e87" }] },
-            { featureType: "landscape.natural", elementType: "geometry", stylers: [{ color: "#023e58" }] },
-            { featureType: "poi", elementType: "geometry", stylers: [{ color: "#283d6a" }] },
-            { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#6f9ba5" }] },
-            { featureType: "poi.park", elementType: "geometry.fill", stylers: [{ color: "#023e58" }] },
-            { featureType: "road", elementType: "geometry", stylers: [{ color: "#304a7d" }] },
-            { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#98a5be" }] },
-            { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2c6675" }] },
-            { featureType: "transit", elementType: "labels.text.fill", stylers: [{ color: "#98a5be" }] },
-            { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
-            { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#4e6d70" }] }
-        ];
-        
-        // Initialize Google Map
+        // Initialize Leaflet Map
         function initMap(lat = 37.7749, lng = -122.4194) {
             if (state.map) return;
             
-            state.map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat, lng },
+            state.map = L.map('map', {
+                center: [lat, lng],
                 zoom: 15,
-                styles: mapStyles,
-                disableDefaultUI: true,
-                zoomControl: true,
-                zoomControlOptions: {
-                    position: google.maps.ControlPosition.LEFT_BOTTOM
-                },
-                gestureHandling: 'greedy'
+                zoomControl: false
             });
+            
+            // Dark theme tiles (CartoDB Dark Matter)
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 19
+            }).addTo(state.map);
+            
+            // Add zoom control to left side
+            L.control.zoom({ position: 'bottomleft' }).addTo(state.map);
         }
         
         // Create custom marker
         function createMarker(lat, lng, isMe, name) {
             const color = isMe ? '#00d9ff' : getAvatarColor(name);
             
-            const marker = new google.maps.Marker({
-                position: { lat, lng },
-                map: state.map,
-                icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: 12,
-                    fillColor: color,
-                    fillOpacity: 1,
-                    strokeColor: '#ffffff',
-                    strokeWeight: 3
-                },
-                title: name
-            });
+            // Custom circle marker
+            const marker = L.circleMarker([lat, lng], {
+                radius: 12,
+                fillColor: color,
+                fillOpacity: 1,
+                color: '#ffffff',
+                weight: 3
+            }).addTo(state.map);
             
-            // Add label below marker
+            // Add permanent label for friends
             if (!isMe) {
-                const infoWindow = new google.maps.InfoWindow({
-                    content: `<div style="background:#000;color:#fff;padding:4px 10px;border-radius:10px;font-size:12px;font-weight:600;">${name}</div>`,
-                    disableAutoPan: true
+                marker.bindTooltip(name, {
+                    permanent: true,
+                    direction: 'bottom',
+                    offset: [0, 10],
+                    className: 'marker-label'
                 });
-                infoWindow.open(state.map, marker);
             }
             
             return marker;
@@ -1266,13 +1323,11 @@
         function updateMyLocation(lat, lng) {
             if (!state.map) return;
             
-            const pos = { lat, lng };
-            
             if (!state.myMarker) {
                 state.myMarker = createMarker(lat, lng, true, 'Me');
-                state.map.setCenter(pos);
+                state.map.setView([lat, lng]);
             } else {
-                state.myMarker.setPosition(pos);
+                state.myMarker.setLatLng([lat, lng]);
             }
         }
         
@@ -1285,15 +1340,52 @@
             if (!state.friendMarkers[userId]) {
                 state.friendMarkers[userId] = createMarker(data.lat, data.lng, false, name);
             } else {
-                state.friendMarkers[userId].setPosition({ lat: data.lat, lng: data.lng });
+                state.friendMarkers[userId].setLatLng([data.lat, data.lng]);
             }
         }
         
         // Remove friend
         function removeFriend(userId) {
             if (state.friendMarkers[userId]) {
-                state.friendMarkers[userId].setMap(null);
+                state.map.removeLayer(state.friendMarkers[userId]);
                 delete state.friendMarkers[userId];
+            }
+        }
+        
+        // Fit all markers in view
+        function fitAllMarkers() {
+            if (!state.map) return;
+            
+            const markers = [];
+            
+            // Add my marker
+            if (state.myMarker) {
+                markers.push(state.myMarker.getLatLng());
+            }
+            
+            // Add friend markers
+            Object.values(state.friendMarkers).forEach(marker => {
+                markers.push(marker.getLatLng());
+            });
+            
+            if (markers.length > 0) {
+                const bounds = L.latLngBounds(markers);
+                state.map.fitBounds(bounds, { padding: [60, 60], maxZoom: 16 });
+            }
+        }
+        
+        // Focus on a specific user
+        function focusOnUser(userId) {
+            let marker = null;
+            
+            if (userId === state.userId) {
+                marker = state.myMarker;
+            } else {
+                marker = state.friendMarkers[userId];
+            }
+            
+            if (marker && state.map) {
+                state.map.setView(marker.getLatLng(), 17);
             }
         }
         
@@ -1336,9 +1428,7 @@
                 card.addEventListener('click', () => {
                     const userId = card.dataset.userId;
                     if (state.friendMarkers[userId]) {
-                        const pos = state.friendMarkers[userId].getPosition();
-                        state.map.panTo(pos);
-                        state.map.setZoom(17);
+                        state.map.setView(state.friendMarkers[userId].getLatLng(), 17);
                         el.bottomSheet.classList.add('collapsed');
                     }
                 });
@@ -1494,11 +1584,8 @@
             
             updatePeopleList(users);
             
-            // Center on first user if available
-            const firstUser = Object.values(users)[0];
-            if (firstUser && firstUser.lat) {
-                state.map.setCenter({ lat: firstUser.lat, lng: firstUser.lng });
-            }
+            // Fit all users in view by default
+            setTimeout(() => fitAllMarkers(), 300);
             
             // Set up real-time listener
             const unsubActive = onValue(ref(db, `findmy/rooms/${roomId}/active`), (snapshot) => {
@@ -1653,11 +1740,14 @@
         
         el.centerMeFab.addEventListener('click', () => {
             if (state.myMarker) {
-                state.map.panTo(state.myMarker.getPosition());
-                state.map.setZoom(17);
+                state.map.setView(state.myMarker.getLatLng(), 17);
             } else {
                 showToast('Start tracking to see your location');
             }
+        });
+        
+        el.fitAllFab.addEventListener('click', () => {
+            fitAllMarkers();
         });
         
         el.sheetHeader.addEventListener('click', () => {
