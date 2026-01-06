@@ -119,25 +119,6 @@
                     <span id="statusText">Synced</span>
                 </div>
                 
-                <!-- View Tabs -->
-                <div class="view-tabs">
-                    <button class="view-tab active" onclick="switchView('code')" id="codeTab">
-                        <span class="tab-icon">📝</span>
-                        <span>Code</span>
-                    </button>
-                    <button class="view-tab" onclick="switchView('screenshare')" id="screenshareTab">
-                        <span class="tab-icon">🖥️</span>
-                        <span>Screen</span>
-                    </button>
-                </div>
-                
-                <!-- Live indicator when someone is sharing -->
-                <div class="live-indicator" id="liveIndicator" style="display:none">
-                    <span class="live-dot"></span>
-                    <span class="live-text">LIVE</span>
-                    <span class="live-user" id="liveUser"></span>
-                </div>
-                
                 <div class="online-users" id="onlineUsers"></div>
             </div>
 
@@ -206,10 +187,6 @@
                             </div>
                         </div>
                         <div class="dropdown-section">
-                            <div class="dropdown-item" onclick="shareFile()">
-                                <span class="icon">📤</span>
-                                <span class="label">Send File to Peers</span>
-                            </div>
                             <div class="dropdown-item" onclick="copyLink()">
                                 <span class="icon">🔗</span>
                                 <span class="label">Copy Share Link</span>
@@ -227,38 +204,6 @@
         <div class="editor-main">
             <!-- Code Editor -->
             <div id="monaco-container"></div>
-            
-            <!-- Screenshare -->
-            <div class="screenshare-container" id="screenshareContainer">
-                <div class="screenshare-toolbar">
-                    <!-- Desktop: Screen share button -->
-                    <button class="screenshare-btn" id="startShareBtn" onclick="startScreenShare()">
-                        <span>🖥️</span>
-                        <span>Share Screen</span>
-                    </button>
-                    <!-- Mobile: Camera share button -->
-                    <button class="screenshare-btn camera-btn" id="startCameraBtn" onclick="startCameraShare()">
-                        <span>📷</span>
-                        <span>Share Camera</span>
-                    </button>
-                    <!-- Stop button -->
-                    <button class="screenshare-btn stop" id="stopShareBtn" onclick="stopScreenShare()" style="display:none">
-                        <span>⏹️</span>
-                        <span>Stop Sharing</span>
-                    </button>
-                </div>
-                <div class="screenshare-video-container" id="videoContainer">
-                    <div class="screenshare-placeholder" id="screensharePlaceholder">
-                        <div class="screenshare-placeholder-icon">🖥️</div>
-                        <div class="screenshare-placeholder-text" id="placeholderText">Click to share your screen or camera</div>
-                        <div class="screenshare-placeholder-sub" id="placeholderSub">Other users will see your stream in real-time</div>
-                    </div>
-                    <!-- Local preview (when you're sharing) -->
-                    <video id="localVideo" autoplay playsinline muted style="display:none"></video>
-                    <!-- Remote stream (when someone else is sharing) -->
-                    <video id="remoteVideo" autoplay playsinline style="display:none"></video>
-                </div>
-            </div>
         </div>
 
     </div>
@@ -295,56 +240,6 @@
             <button class="toolbar-btn" style="width:100%; justify-content: center; padding: 12px;" onclick="saveUserName()">Save Name</button>
         </div>
     </div>
-
-    <!-- Incoming File Modal -->
-    <div class="modal" id="incomingFileModal">
-        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 400px;">
-            <div class="modal-title">
-                📥 Incoming File
-                <button class="modal-close" onclick="declineFile()">×</button>
-            </div>
-            <div class="file-info">
-                <div class="file-icon" id="fileIcon">📄</div>
-                <div class="file-details">
-                    <div class="file-name" id="incomingFileName">filename.txt</div>
-                    <div class="file-meta">
-                        <span id="incomingFileSize">0 KB</span>
-                        <span>from</span>
-                        <span id="incomingFileSender" style="color: var(--accent);">User</span>
-                    </div>
-                </div>
-            </div>
-            <div class="file-actions">
-                <button class="file-btn decline" onclick="declineFile()">Decline</button>
-                <button class="file-btn accept" onclick="acceptFile()">Accept</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- File Transfer Progress Modal -->
-    <div class="modal" id="transferModal">
-        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 400px;">
-            <div class="modal-title">
-                <span id="transferTitle">📤 Sending File</span>
-            </div>
-            <div class="file-info">
-                <div class="file-icon" id="transferFileIcon">📄</div>
-                <div class="file-details">
-                    <div class="file-name" id="transferFileName">filename.txt</div>
-                    <div class="file-meta" id="transferStatus">Connecting...</div>
-                </div>
-            </div>
-            <div class="transfer-progress">
-                <div class="progress-bar-transfer">
-                    <div class="progress-fill-transfer" id="transferProgress"></div>
-                </div>
-                <div class="progress-text" id="transferPercent">0%</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Hidden file input for sharing -->
-    <input type="file" id="shareFileInput" style="display:none" onchange="handleShareFile(event)">
 
     <!-- Main Application Script -->
     <script src="app.js"></script>
