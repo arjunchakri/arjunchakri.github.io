@@ -229,15 +229,85 @@
             margin-bottom: 16px;
         }
         
-        .badge-new { background: rgba(0, 255, 136, 0.15); color: var(--success); border: 1px solid rgba(0, 255, 136, 0.3); }
-        .badge-existing { background: rgba(0, 217, 255, 0.15); color: var(--accent); border: 1px solid rgba(0, 217, 255, 0.3); }
+        .badge-new { 
+            background: rgba(0, 255, 136, 0.15); 
+            color: var(--success); 
+            border: 2px solid rgba(0, 255, 136, 0.4);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+        .badge-existing { 
+            background: rgba(0, 217, 255, 0.15); 
+            color: var(--accent); 
+            border: 2px solid rgba(0, 217, 255, 0.4);
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
+        }
         
         .badge-dot {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: currentColor;
             animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        /* Room Status Card */
+        .room-status-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 20px 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .room-status-card.new-room {
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            background: rgba(0, 255, 136, 0.08);
+        }
+        
+        .room-status-card.existing-room {
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            background: rgba(0, 217, 255, 0.08);
+        }
+        
+        .room-status-icon {
+            font-size: 40px;
+            margin-bottom: 4px;
+        }
+        
+        .room-status-label {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .room-status-card.new-room .room-status-label {
+            color: var(--success);
+        }
+        
+        .room-status-card.existing-room .room-status-label {
+            color: var(--accent);
+        }
+        
+        .room-status-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        
+        .room-code-display {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            color: var(--text-primary);
+            margin-top: 4px;
         }
         
         @keyframes pulse {
@@ -1317,6 +1387,85 @@
             height: 18px;
         }
         
+        /* Version Badge */
+        .version-badge {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            font-size: 11px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .version-badge:hover {
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--text-secondary);
+            border-color: var(--accent);
+        }
+        
+        .version-badge .version-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+        
+        .version-badge.has-update .version-dot {
+            background: var(--accent);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        /* Update Toast */
+        .update-toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #00d9ff, #0099cc);
+            color: #000;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 10000;
+            box-shadow: 0 4px 20px rgba(0, 217, 255, 0.4);
+            animation: slideInUp 0.3s ease-out;
+        }
+        
+        @keyframes slideInUp {
+            from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        
+        .update-toast button {
+            padding: 6px 14px;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .update-toast button:hover {
+            background: #333;
+        }
+        
         /* Person Detail Popup */
         .person-popup-overlay {
             position: fixed;
@@ -1554,18 +1703,16 @@
         </div>
         <button id="backToRoomBtn" class="back-btn">← Back</button>
         <div class="login-content">
-            <div class="logo-container">
-                <div class="logo-ring"></div>
-                <div class="logo-icon" id="passwordIcon">🔒</div>
+            <!-- Room Status Card -->
+            <div id="roomStatusCard" class="room-status-card new-room hidden">
+                <div class="room-status-icon" id="roomStatusIcon">🆕</div>
+                <div class="room-status-label" id="roomStatusLabel">NEW ROOM</div>
+                <div class="room-code-display" id="roomCodePreview">ROOM</div>
+                <div class="room-status-hint" id="roomStatusHint">This room doesn't exist yet. Create it with a password.</div>
             </div>
-            <div id="newRoomBadge" class="badge badge-new hidden">
-                <span class="badge-dot"></span> New Room
-            </div>
-            <div id="existingRoomBadge" class="badge badge-existing hidden">
-                <span class="badge-dot"></span> Existing Room
-            </div>
+            
             <h1 class="app-title" style="font-size: 28px;" id="passwordTitle">Set Password</h1>
-            <p class="app-subtitle" id="passwordSubtitle">Create a password</p>
+            <p class="app-subtitle" id="passwordSubtitle">Create a password to secure your room</p>
             
             <div class="form-group" style="margin-top: 24px;">
                 <input type="password" id="passwordInput" class="input-field" placeholder="Password" autocomplete="off">
@@ -1624,6 +1771,12 @@
         <div class="tracking-indicator" id="trackingIndicator">
             <div class="tracking-dot"></div>
             <span class="tracking-text" id="trackingText">Tap to start tracking</span>
+        </div>
+        
+        <!-- Version Badge -->
+        <div class="version-badge" id="versionBadge" title="Check for updates">
+            <span class="version-dot"></span>
+            <span id="versionText">v2.1.0</span>
         </div>
         
         <!-- Bottom Sheet (People) -->
@@ -1881,6 +2034,12 @@
     
     <!-- Firebase v10+ SDK -->
     <script type="module">
+        // ==========================================
+        // APP VERSION - Update this when deploying!
+        // ==========================================
+        const APP_VERSION = '2.1.0';
+        const BUILD_DATE = '2026-01-08';
+        
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getDatabase, ref, set, get, onValue, remove, onDisconnect, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
         
@@ -2035,9 +2194,11 @@
             passwordInput: document.getElementById('passwordInput'),
             passwordTitle: document.getElementById('passwordTitle'),
             passwordSubtitle: document.getElementById('passwordSubtitle'),
-            passwordIcon: document.getElementById('passwordIcon'),
-            newRoomBadge: document.getElementById('newRoomBadge'),
-            existingRoomBadge: document.getElementById('existingRoomBadge'),
+            roomStatusCard: document.getElementById('roomStatusCard'),
+            roomStatusIcon: document.getElementById('roomStatusIcon'),
+            roomStatusLabel: document.getElementById('roomStatusLabel'),
+            roomCodePreview: document.getElementById('roomCodePreview'),
+            roomStatusHint: document.getElementById('roomStatusHint'),
             confirmBtnText: document.getElementById('confirmBtnText'),
             joinRoomBtn: document.getElementById('joinRoomBtn'),
             backToRoomBtn: document.getElementById('backToRoomBtn'),
@@ -2728,22 +2889,28 @@
                 state.userName = userName;
                 state.userId = getOrCreateUserId();
                 
+                // Update room status card
+                el.roomStatusCard.classList.remove('hidden', 'new-room', 'existing-room');
+                el.roomCodePreview.textContent = roomId;
+                
                 if (exists) {
                     isNewRoom = false;
-                    el.passwordIcon.textContent = '🔐';
+                    el.roomStatusCard.classList.add('existing-room');
+                    el.roomStatusIcon.textContent = '🚪';
+                    el.roomStatusLabel.textContent = 'EXISTING ROOM';
+                    el.roomStatusHint.textContent = 'This room already exists. Enter the password to join.';
                     el.passwordTitle.textContent = 'Enter Password';
-                    el.passwordSubtitle.textContent = `Joining room ${roomId}`;
-                    el.newRoomBadge.classList.add('hidden');
-                    el.existingRoomBadge.classList.remove('hidden');
-                    el.confirmBtnText.textContent = 'Join Room';
+                    el.passwordSubtitle.textContent = 'Enter the room password to join';
+                    el.confirmBtnText.textContent = 'Join Room →';
                 } else {
                     isNewRoom = true;
-                    el.passwordIcon.textContent = '🔒';
+                    el.roomStatusCard.classList.add('new-room');
+                    el.roomStatusIcon.textContent = '✨';
+                    el.roomStatusLabel.textContent = 'NEW ROOM';
+                    el.roomStatusHint.textContent = 'This room doesn\'t exist yet. Create it with a password.';
                     el.passwordTitle.textContent = 'Set Password';
-                    el.passwordSubtitle.textContent = `Creating room ${roomId}`;
-                    el.newRoomBadge.classList.remove('hidden');
-                    el.existingRoomBadge.classList.add('hidden');
-                    el.confirmBtnText.textContent = 'Create Room';
+                    el.passwordSubtitle.textContent = 'Create a password to secure your room';
+                    el.confirmBtnText.textContent = 'Create Room →';
                 }
                 
                 el.passwordInput.value = '';
@@ -2844,38 +3011,46 @@
             }
         });
         
-        // Service Worker with update handling
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then((registration) => {
-                    // Check for updates every 5 minutes
-                    setInterval(() => {
-                        registration.update();
-                    }, 5 * 60 * 1000);
-                    
-                    // Listen for new service worker
-                    registration.addEventListener('updatefound', () => {
-                        const newWorker = registration.installing;
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                // New version available
-                                showUpdateToast();
-                            }
-                        });
-                    });
-                })
-                .catch((err) => console.log('SW registration failed:', err));
-            
-            // Listen for SW update messages
-            navigator.serviceWorker.addEventListener('message', (event) => {
-                if (event.data && event.data.type === 'SW_UPDATED') {
-                    showUpdateToast();
+        // ==========================================
+        // Service Worker & Update Management
+        // ==========================================
+        let swRegistration = null;
+        let updateAvailable = false;
+        
+        // Update version badge
+        function updateVersionBadge() {
+            const badge = document.getElementById('versionBadge');
+            const text = document.getElementById('versionText');
+            if (badge && text) {
+                text.textContent = `v${APP_VERSION}`;
+                if (updateAvailable) {
+                    badge.classList.add('has-update');
+                    badge.title = 'Update available! Click to refresh';
                 }
-            });
+            }
+        }
+        
+        // Show version toast on load
+        function showVersionToast() {
+            const lastVersion = localStorage.getItem('findmy_last_version');
+            if (lastVersion !== APP_VERSION) {
+                // New version or first load
+                localStorage.setItem('findmy_last_version', APP_VERSION);
+                if (lastVersion) {
+                    // Updated from previous version
+                    showToast(`✅ Updated to v${APP_VERSION}`);
+                } else {
+                    // First load
+                    console.log(`Find My v${APP_VERSION} loaded`);
+                }
+            }
         }
         
         // Show update available toast
         function showUpdateToast() {
+            updateAvailable = true;
+            updateVersionBadge();
+            
             const existingToast = document.querySelector('.update-toast');
             if (existingToast) return;
             
@@ -2883,38 +3058,117 @@
             toast.className = 'update-toast';
             toast.innerHTML = `
                 <span>🎉 New version available!</span>
-                <button onclick="window.location.reload()">Update</button>
-            `;
-            toast.style.cssText = `
-                position: fixed;
-                bottom: 100px;
-                left: 50%;
-                transform: translateX(-50%);
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                padding: 12px 20px;
-                background: linear-gradient(135deg, #00d9ff, #0099cc);
-                color: #000;
-                border-radius: 30px;
-                font-size: 14px;
-                font-weight: 600;
-                z-index: 10000;
-                box-shadow: 0 4px 20px rgba(0, 217, 255, 0.4);
-                animation: slideUp 0.3s ease-out;
-            `;
-            toast.querySelector('button').style.cssText = `
-                padding: 6px 14px;
-                background: #000;
-                color: #fff;
-                border: none;
-                border-radius: 15px;
-                font-size: 13px;
-                font-weight: 600;
-                cursor: pointer;
+                <button onclick="applyUpdate()">Update Now</button>
             `;
             document.body.appendChild(toast);
         }
+        
+        // Apply update
+        window.applyUpdate = function() {
+            if (swRegistration && swRegistration.waiting) {
+                // Tell the waiting SW to take over
+                swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
+            // Reload the page
+            window.location.reload(true);
+        };
+        
+        // Check for updates manually
+        async function checkForUpdates() {
+            showToast('Checking for updates...');
+            
+            try {
+                if (swRegistration) {
+                    await swRegistration.update();
+                    
+                    // Wait a bit for the update check
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    if (swRegistration.waiting) {
+                        showUpdateToast();
+                    } else if (swRegistration.installing) {
+                        showToast('⏳ Update downloading...');
+                    } else {
+                        showToast(`✅ You're on the latest version (v${APP_VERSION})`);
+                    }
+                } else {
+                    showToast('Service worker not available');
+                }
+            } catch (err) {
+                console.error('Update check failed:', err);
+                showToast('Update check failed');
+            }
+        }
+        
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then((registration) => {
+                    swRegistration = registration;
+                    console.log(`[App] SW registered, scope: ${registration.scope}`);
+                    
+                    // Check if there's already a waiting worker
+                    if (registration.waiting) {
+                        showUpdateToast();
+                    }
+                    
+                    // Check for updates immediately
+                    registration.update();
+                    
+                    // Check for updates every 2 minutes
+                    setInterval(() => {
+                        registration.update();
+                    }, 2 * 60 * 1000);
+                    
+                    // Listen for new service worker
+                    registration.addEventListener('updatefound', () => {
+                        console.log('[App] New SW found, installing...');
+                        const newWorker = registration.installing;
+                        
+                        newWorker.addEventListener('statechange', () => {
+                            console.log(`[App] SW state: ${newWorker.state}`);
+                            if (newWorker.state === 'installed') {
+                                if (navigator.serviceWorker.controller) {
+                                    // New version available
+                                    console.log('[App] Update available!');
+                                    showUpdateToast();
+                                } else {
+                                    // First install
+                                    console.log('[App] SW installed for the first time');
+                                }
+                            }
+                        });
+                    });
+                })
+                .catch((err) => console.log('[App] SW registration failed:', err));
+            
+            // Listen for SW messages
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'SW_UPDATED') {
+                    console.log('[App] SW sent update notification');
+                    showUpdateToast();
+                }
+            });
+            
+            // Handle controller change (new SW took over)
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                console.log('[App] New SW controller, reloading...');
+                window.location.reload();
+            });
+        }
+        
+        // Version badge click handler
+        document.getElementById('versionBadge')?.addEventListener('click', () => {
+            if (updateAvailable) {
+                applyUpdate();
+            } else {
+                checkForUpdates();
+            }
+        });
+        
+        // Initialize version display
+        updateVersionBadge();
+        setTimeout(showVersionToast, 1000);
         
         // Load from URL/localStorage
         const urlParams = new URLSearchParams(window.location.search);

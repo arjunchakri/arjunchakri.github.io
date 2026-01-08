@@ -1,6 +1,6 @@
 // Service Worker for Find My PWA
-// VERSION 2.0 - Change this to force update
-const CACHE_VERSION = 'v2';
+// VERSION 2.1 - Change this to force update
+const CACHE_VERSION = 'v2.1';
 const CACHE_NAME = `findmy-${CACHE_VERSION}`;
 
 const urlsToCache = [
