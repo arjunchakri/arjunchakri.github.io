@@ -492,6 +492,28 @@
             transform: translateX(4px);
         }
         
+        .person-info-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 217, 255, 0.15);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            border-radius: 50%;
+            color: var(--accent);
+            cursor: pointer;
+            transition: all 0.3s;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+        
+        .person-info-btn:hover {
+            background: var(--accent);
+            color: #000;
+            transform: scale(1.1);
+        }
+        
         .person-avatar {
             width: 42px;
             height: 42px;
@@ -968,6 +990,533 @@
             width: 16px;
             height: 16px;
         }
+        
+        /* Device Info Modal */
+        .device-info-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.92);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .device-info-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .device-info-modal {
+            max-width: 500px;
+            margin: 0 auto;
+            animation: slideUp 0.4s ease-out;
+        }
+        
+        .device-info-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            background: transparent;
+            z-index: 10;
+        }
+        
+        .device-info-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .device-info-title h2 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .device-info-title-icon {
+            font-size: 28px;
+        }
+        
+        .device-info-close {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 50%;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .device-info-close:hover {
+            background: var(--danger);
+            color: white;
+            transform: rotate(90deg);
+        }
+        
+        .device-section {
+            background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        
+        .device-section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .device-section-icon {
+            font-size: 20px;
+        }
+        
+        .device-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+        }
+        
+        .device-section-content {
+            padding: 8px 0;
+        }
+        
+        .device-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            transition: background 0.2s;
+        }
+        
+        .device-info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .device-info-row:hover {
+            background: rgba(255,255,255,0.02);
+        }
+        
+        .device-info-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+            margin-right: 16px;
+        }
+        
+        .device-info-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-align: right;
+            word-break: break-word;
+            max-width: 60%;
+        }
+        
+        .device-info-value.success {
+            color: var(--success);
+        }
+        
+        .device-info-value.warning {
+            color: #ffa502;
+        }
+        
+        .device-info-value.danger {
+            color: var(--danger);
+        }
+        
+        .device-info-value.muted {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        
+        .device-info-value.mono {
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 12px;
+        }
+        
+        .device-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(0, 217, 255, 0.15);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            border-radius: 12px;
+            font-size: 12px;
+            color: var(--accent);
+        }
+        
+        .device-badge.green {
+            background: rgba(0, 255, 136, 0.15);
+            border-color: rgba(0, 255, 136, 0.3);
+            color: var(--success);
+        }
+        
+        .device-badge.red {
+            background: rgba(255, 71, 87, 0.15);
+            border-color: rgba(255, 71, 87, 0.3);
+            color: var(--danger);
+        }
+        
+        .device-badge.yellow {
+            background: rgba(255, 165, 2, 0.15);
+            border-color: rgba(255, 165, 2, 0.3);
+            color: #ffa502;
+        }
+        
+        .battery-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .battery-indicator {
+            width: 40px;
+            height: 18px;
+            border: 2px solid currentColor;
+            border-radius: 4px;
+            position: relative;
+            padding: 2px;
+        }
+        
+        .battery-indicator::after {
+            content: '';
+            position: absolute;
+            right: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 8px;
+            background: currentColor;
+            border-radius: 0 2px 2px 0;
+        }
+        
+        .battery-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+        
+        .battery-fill.high { background: var(--success); }
+        .battery-fill.medium { background: #ffa502; }
+        .battery-fill.low { background: var(--danger); }
+        
+        /* Device Info FAB Button */
+        .device-info-fab {
+            position: fixed;
+            top: 50px;
+            right: 20px;
+            z-index: 100;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .device-info-fab:hover {
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+        
+        .device-info-fab svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--accent);
+        }
+        
+        @supports (padding-top: env(safe-area-inset-top)) {
+            .device-info-fab { top: calc(50px + env(safe-area-inset-top)); }
+        }
+        
+        .loading-spinner-small {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        
+        .permissions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 8px;
+            padding: 12px 20px;
+        }
+        
+        .permission-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 10px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            font-size: 11px;
+            text-align: center;
+        }
+        
+        .permission-icon {
+            font-size: 18px;
+        }
+        
+        .refresh-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px;
+            margin-top: 8px;
+            background: rgba(0, 217, 255, 0.1);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            border-radius: 14px;
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            background: rgba(0, 217, 255, 0.2);
+        }
+        
+        .refresh-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        /* Person Detail Popup */
+        .person-popup-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10001;
+            background: rgba(0, 0, 0, 0.85);
+            -webkit-backdrop-filter: blur(15px);
+            backdrop-filter: blur(15px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .person-popup-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .person-popup {
+            background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 360px;
+            overflow: hidden;
+            animation: popupSlideUp 0.3s ease-out;
+        }
+        
+        @keyframes popupSlideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        .person-popup-header {
+            padding: 24px 20px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            position: relative;
+        }
+        
+        .person-popup-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 50%;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .person-popup-close:hover {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .person-popup-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin: 0 auto 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .person-popup-name {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .person-popup-status {
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .person-popup-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        .person-popup-body {
+            padding: 0 20px 20px;
+        }
+        
+        .person-popup-section {
+            background: rgba(255,255,255,0.03);
+            border-radius: 14px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        
+        .person-popup-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .person-popup-section-title {
+            padding: 12px 16px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+        }
+        
+        .person-popup-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            border-top: 1px solid rgba(255,255,255,0.03);
+        }
+        
+        .person-popup-row:first-of-type {
+            border-top: none;
+        }
+        
+        .person-popup-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        .person-popup-value {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .person-popup-value.mono {
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 12px;
+        }
+        
+        .person-popup-actions {
+            display: flex;
+            gap: 10px;
+            padding: 16px 20px;
+            background: rgba(0,0,0,0.2);
+        }
+        
+        .person-popup-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .person-popup-btn.primary {
+            background: var(--accent);
+            color: #000;
+        }
+        
+        .person-popup-btn.primary:hover {
+            background: #33e0ff;
+        }
+        
+        .person-popup-btn.secondary {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+        }
+        
+        .person-popup-btn.secondary:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        
+        .person-popup-btn svg {
+            width: 18px;
+            height: 18px;
+        }
     </style>
 </head>
 <body>
@@ -1114,6 +1663,181 @@
         Install App
     </button>
     
+    <!-- Person Detail Popup -->
+    <div class="person-popup-overlay" id="personPopupOverlay">
+        <div class="person-popup" style="max-height: 85vh; overflow-y: auto;">
+            <div class="person-popup-header">
+                <button class="person-popup-close" id="personPopupClose">×</button>
+                <div class="person-popup-avatar" id="personPopupAvatar">?</div>
+                <div class="person-popup-name" id="personPopupName">Unknown</div>
+                <div class="person-popup-status">
+                    <span class="person-popup-status-dot"></span>
+                    <span id="personPopupLastSeen">Online</span>
+                </div>
+            </div>
+            <div class="person-popup-body">
+                <div class="person-popup-section">
+                    <div class="person-popup-section-title">📍 Location</div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Latitude</span>
+                        <span class="person-popup-value mono" id="personPopupLat">N/A</span>
+                    </div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Longitude</span>
+                        <span class="person-popup-value mono" id="personPopupLng">N/A</span>
+                    </div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Accuracy</span>
+                        <span class="person-popup-value" id="personPopupAccuracy">N/A</span>
+                    </div>
+                </div>
+                <div class="person-popup-section">
+                    <div class="person-popup-section-title">📱 Device</div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Device</span>
+                        <span class="person-popup-value" id="personPopupDevice">N/A</span>
+                    </div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">OS</span>
+                        <span class="person-popup-value" id="personPopupOS">N/A</span>
+                    </div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Browser</span>
+                        <span class="person-popup-value" id="personPopupBrowser">N/A</span>
+                    </div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Platform</span>
+                        <span class="person-popup-value" id="personPopupPlatform">N/A</span>
+                    </div>
+                </div>
+                <div class="person-popup-section">
+                    <div class="person-popup-section-title">🔋 Battery & Network</div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Battery</span>
+                        <span class="person-popup-value" id="personPopupBattery">N/A</span>
+                    </div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Charging</span>
+                        <span class="person-popup-value" id="personPopupCharging">N/A</span>
+                    </div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Network</span>
+                        <span class="person-popup-value" id="personPopupNetwork">N/A</span>
+                    </div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Connection</span>
+                        <span class="person-popup-value" id="personPopupConnection">N/A</span>
+                    </div>
+                </div>
+                <div class="person-popup-section">
+                    <div class="person-popup-section-title">🖥️ Screen</div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Resolution</span>
+                        <span class="person-popup-value" id="personPopupScreen">N/A</span>
+                    </div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Viewport</span>
+                        <span class="person-popup-value" id="personPopupViewport">N/A</span>
+                    </div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Pixel Ratio</span>
+                        <span class="person-popup-value" id="personPopupPixelRatio">N/A</span>
+                    </div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Orientation</span>
+                        <span class="person-popup-value" id="personPopupOrientation">N/A</span>
+                    </div>
+                </div>
+                <div class="person-popup-section">
+                    <div class="person-popup-section-title">⚙️ Hardware</div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">CPU Cores</span>
+                        <span class="person-popup-value" id="personPopupCPU">N/A</span>
+                    </div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Memory</span>
+                        <span class="person-popup-value" id="personPopupMemory">N/A</span>
+                    </div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Touch Points</span>
+                        <span class="person-popup-value" id="personPopupTouch">N/A</span>
+                    </div>
+                </div>
+                <div class="person-popup-section">
+                    <div class="person-popup-section-title">🌍 Locale</div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Language</span>
+                        <span class="person-popup-value" id="personPopupLanguage">N/A</span>
+                    </div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Timezone</span>
+                        <span class="person-popup-value" id="personPopupTimezone">N/A</span>
+                    </div>
+                </div>
+                <div class="person-popup-section">
+                    <div class="person-popup-section-title">🕐 Timestamp</div>
+                    <div class="person-popup-row">
+                        <span class="person-popup-label">Last Update</span>
+                        <span class="person-popup-value" id="personPopupTime">N/A</span>
+                    </div>
+                </div>
+            </div>
+            <div class="person-popup-actions">
+                <button class="person-popup-btn secondary" id="personPopupCopyLocation">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                    Copy
+                </button>
+                <button class="person-popup-btn primary" id="personPopupFocus">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M12 2v4m0 12v4M2 12h4m12 0h4"/>
+                    </svg>
+                    Focus
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Device Info FAB (on map screen) -->
+    <button class="device-info-fab hidden" id="deviceInfoFab" title="Device Info">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+            <line x1="12" y1="18" x2="12" y2="18"/>
+        </svg>
+    </button>
+    
+    <!-- Device Info Modal -->
+    <div class="device-info-overlay" id="deviceInfoOverlay">
+        <div class="device-info-modal">
+            <div class="device-info-header">
+                <div class="device-info-title">
+                    <span class="device-info-title-icon">📱</span>
+                    <h2>Device Info</h2>
+                </div>
+                <button class="device-info-close" id="deviceInfoClose">×</button>
+            </div>
+            
+            <div id="deviceInfoContent">
+                <!-- Content will be populated by JavaScript -->
+                <div style="text-align: center; padding: 40px;">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 16px; color: var(--text-secondary);">Collecting device info...</p>
+                </div>
+            </div>
+            
+            <button class="refresh-btn" id="refreshDeviceInfo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 4v6h-6M1 20v-6h6"/>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                </svg>
+                Refresh Data
+            </button>
+        </div>
+    </div>
+
     <!-- Install Overlay -->
     <div class="install-overlay" id="installOverlay">
         <!-- iOS Arrow pointing to Share button at bottom -->
@@ -1187,10 +1911,13 @@
             friendMarkers: {},
             unsubscribers: [],
             lastUpdateTime: 0,
-            viewerCount: 0
+            viewerCount: 0,
+            usersData: {}, // Store users data for popup
+            lastSentData: null, // Track last sent data for diff updates
+            isFirstUpdate: true // Track if this is the first update
         };
         
-        // Get device info
+        // Get basic device info (sync)
         function getDeviceInfo() {
             const ua = navigator.userAgent;
             let os = 'Unknown';
@@ -1212,6 +1939,88 @@
             else if (/Edg/.test(ua)) browser = 'Edge';
             
             return { os, device, browser };
+        }
+        
+        // Get comprehensive device info (async) for Firebase storage
+        async function getFullDeviceInfo() {
+            const ua = navigator.userAgent;
+            const info = {
+                // Basic device info
+                ...getDeviceInfo(),
+                userAgent: ua.substring(0, 200), // Truncate to save space
+                platform: navigator.platform || 'N/A',
+                language: navigator.language || 'N/A',
+                languages: (navigator.languages || []).slice(0, 3).join(', ') || 'N/A',
+                cookiesEnabled: navigator.cookieEnabled ? 'Yes' : 'No',
+                onlineStatus: navigator.onLine ? 'Online' : 'Offline',
+                doNotTrack: navigator.doNotTrack === '1' ? 'Enabled' : 'Disabled',
+                
+                // Hardware
+                cpuCores: navigator.hardwareConcurrency || 'N/A',
+                deviceMemory: navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'N/A',
+                maxTouchPoints: navigator.maxTouchPoints || 0,
+                
+                // Screen
+                screenWidth: screen.width,
+                screenHeight: screen.height,
+                screenColorDepth: screen.colorDepth + '-bit',
+                pixelRatio: window.devicePixelRatio?.toFixed(2) || 'N/A',
+                orientation: screen.orientation?.type || 'N/A',
+                
+                // Viewport
+                viewportWidth: window.innerWidth,
+                viewportHeight: window.innerHeight,
+                
+                // Time
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'N/A',
+                timezoneOffset: new Date().getTimezoneOffset(),
+                
+                // Network
+                networkType: 'N/A',
+                networkEffectiveType: 'N/A',
+                networkDownlink: 'N/A',
+                
+                // Battery
+                batteryLevel: 'N/A',
+                batteryCharging: 'N/A',
+            };
+            
+            // Network info
+            try {
+                if (navigator.connection) {
+                    info.networkType = navigator.connection.type || 'N/A';
+                    info.networkEffectiveType = navigator.connection.effectiveType?.toUpperCase() || 'N/A';
+                    info.networkDownlink = navigator.connection.downlink ? navigator.connection.downlink + ' Mbps' : 'N/A';
+                }
+            } catch (e) {}
+            
+            // Battery info
+            try {
+                if ('getBattery' in navigator) {
+                    const battery = await navigator.getBattery();
+                    info.batteryLevel = Math.round(battery.level * 100) + '%';
+                    info.batteryCharging = battery.charging ? 'Yes' : 'No';
+                }
+            } catch (e) {}
+            
+            return info;
+        }
+        
+        // Get only changed fields between two objects
+        function getChangedFields(oldData, newData) {
+            if (!oldData) return newData;
+            
+            const changes = {};
+            let hasChanges = false;
+            
+            for (const key in newData) {
+                if (JSON.stringify(oldData[key]) !== JSON.stringify(newData[key])) {
+                    changes[key] = newData[key];
+                    hasChanges = true;
+                }
+            }
+            
+            return hasChanges ? changes : null;
         }
         
         // DOM Elements
@@ -1426,26 +2235,79 @@
         
         // Update people list
         function updatePeopleList(users) {
+            // Store users data for popup access
+            state.usersData = users || {};
+            
             const otherUsers = Object.entries(users || {}).filter(([id]) => id !== state.userId);
+            const myData = users?.[state.userId];
             state.viewerCount = otherUsers.length;
             
-            el.peopleCount.textContent = `${otherUsers.length + 1} online`;
+            // Always count current user + other users
+            const totalOnline = otherUsers.length + 1;
+            el.peopleCount.textContent = `${totalOnline} in room`;
             
-            if (otherUsers.length === 0) {
-                el.peopleList.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">👥</div>
-                        <p>No one else is here yet</p>
-                    </div>
-                `;
-                return;
+            // Build "This Device" card (always show at top)
+            let myDeviceInfo = { device: 'Unknown', browser: 'Unknown' };
+            try {
+                myDeviceInfo = getDeviceInfo();
+            } catch (e) {
+                console.log('getDeviceInfo error:', e);
             }
             
-            el.peopleList.innerHTML = otherUsers.map(([id, data]) => {
+            let myStatusText = '';
+            if (state.isTracking) {
+                myStatusText = 'Tracking';
+                if (myData && myData.timestamp) {
+                    myStatusText += ' · Updated ' + getRelativeTime(myData.timestamp);
+                }
+            } else {
+                myStatusText = 'Not tracking';
+            }
+            
+            const myDeviceStr = `${myDeviceInfo.device} · ${myDeviceInfo.browser}`;
+            
+            const thisDeviceHtml = `
+                <div class="person-card" data-user-id="${state.userId || 'me'}" style="background: rgba(0, 217, 255, 0.08); border: 1px solid rgba(0, 217, 255, 0.25);">
+                    <div class="person-avatar" style="background: linear-gradient(135deg, var(--accent), #0099cc);">
+                        ${state.userName ? state.userName.charAt(0).toUpperCase() : '?'}
+                    </div>
+                    <div class="person-info">
+                        <div class="person-name" style="display: flex; align-items: center; gap: 8px;">
+                            ${state.userName || 'You'}
+                            <span style="font-size: 10px; padding: 2px 8px; background: var(--accent); color: #000; border-radius: 10px; font-weight: 600;">You</span>
+                        </div>
+                        <div class="person-status">${myStatusText} · ${myDeviceStr}</div>
+                    </div>
+                    <button class="person-info-btn" data-user-id="me" title="View your device info" style="background: rgba(0, 217, 255, 0.25);">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="16" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            // Build other users cards
+            const otherUsersHtml = otherUsers.map(([id, data]) => {
                 const name = data.name || 'Unknown';
                 const color = getAvatarColor(name);
                 const lastSeen = getRelativeTime(data.timestamp);
-                const deviceInfo = data.device ? `${data.device.device} · ${data.device.browser}` : '';
+                const device = data.device || {};
+                
+                // Build device info string
+                let deviceParts = [];
+                if (device.device) deviceParts.push(device.device);
+                if (device.browser) deviceParts.push(device.browser);
+                if (device.batteryLevel && device.batteryLevel !== 'N/A') {
+                    const batteryNum = parseInt(device.batteryLevel);
+                    const batteryIcon = batteryNum <= 20 ? '🪫' : '🔋';
+                    deviceParts.push(`${batteryIcon} ${device.batteryLevel}`);
+                }
+                if (device.networkEffectiveType && device.networkEffectiveType !== 'N/A') {
+                    deviceParts.push(`📶 ${device.networkEffectiveType}`);
+                }
+                const deviceInfo = deviceParts.join(' · ');
                 
                 return `
                     <div class="person-card" data-user-id="${id}">
@@ -1454,35 +2316,214 @@
                             <div class="person-name">${name}</div>
                             <div class="person-status">Last seen ${lastSeen}${deviceInfo ? ' · ' + deviceInfo : ''}</div>
                         </div>
+                        <button class="person-info-btn" data-user-id="${id}" title="View details">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="16" x2="12" y2="12"/>
+                                <line x1="12" y1="8" x2="12.01" y2="8"/>
+                            </svg>
+                        </button>
                     </div>
                 `;
             }).join('');
             
-            // Click to focus on person
+            // Combine: This device + other users (or empty state if no others)
+            if (otherUsers.length === 0) {
+                el.peopleList.innerHTML = thisDeviceHtml + `
+                    <div class="empty-state" style="padding: 24px;">
+                        <div class="empty-icon">👥</div>
+                        <p>No one else is here yet</p>
+                    </div>
+                `;
+            } else {
+                el.peopleList.innerHTML = thisDeviceHtml + otherUsersHtml;
+            }
+            
+            // Click on card to focus on location
             el.peopleList.querySelectorAll('.person-card').forEach(card => {
-                card.addEventListener('click', () => {
+                card.addEventListener('click', (e) => {
+                    // Don't trigger if clicking info button
+                    if (e.target.closest('.person-info-btn')) return;
+                    
                     const userId = card.dataset.userId;
-                    if (state.friendMarkers[userId]) {
+                    if (userId === state.userId || userId === 'me') {
+                        // For self, focus on own location
+                        if (state.myMarker) {
+                            state.map.setView(state.myMarker.getLatLng(), 17);
+                            el.bottomSheet.classList.add('collapsed');
+                        } else {
+                            showToast('Start tracking to see your location');
+                        }
+                    } else if (state.friendMarkers[userId]) {
+                        // For others, focus on their location
                         state.map.setView(state.friendMarkers[userId].getLatLng(), 17);
                         el.bottomSheet.classList.add('collapsed');
                     }
                 });
             });
+            
+            // Click on info button to show details popup
+            el.peopleList.querySelectorAll('.person-info-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const userId = btn.dataset.userId;
+                    if (userId === 'me' || userId === state.userId) {
+                        // Show full device info modal for self
+                        showDeviceInfoModal();
+                    } else {
+                        // Show person popup for others
+                        showPersonPopup(userId);
+                    }
+                });
+            });
+        }
+        
+        // Show person popup with details
+        function showPersonPopup(userId) {
+            const data = state.usersData[userId];
+            if (!data) {
+                showToast('User data not available');
+                return;
+            }
+            
+            const name = data.name || 'Unknown';
+            const color = getAvatarColor(name);
+            const device = data.device || {};
+            
+            // Helper to safely get value
+            const safeVal = (val, suffix = '') => {
+                if (val === undefined || val === null || val === '' || val === 'N/A') return 'N/A';
+                return val + suffix;
+            };
+            
+            // Update popup content
+            document.getElementById('personPopupAvatar').textContent = name.charAt(0).toUpperCase();
+            document.getElementById('personPopupAvatar').style.background = color;
+            document.getElementById('personPopupName').textContent = name;
+            document.getElementById('personPopupLastSeen').textContent = 'Last seen ' + getRelativeTime(data.timestamp);
+            
+            // Location
+            document.getElementById('personPopupLat').textContent = data.lat?.toFixed(6) || 'N/A';
+            document.getElementById('personPopupLng').textContent = data.lng?.toFixed(6) || 'N/A';
+            document.getElementById('personPopupAccuracy').textContent = data.accuracy ? `±${Math.round(data.accuracy)}m` : 'N/A';
+            
+            // Device info
+            document.getElementById('personPopupDevice').textContent = safeVal(device.device);
+            document.getElementById('personPopupOS').textContent = safeVal(device.os);
+            document.getElementById('personPopupBrowser').textContent = safeVal(device.browser);
+            document.getElementById('personPopupPlatform').textContent = safeVal(device.platform);
+            
+            // Battery & Network
+            document.getElementById('personPopupBattery').textContent = safeVal(device.batteryLevel);
+            document.getElementById('personPopupCharging').textContent = safeVal(device.batteryCharging);
+            document.getElementById('personPopupNetwork').textContent = safeVal(device.networkEffectiveType);
+            document.getElementById('personPopupConnection').textContent = safeVal(device.networkDownlink);
+            
+            // Screen
+            const screenRes = (device.screenWidth && device.screenHeight) 
+                ? `${device.screenWidth} × ${device.screenHeight}` 
+                : 'N/A';
+            document.getElementById('personPopupScreen').textContent = screenRes;
+            
+            const viewport = (device.viewportWidth && device.viewportHeight)
+                ? `${device.viewportWidth} × ${device.viewportHeight}`
+                : 'N/A';
+            document.getElementById('personPopupViewport').textContent = viewport;
+            document.getElementById('personPopupPixelRatio').textContent = safeVal(device.pixelRatio);
+            document.getElementById('personPopupOrientation').textContent = safeVal(device.orientation);
+            
+            // Hardware
+            document.getElementById('personPopupCPU').textContent = safeVal(device.cpuCores);
+            document.getElementById('personPopupMemory').textContent = safeVal(device.deviceMemory);
+            document.getElementById('personPopupTouch').textContent = safeVal(device.maxTouchPoints);
+            
+            // Locale
+            document.getElementById('personPopupLanguage').textContent = safeVal(device.language);
+            document.getElementById('personPopupTimezone').textContent = safeVal(device.timezone);
+            
+            // Timestamp
+            if (data.timestamp) {
+                const date = new Date(data.timestamp);
+                document.getElementById('personPopupTime').textContent = date.toLocaleString();
+            } else {
+                document.getElementById('personPopupTime').textContent = 'N/A';
+            }
+            
+            // Store current user ID for actions
+            document.getElementById('personPopupOverlay').dataset.userId = userId;
+            
+            // Show popup
+            document.getElementById('personPopupOverlay').classList.add('active');
+        }
+        
+        // Hide person popup
+        function hidePersonPopup() {
+            document.getElementById('personPopupOverlay').classList.remove('active');
         }
         
         // Send location update
-        function sendLocationUpdate(lat, lng, accuracy) {
-            const deviceInfo = getDeviceInfo();
+        async function sendLocationUpdate(lat, lng, accuracy) {
+            const userRef = ref(db, `findmy/rooms/${state.roomId}/active/${state.userId}`);
             
-            const locationData = {
-                lat, lng, accuracy,
-                name: state.userName,
-                device: deviceInfo,
-                timestamp: serverTimestamp()
-            };
-            
-            // Update active location only (no history)
-            set(ref(db, `findmy/rooms/${state.roomId}/active/${state.userId}`), locationData);
+            if (state.isFirstUpdate) {
+                // First update: send ALL data
+                const fullDeviceInfo = await getFullDeviceInfo();
+                
+                const fullData = {
+                    lat, lng, accuracy,
+                    name: state.userName,
+                    device: fullDeviceInfo,
+                    timestamp: serverTimestamp()
+                };
+                
+                await set(userRef, fullData);
+                
+                // Store for future comparison (without serverTimestamp)
+                state.lastSentData = { lat, lng, accuracy, name: state.userName, device: fullDeviceInfo };
+                state.isFirstUpdate = false;
+                console.log('First update: sent full device info');
+            } else {
+                // Subsequent updates: only send changes
+                const currentDeviceInfo = await getFullDeviceInfo();
+                
+                const currentData = {
+                    lat, lng, accuracy,
+                    name: state.userName,
+                    device: currentDeviceInfo
+                };
+                
+                const changes = getChangedFields(state.lastSentData, currentData);
+                
+                if (changes) {
+                    // Always include timestamp with updates
+                    changes.timestamp = serverTimestamp();
+                    
+                    // Use update() to only change specific fields
+                    const { update } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+                    
+                    // Flatten device changes if present
+                    const flatChanges = {};
+                    for (const key in changes) {
+                        if (key === 'device' && typeof changes[key] === 'object') {
+                            // Flatten device object for partial updates
+                            for (const deviceKey in changes[key]) {
+                                flatChanges[`device/${deviceKey}`] = changes[key][deviceKey];
+                            }
+                        } else {
+                            flatChanges[key] = changes[key];
+                        }
+                    }
+                    
+                    await update(userRef, flatChanges);
+                    state.lastSentData = currentData;
+                    console.log('Partial update:', Object.keys(flatChanges));
+                } else {
+                    // No changes except timestamp - just update timestamp
+                    const { update } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+                    await update(userRef, { timestamp: serverTimestamp() });
+                    console.log('Timestamp only update');
+                }
+            }
             
             state.lastUpdateTime = Date.now();
         }
@@ -1803,9 +2844,76 @@
             }
         });
         
-        // Service Worker
+        // Service Worker with update handling
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(() => {});
+            navigator.serviceWorker.register('sw.js')
+                .then((registration) => {
+                    // Check for updates every 5 minutes
+                    setInterval(() => {
+                        registration.update();
+                    }, 5 * 60 * 1000);
+                    
+                    // Listen for new service worker
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // New version available
+                                showUpdateToast();
+                            }
+                        });
+                    });
+                })
+                .catch((err) => console.log('SW registration failed:', err));
+            
+            // Listen for SW update messages
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'SW_UPDATED') {
+                    showUpdateToast();
+                }
+            });
+        }
+        
+        // Show update available toast
+        function showUpdateToast() {
+            const existingToast = document.querySelector('.update-toast');
+            if (existingToast) return;
+            
+            const toast = document.createElement('div');
+            toast.className = 'update-toast';
+            toast.innerHTML = `
+                <span>🎉 New version available!</span>
+                <button onclick="window.location.reload()">Update</button>
+            `;
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 100px;
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px 20px;
+                background: linear-gradient(135deg, #00d9ff, #0099cc);
+                color: #000;
+                border-radius: 30px;
+                font-size: 14px;
+                font-weight: 600;
+                z-index: 10000;
+                box-shadow: 0 4px 20px rgba(0, 217, 255, 0.4);
+                animation: slideUp 0.3s ease-out;
+            `;
+            toast.querySelector('button').style.cssText = `
+                padding: 6px 14px;
+                background: #000;
+                color: #fff;
+                border: none;
+                border-radius: 15px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+            `;
+            document.body.appendChild(toast);
         }
         
         // Load from URL/localStorage
@@ -2022,6 +3130,696 @@
         
         // Initialize install button visibility
         updateInstallButton();
+        
+        // ==========================================
+        // Device Info Panel
+        // ==========================================
+        const deviceInfoFab = document.getElementById('deviceInfoFab');
+        const deviceInfoOverlay = document.getElementById('deviceInfoOverlay');
+        const deviceInfoClose = document.getElementById('deviceInfoClose');
+        const deviceInfoContent = document.getElementById('deviceInfoContent');
+        const refreshDeviceInfo = document.getElementById('refreshDeviceInfo');
+        
+        // Show FAB when on map screen
+        function updateDeviceInfoFabVisibility() {
+            if (!el.mapScreen.classList.contains('hidden')) {
+                deviceInfoFab.classList.remove('hidden');
+            } else {
+                deviceInfoFab.classList.add('hidden');
+            }
+        }
+        
+        // Observe map screen visibility
+        const mapObserver = new MutationObserver(updateDeviceInfoFabVisibility);
+        mapObserver.observe(el.mapScreen, { attributes: true, attributeFilter: ['class'] });
+        
+        // Safe getter - wraps any function and returns default on error
+        function safeGet(fn, defaultValue = 'N/A') {
+            try {
+                const result = fn();
+                if (result === undefined || result === null || result === '') return defaultValue;
+                return result;
+            } catch (e) {
+                return defaultValue;
+            }
+        }
+        
+        // Safe async getter
+        async function safeGetAsync(fn, defaultValue = 'N/A') {
+            try {
+                const result = await fn();
+                if (result === undefined || result === null || result === '') return defaultValue;
+                return result;
+            } catch (e) {
+                return defaultValue;
+            }
+        }
+        
+        // Collect all device information
+        async function collectDeviceInfo() {
+            const info = {};
+            
+            // ===== BASIC SYSTEM INFO =====
+            info.system = {
+                userAgent: safeGet(() => navigator.userAgent),
+                platform: safeGet(() => navigator.platform),
+                vendor: safeGet(() => navigator.vendor),
+                language: safeGet(() => navigator.language),
+                languages: safeGet(() => navigator.languages?.join(', ')),
+                cookiesEnabled: safeGet(() => navigator.cookieEnabled ? 'Yes' : 'No'),
+                doNotTrack: safeGet(() => {
+                    const dnt = navigator.doNotTrack || window.doNotTrack;
+                    if (dnt === '1' || dnt === 'yes') return 'Enabled';
+                    if (dnt === '0' || dnt === 'no') return 'Disabled';
+                    return 'Not set';
+                }),
+                onlineStatus: safeGet(() => navigator.onLine ? 'Online' : 'Offline'),
+                pdfViewerEnabled: safeGet(() => navigator.pdfViewerEnabled ? 'Yes' : 'No'),
+                javaEnabled: safeGet(() => {
+                    try { return navigator.javaEnabled() ? 'Yes' : 'No'; }
+                    catch { return 'N/A'; }
+                }),
+                maxTouchPoints: safeGet(() => navigator.maxTouchPoints),
+                hardwareConcurrency: safeGet(() => navigator.hardwareConcurrency + ' cores'),
+                deviceMemory: safeGet(() => navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'N/A'),
+            };
+            
+            // ===== SCREEN INFO =====
+            info.screen = {
+                width: safeGet(() => screen.width + 'px'),
+                height: safeGet(() => screen.height + 'px'),
+                availWidth: safeGet(() => screen.availWidth + 'px'),
+                availHeight: safeGet(() => screen.availHeight + 'px'),
+                colorDepth: safeGet(() => screen.colorDepth + '-bit'),
+                pixelDepth: safeGet(() => screen.pixelDepth + '-bit'),
+                devicePixelRatio: safeGet(() => window.devicePixelRatio?.toFixed(2) + 'x'),
+                orientation: safeGet(() => screen.orientation?.type || 'N/A'),
+                orientationAngle: safeGet(() => screen.orientation?.angle + '°'),
+            };
+            
+            // ===== WINDOW INFO =====
+            info.window = {
+                innerWidth: safeGet(() => window.innerWidth + 'px'),
+                innerHeight: safeGet(() => window.innerHeight + 'px'),
+                outerWidth: safeGet(() => window.outerWidth + 'px'),
+                outerHeight: safeGet(() => window.outerHeight + 'px'),
+                scrollX: safeGet(() => window.scrollX + 'px'),
+                scrollY: safeGet(() => window.scrollY + 'px'),
+                visualViewportWidth: safeGet(() => window.visualViewport?.width?.toFixed(0) + 'px'),
+                visualViewportHeight: safeGet(() => window.visualViewport?.height?.toFixed(0) + 'px'),
+                visualViewportScale: safeGet(() => window.visualViewport?.scale?.toFixed(2) + 'x'),
+            };
+            
+            // ===== NETWORK INFO =====
+            info.network = {
+                onLine: safeGet(() => navigator.onLine ? 'Connected' : 'Disconnected'),
+                effectiveType: safeGet(() => navigator.connection?.effectiveType?.toUpperCase()),
+                downlink: safeGet(() => navigator.connection?.downlink ? navigator.connection.downlink + ' Mbps' : 'N/A'),
+                rtt: safeGet(() => navigator.connection?.rtt ? navigator.connection.rtt + ' ms' : 'N/A'),
+                saveData: safeGet(() => navigator.connection?.saveData ? 'Enabled' : 'Disabled'),
+                type: safeGet(() => navigator.connection?.type || 'N/A'),
+            };
+            
+            // ===== BATTERY INFO =====
+            info.battery = {
+                supported: 'Checking...',
+                level: 'N/A',
+                charging: 'N/A',
+                chargingTime: 'N/A',
+                dischargingTime: 'N/A',
+            };
+            
+            if ('getBattery' in navigator) {
+                try {
+                    const battery = await navigator.getBattery();
+                    info.battery = {
+                        supported: 'Yes',
+                        level: Math.round(battery.level * 100) + '%',
+                        charging: battery.charging ? 'Yes ⚡' : 'No',
+                        chargingTime: battery.chargingTime === Infinity ? 'N/A' : Math.round(battery.chargingTime / 60) + ' min',
+                        dischargingTime: battery.dischargingTime === Infinity ? 'N/A' : Math.round(battery.dischargingTime / 60) + ' min',
+                    };
+                } catch (e) {
+                    info.battery.supported = 'Blocked';
+                }
+            } else {
+                info.battery.supported = 'Not supported';
+            }
+            
+            // ===== LOCATION INFO =====
+            info.location = {
+                supported: 'geolocation' in navigator ? 'Yes' : 'No',
+                latitude: 'N/A',
+                longitude: 'N/A',
+                accuracy: 'N/A',
+                altitude: 'N/A',
+                altitudeAccuracy: 'N/A',
+                heading: 'N/A',
+                speed: 'N/A',
+            };
+            
+            // Get current position if available
+            if ('geolocation' in navigator) {
+                try {
+                    const pos = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+                    });
+                    info.location = {
+                        supported: 'Yes',
+                        latitude: pos.coords.latitude?.toFixed(6) + '°',
+                        longitude: pos.coords.longitude?.toFixed(6) + '°',
+                        accuracy: pos.coords.accuracy?.toFixed(0) + ' m',
+                        altitude: pos.coords.altitude !== null ? pos.coords.altitude?.toFixed(1) + ' m' : 'N/A',
+                        altitudeAccuracy: pos.coords.altitudeAccuracy !== null ? pos.coords.altitudeAccuracy?.toFixed(0) + ' m' : 'N/A',
+                        heading: pos.coords.heading !== null ? pos.coords.heading?.toFixed(0) + '°' : 'N/A',
+                        speed: pos.coords.speed !== null ? (pos.coords.speed * 3.6)?.toFixed(1) + ' km/h' : 'N/A',
+                    };
+                } catch (e) {
+                    info.location.supported = e.code === 1 ? 'Denied' : 'Error';
+                }
+            }
+            
+            // ===== TIME & LOCALE =====
+            info.time = {
+                timezone: safeGet(() => Intl.DateTimeFormat().resolvedOptions().timeZone),
+                timezoneOffset: safeGet(() => {
+                    const offset = new Date().getTimezoneOffset();
+                    const sign = offset <= 0 ? '+' : '-';
+                    const hours = Math.floor(Math.abs(offset) / 60);
+                    const mins = Math.abs(offset) % 60;
+                    return `UTC${sign}${hours}:${mins.toString().padStart(2, '0')}`;
+                }),
+                localTime: safeGet(() => new Date().toLocaleTimeString()),
+                localDate: safeGet(() => new Date().toLocaleDateString()),
+                locale: safeGet(() => Intl.DateTimeFormat().resolvedOptions().locale),
+                calendar: safeGet(() => Intl.DateTimeFormat().resolvedOptions().calendar),
+                numberingSystem: safeGet(() => Intl.DateTimeFormat().resolvedOptions().numberingSystem),
+            };
+            
+            // ===== MEDIA CAPABILITIES =====
+            info.media = {
+                mediaDevices: safeGet(() => 'mediaDevices' in navigator ? 'Supported' : 'Not supported'),
+                getUserMedia: safeGet(() => 'getUserMedia' in navigator.mediaDevices ? 'Supported' : 'Not supported'),
+                getDisplayMedia: safeGet(() => 'getDisplayMedia' in navigator.mediaDevices ? 'Supported' : 'Not supported'),
+                speechSynthesis: safeGet(() => 'speechSynthesis' in window ? 'Supported' : 'Not supported'),
+                speechRecognition: safeGet(() => ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) ? 'Supported' : 'Not supported'),
+            };
+            
+            // Count media devices
+            if ('mediaDevices' in navigator && 'enumerateDevices' in navigator.mediaDevices) {
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const audioInputs = devices.filter(d => d.kind === 'audioinput').length;
+                    const audioOutputs = devices.filter(d => d.kind === 'audiooutput').length;
+                    const videoInputs = devices.filter(d => d.kind === 'videoinput').length;
+                    info.media.audioInputs = audioInputs + ' device(s)';
+                    info.media.audioOutputs = audioOutputs + ' device(s)';
+                    info.media.videoInputs = videoInputs + ' camera(s)';
+                } catch (e) {
+                    info.media.audioInputs = 'N/A';
+                    info.media.audioOutputs = 'N/A';
+                    info.media.videoInputs = 'N/A';
+                }
+            }
+            
+            // ===== STORAGE INFO =====
+            info.storage = {
+                localStorage: safeGet(() => 'localStorage' in window ? 'Supported' : 'Not supported'),
+                sessionStorage: safeGet(() => 'sessionStorage' in window ? 'Supported' : 'Not supported'),
+                indexedDB: safeGet(() => 'indexedDB' in window ? 'Supported' : 'Not supported'),
+                cacheAPI: safeGet(() => 'caches' in window ? 'Supported' : 'Not supported'),
+            };
+            
+            // Storage estimate
+            if ('storage' in navigator && 'estimate' in navigator.storage) {
+                try {
+                    const estimate = await navigator.storage.estimate();
+                    info.storage.quota = (estimate.quota / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+                    info.storage.usage = (estimate.usage / (1024 * 1024)).toFixed(2) + ' MB';
+                    info.storage.usagePercent = ((estimate.usage / estimate.quota) * 100).toFixed(2) + '%';
+                } catch (e) {
+                    info.storage.quota = 'N/A';
+                    info.storage.usage = 'N/A';
+                }
+            }
+            
+            // ===== WEBGL INFO =====
+            info.graphics = {
+                webGL: 'Not supported',
+                webGL2: 'Not supported',
+                renderer: 'N/A',
+                vendor: 'N/A',
+                maxTextureSize: 'N/A',
+            };
+            
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    info.graphics.webGL = 'Supported';
+                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                    if (debugInfo) {
+                        info.graphics.renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                        info.graphics.vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                    }
+                    info.graphics.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) + 'px';
+                }
+                
+                const gl2 = canvas.getContext('webgl2');
+                if (gl2) {
+                    info.graphics.webGL2 = 'Supported';
+                }
+            } catch (e) {}
+            
+            // ===== PWA & SERVICE WORKER =====
+            info.pwa = {
+                serviceWorker: safeGet(() => 'serviceWorker' in navigator ? 'Supported' : 'Not supported'),
+                pushManager: safeGet(() => 'PushManager' in window ? 'Supported' : 'Not supported'),
+                notifications: safeGet(() => 'Notification' in window ? 'Supported' : 'Not supported'),
+                notificationPermission: safeGet(() => Notification?.permission || 'N/A'),
+                displayMode: safeGet(() => {
+                    if (window.matchMedia('(display-mode: standalone)').matches) return 'Standalone';
+                    if (window.matchMedia('(display-mode: fullscreen)').matches) return 'Fullscreen';
+                    if (window.matchMedia('(display-mode: minimal-ui)').matches) return 'Minimal UI';
+                    return 'Browser';
+                }),
+                standalone: safeGet(() => window.navigator.standalone === true ? 'Yes' : 'No'),
+                beforeInstallPrompt: safeGet(() => deferredPrompt ? 'Available' : 'N/A'),
+            };
+            
+            // ===== PERMISSIONS (if API available) =====
+            info.permissions = {};
+            if ('permissions' in navigator) {
+                const permissionsList = [
+                    'geolocation', 'notifications', 'camera', 'microphone',
+                    'accelerometer', 'gyroscope', 'magnetometer',
+                    'clipboard-read', 'clipboard-write', 'midi',
+                    'background-sync', 'persistent-storage'
+                ];
+                
+                for (const perm of permissionsList) {
+                    try {
+                        const status = await navigator.permissions.query({ name: perm });
+                        info.permissions[perm] = status.state;
+                    } catch (e) {
+                        info.permissions[perm] = 'N/A';
+                    }
+                }
+            }
+            
+            // ===== SENSORS =====
+            info.sensors = {
+                accelerometer: safeGet(() => 'Accelerometer' in window ? 'Supported' : 'Not supported'),
+                gyroscope: safeGet(() => 'Gyroscope' in window ? 'Supported' : 'Not supported'),
+                magnetometer: safeGet(() => 'Magnetometer' in window ? 'Supported' : 'Not supported'),
+                ambientLight: safeGet(() => 'AmbientLightSensor' in window ? 'Supported' : 'Not supported'),
+                proximity: safeGet(() => 'ProximitySensor' in window ? 'Supported' : 'Not supported'),
+                linearAcceleration: safeGet(() => 'LinearAccelerationSensor' in window ? 'Supported' : 'Not supported'),
+                gravity: safeGet(() => 'GravitySensor' in window ? 'Supported' : 'Not supported'),
+                absoluteOrientation: safeGet(() => 'AbsoluteOrientationSensor' in window ? 'Supported' : 'Not supported'),
+                relativeOrientation: safeGet(() => 'RelativeOrientationSensor' in window ? 'Supported' : 'Not supported'),
+            };
+            
+            // ===== OTHER APIs =====
+            info.apis = {
+                bluetooth: safeGet(() => 'bluetooth' in navigator ? 'Supported' : 'Not supported'),
+                usb: safeGet(() => 'usb' in navigator ? 'Supported' : 'Not supported'),
+                serial: safeGet(() => 'serial' in navigator ? 'Supported' : 'Not supported'),
+                hid: safeGet(() => 'hid' in navigator ? 'Supported' : 'Not supported'),
+                nfc: safeGet(() => 'NDEFReader' in window ? 'Supported' : 'Not supported'),
+                wakeLock: safeGet(() => 'wakeLock' in navigator ? 'Supported' : 'Not supported'),
+                share: safeGet(() => 'share' in navigator ? 'Supported' : 'Not supported'),
+                clipboard: safeGet(() => 'clipboard' in navigator ? 'Supported' : 'Not supported'),
+                vibrate: safeGet(() => 'vibrate' in navigator ? 'Supported' : 'Not supported'),
+                gamepad: safeGet(() => 'getGamepads' in navigator ? 'Supported' : 'Not supported'),
+                webXR: safeGet(() => 'xr' in navigator ? 'Supported' : 'Not supported'),
+                webVR: safeGet(() => 'getVRDisplays' in navigator ? 'Supported' : 'Not supported'),
+                payment: safeGet(() => 'PaymentRequest' in window ? 'Supported' : 'Not supported'),
+                credentials: safeGet(() => 'credentials' in navigator ? 'Supported' : 'Not supported'),
+                webAuthn: safeGet(() => 'PublicKeyCredential' in window ? 'Supported' : 'Not supported'),
+            };
+            
+            // ===== PERFORMANCE INFO =====
+            info.performance = {
+                memory: safeGet(() => {
+                    if (performance.memory) {
+                        return (performance.memory.usedJSHeapSize / (1024 * 1024)).toFixed(2) + ' MB';
+                    }
+                    return 'N/A';
+                }),
+                memoryLimit: safeGet(() => {
+                    if (performance.memory) {
+                        return (performance.memory.jsHeapSizeLimit / (1024 * 1024)).toFixed(0) + ' MB';
+                    }
+                    return 'N/A';
+                }),
+                navigationStart: safeGet(() => {
+                    const timing = performance.timing || performance.getEntriesByType('navigation')[0];
+                    if (timing) {
+                        return new Date(timing.navigationStart || timing.startTime).toLocaleTimeString();
+                    }
+                    return 'N/A';
+                }),
+                pageLoadTime: safeGet(() => {
+                    const nav = performance.getEntriesByType('navigation')[0];
+                    if (nav) {
+                        return nav.loadEventEnd.toFixed(0) + ' ms';
+                    }
+                    return 'N/A';
+                }),
+            };
+            
+            return info;
+        }
+        
+        // Render device info to HTML
+        function renderDeviceInfo(info) {
+            const sections = [
+                { key: 'system', icon: '💻', title: 'System', labels: {
+                    userAgent: 'User Agent',
+                    platform: 'Platform',
+                    vendor: 'Vendor',
+                    language: 'Language',
+                    languages: 'Languages',
+                    cookiesEnabled: 'Cookies',
+                    doNotTrack: 'Do Not Track',
+                    onlineStatus: 'Online Status',
+                    pdfViewerEnabled: 'PDF Viewer',
+                    javaEnabled: 'Java',
+                    maxTouchPoints: 'Touch Points',
+                    hardwareConcurrency: 'CPU Cores',
+                    deviceMemory: 'Device Memory',
+                }},
+                { key: 'screen', icon: '🖥️', title: 'Screen', labels: {
+                    width: 'Width',
+                    height: 'Height',
+                    availWidth: 'Available Width',
+                    availHeight: 'Available Height',
+                    colorDepth: 'Color Depth',
+                    pixelDepth: 'Pixel Depth',
+                    devicePixelRatio: 'Pixel Ratio',
+                    orientation: 'Orientation',
+                    orientationAngle: 'Angle',
+                }},
+                { key: 'window', icon: '🪟', title: 'Viewport', labels: {
+                    innerWidth: 'Inner Width',
+                    innerHeight: 'Inner Height',
+                    outerWidth: 'Outer Width',
+                    outerHeight: 'Outer Height',
+                    visualViewportWidth: 'Visual Width',
+                    visualViewportHeight: 'Visual Height',
+                    visualViewportScale: 'Scale',
+                }},
+                { key: 'network', icon: '📶', title: 'Network', labels: {
+                    onLine: 'Status',
+                    effectiveType: 'Connection Type',
+                    downlink: 'Downlink Speed',
+                    rtt: 'Round Trip Time',
+                    saveData: 'Data Saver',
+                    type: 'Network Type',
+                }},
+                { key: 'battery', icon: '🔋', title: 'Battery', labels: {
+                    supported: 'API Support',
+                    level: 'Level',
+                    charging: 'Charging',
+                    chargingTime: 'Time to Full',
+                    dischargingTime: 'Time to Empty',
+                }},
+                { key: 'location', icon: '📍', title: 'Location', labels: {
+                    supported: 'Permission',
+                    latitude: 'Latitude',
+                    longitude: 'Longitude',
+                    accuracy: 'Accuracy',
+                    altitude: 'Altitude',
+                    altitudeAccuracy: 'Alt. Accuracy',
+                    heading: 'Heading',
+                    speed: 'Speed',
+                }},
+                { key: 'time', icon: '🕐', title: 'Time & Locale', labels: {
+                    timezone: 'Timezone',
+                    timezoneOffset: 'UTC Offset',
+                    localTime: 'Local Time',
+                    localDate: 'Local Date',
+                    locale: 'Locale',
+                    calendar: 'Calendar',
+                    numberingSystem: 'Numbering',
+                }},
+                { key: 'storage', icon: '💾', title: 'Storage', labels: {
+                    localStorage: 'Local Storage',
+                    sessionStorage: 'Session Storage',
+                    indexedDB: 'IndexedDB',
+                    cacheAPI: 'Cache API',
+                    quota: 'Storage Quota',
+                    usage: 'Storage Used',
+                    usagePercent: 'Usage %',
+                }},
+                { key: 'graphics', icon: '🎮', title: 'Graphics', labels: {
+                    webGL: 'WebGL',
+                    webGL2: 'WebGL 2',
+                    renderer: 'GPU Renderer',
+                    vendor: 'GPU Vendor',
+                    maxTextureSize: 'Max Texture',
+                }},
+                { key: 'media', icon: '🎵', title: 'Media', labels: {
+                    mediaDevices: 'Media Devices',
+                    getUserMedia: 'Camera/Mic Access',
+                    getDisplayMedia: 'Screen Capture',
+                    speechSynthesis: 'Speech Synthesis',
+                    speechRecognition: 'Speech Recognition',
+                    audioInputs: 'Audio Inputs',
+                    audioOutputs: 'Audio Outputs',
+                    videoInputs: 'Video Inputs',
+                }},
+                { key: 'pwa', icon: '📲', title: 'PWA Features', labels: {
+                    serviceWorker: 'Service Worker',
+                    pushManager: 'Push API',
+                    notifications: 'Notifications',
+                    notificationPermission: 'Notification Permission',
+                    displayMode: 'Display Mode',
+                    standalone: 'iOS Standalone',
+                    beforeInstallPrompt: 'Install Prompt',
+                }},
+                { key: 'sensors', icon: '📡', title: 'Sensors', labels: {
+                    accelerometer: 'Accelerometer',
+                    gyroscope: 'Gyroscope',
+                    magnetometer: 'Magnetometer',
+                    ambientLight: 'Ambient Light',
+                    proximity: 'Proximity',
+                    linearAcceleration: 'Linear Accel.',
+                    gravity: 'Gravity',
+                    absoluteOrientation: 'Absolute Orient.',
+                    relativeOrientation: 'Relative Orient.',
+                }},
+                { key: 'apis', icon: '🔌', title: 'Device APIs', labels: {
+                    bluetooth: 'Bluetooth',
+                    usb: 'USB',
+                    serial: 'Serial',
+                    hid: 'HID',
+                    nfc: 'NFC',
+                    wakeLock: 'Wake Lock',
+                    share: 'Web Share',
+                    clipboard: 'Clipboard',
+                    vibrate: 'Vibration',
+                    gamepad: 'Gamepad',
+                    webXR: 'WebXR',
+                    webVR: 'WebVR',
+                    payment: 'Payment Request',
+                    credentials: 'Credentials',
+                    webAuthn: 'WebAuthn',
+                }},
+                { key: 'performance', icon: '⚡', title: 'Performance', labels: {
+                    memory: 'JS Heap Used',
+                    memoryLimit: 'JS Heap Limit',
+                    navigationStart: 'Page Opened',
+                    pageLoadTime: 'Load Time',
+                }},
+            ];
+            
+            // Permissions section (special rendering)
+            let permissionsHtml = '';
+            if (info.permissions && Object.keys(info.permissions).length > 0) {
+                const permIcons = {
+                    geolocation: '📍', notifications: '🔔', camera: '📷', microphone: '🎤',
+                    accelerometer: '📱', gyroscope: '🔄', magnetometer: '🧭',
+                    'clipboard-read': '📋', 'clipboard-write': '✍️', midi: '🎹',
+                    'background-sync': '🔄', 'persistent-storage': '💾'
+                };
+                
+                const permItems = Object.entries(info.permissions).map(([perm, status]) => {
+                    let badgeClass = '';
+                    if (status === 'granted') badgeClass = 'green';
+                    else if (status === 'denied') badgeClass = 'red';
+                    else if (status === 'prompt') badgeClass = 'yellow';
+                    
+                    return `
+                        <div class="permission-item">
+                            <span class="permission-icon">${permIcons[perm] || '🔒'}</span>
+                            <span class="device-badge ${badgeClass}">${status}</span>
+                            <span style="color: var(--text-muted); font-size: 10px;">${perm}</span>
+                        </div>
+                    `;
+                }).join('');
+                
+                permissionsHtml = `
+                    <div class="device-section">
+                        <div class="device-section-header">
+                            <span class="device-section-icon">🔐</span>
+                            <span class="device-section-title">Permissions</span>
+                        </div>
+                        <div class="permissions-grid">
+                            ${permItems}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Regular sections
+            const sectionsHtml = sections.map(section => {
+                const data = info[section.key];
+                if (!data) return '';
+                
+                const rows = Object.entries(section.labels).map(([key, label]) => {
+                    let value = data[key];
+                    if (value === undefined || value === null) value = 'N/A';
+                    
+                    // Determine value styling
+                    let valueClass = '';
+                    if (value === 'N/A' || value === 'Not supported' || value === 'Blocked' || value === 'Denied' || value === 'Error') {
+                        valueClass = 'muted';
+                    } else if (value === 'Supported' || value === 'Yes' || value === 'Online' || value === 'Connected' || value === 'granted') {
+                        valueClass = 'success';
+                    } else if (value === 'Not supported' || value === 'No' || value === 'Offline' || value === 'Disconnected' || value === 'denied') {
+                        valueClass = 'danger';
+                    }
+                    
+                    // Special handling for user agent (make it monospace and truncatable)
+                    if (key === 'userAgent' || key === 'renderer') {
+                        valueClass += ' mono';
+                    }
+                    
+                    // Battery level special rendering
+                    if (section.key === 'battery' && key === 'level' && value !== 'N/A') {
+                        const level = parseInt(value);
+                        let fillClass = 'high';
+                        if (level < 20) fillClass = 'low';
+                        else if (level < 50) fillClass = 'medium';
+                        
+                        return `
+                            <div class="device-info-row">
+                                <span class="device-info-label">${label}</span>
+                                <div class="battery-bar">
+                                    <div class="battery-indicator" style="color: var(--${fillClass === 'high' ? 'success' : fillClass === 'medium' ? 'text-secondary' : 'danger'})">
+                                        <div class="battery-fill ${fillClass}" style="width: ${level}%"></div>
+                                    </div>
+                                    <span class="device-info-value">${value}</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    return `
+                        <div class="device-info-row">
+                            <span class="device-info-label">${label}</span>
+                            <span class="device-info-value ${valueClass}">${value}</span>
+                        </div>
+                    `;
+                }).join('');
+                
+                return `
+                    <div class="device-section">
+                        <div class="device-section-header">
+                            <span class="device-section-icon">${section.icon}</span>
+                            <span class="device-section-title">${section.title}</span>
+                        </div>
+                        <div class="device-section-content">
+                            ${rows}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            return sectionsHtml + permissionsHtml;
+        }
+        
+        // Show device info modal
+        async function showDeviceInfoModal() {
+            deviceInfoOverlay.classList.add('active');
+            deviceInfoContent.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 16px; color: var(--text-secondary);">Collecting device info...</p>
+                </div>
+            `;
+            
+            try {
+                const info = await collectDeviceInfo();
+                deviceInfoContent.innerHTML = renderDeviceInfo(info);
+            } catch (e) {
+                deviceInfoContent.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--danger);">
+                        <p>Failed to collect device info</p>
+                        <p style="font-size: 12px; color: var(--text-muted);">${e.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Hide device info modal
+        function hideDeviceInfoModal() {
+            deviceInfoOverlay.classList.remove('active');
+        }
+        
+        // Event listeners
+        deviceInfoFab.addEventListener('click', showDeviceInfoModal);
+        deviceInfoClose.addEventListener('click', hideDeviceInfoModal);
+        refreshDeviceInfo.addEventListener('click', showDeviceInfoModal);
+        
+        deviceInfoOverlay.addEventListener('click', (e) => {
+            if (e.target === deviceInfoOverlay) {
+                hideDeviceInfoModal();
+            }
+        });
+        
+        // ==========================================
+        // Person Popup Event Listeners
+        // ==========================================
+        const personPopupOverlay = document.getElementById('personPopupOverlay');
+        const personPopupClose = document.getElementById('personPopupClose');
+        const personPopupCopyLocation = document.getElementById('personPopupCopyLocation');
+        const personPopupFocus = document.getElementById('personPopupFocus');
+        
+        personPopupClose.addEventListener('click', hidePersonPopup);
+        
+        personPopupOverlay.addEventListener('click', (e) => {
+            if (e.target === personPopupOverlay) {
+                hidePersonPopup();
+            }
+        });
+        
+        personPopupCopyLocation.addEventListener('click', async () => {
+            const userId = personPopupOverlay.dataset.userId;
+            const data = state.usersData[userId];
+            if (data && data.lat && data.lng) {
+                const locationText = `${data.name || 'User'}'s Location:\nLat: ${data.lat.toFixed(6)}\nLng: ${data.lng.toFixed(6)}\nGoogle Maps: https://www.google.com/maps?q=${data.lat},${data.lng}`;
+                try {
+                    await navigator.clipboard.writeText(locationText);
+                    showToast('Location copied to clipboard!');
+                } catch (e) {
+                    showToast('Failed to copy');
+                }
+            }
+        });
+        
+        personPopupFocus.addEventListener('click', () => {
+            const userId = personPopupOverlay.dataset.userId;
+            if (state.friendMarkers[userId]) {
+                state.map.setView(state.friendMarkers[userId].getLatLng(), 17);
+                hidePersonPopup();
+                el.bottomSheet.classList.add('collapsed');
+            } else {
+                showToast('Location not available on map');
+            }
+        });
     </script>
 </body>
 </html>

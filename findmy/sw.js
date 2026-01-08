@@ -1,82 +1,156 @@
 // Service Worker for Find My PWA
-const CACHE_NAME = 'findmy-v1';
+// VERSION 2.0 - Change this to force update
+const CACHE_VERSION = 'v2';
+const CACHE_NAME = `findmy-${CACHE_VERSION}`;
+
 const urlsToCache = [
     './',
     './index.html',
     './manifest.json',
-    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-    'https://cdn.tailwindcss.com'
+    './icon.svg'
 ];
 
-// Install event
+// External resources (cache but allow network updates)
+const externalResources = [
+    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+    'https://fonts.googleapis.com/css2?family=Outfit'
+];
+
+// Install event - cache core files
 self.addEventListener('install', (event) => {
+    console.log(`[SW] Installing ${CACHE_NAME}`);
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                console.log('Opened cache');
-                return cache.addAll(urlsToCache.filter(url => url.startsWith('./')));
+                console.log('[SW] Caching core files');
+                return cache.addAll(urlsToCache);
             })
             .catch(err => {
-                console.log('Cache failed:', err);
+                console.log('[SW] Cache failed:', err);
             })
     );
+    // Force the waiting service worker to become active
     self.skipWaiting();
 });
 
-// Activate event
+// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
+    console.log(`[SW] Activating ${CACHE_NAME}`);
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
+                    // Delete any old findmy caches
+                    if (cacheName.startsWith('findmy-') && cacheName !== CACHE_NAME) {
+                        console.log(`[SW] Deleting old cache: ${cacheName}`);
                         return caches.delete(cacheName);
                     }
                 })
             );
         })
     );
+    // Take control of all pages immediately
     self.clients.claim();
+    
+    // Notify all clients about the update
+    self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+            client.postMessage({ type: 'SW_UPDATED', version: CACHE_VERSION });
+        });
+    });
 });
 
-// Fetch event
+// Fetch event - Network-first for HTML, Cache-first for assets
 self.addEventListener('fetch', (event) => {
+    const url = new URL(event.request.url);
+    
+    // Skip non-GET requests
+    if (event.request.method !== 'GET') {
+        return;
+    }
+    
+    // Skip Firebase and other API requests
+    if (url.hostname.includes('firebase') || 
+        url.hostname.includes('googleapis.com') ||
+        url.hostname.includes('gstatic.com')) {
+        return;
+    }
+    
+    // Network-first for HTML files (always get latest app code)
+    if (event.request.mode === 'navigate' || 
+        url.pathname.endsWith('.html') || 
+        url.pathname === '/' ||
+        url.pathname.endsWith('/')) {
+        event.respondWith(
+            fetch(event.request)
+                .then((response) => {
+                    // Clone and cache the new response
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, responseClone);
+                    });
+                    return response;
+                })
+                .catch(() => {
+                    // Fallback to cache if network fails
+                    return caches.match(event.request)
+                        .then(response => response || caches.match('./index.html'));
+                })
+        );
+        return;
+    }
+    
+    // Cache-first for static assets (JS, CSS, images)
     event.respondWith(
         caches.match(event.request)
-            .then((response) => {
-                // Return cached response if found
-                if (response) {
-                    return response;
+            .then((cachedResponse) => {
+                if (cachedResponse) {
+                    // Return cached version, but also fetch and update cache in background
+                    fetch(event.request).then((networkResponse) => {
+                        if (networkResponse && networkResponse.status === 200) {
+                            caches.open(CACHE_NAME).then((cache) => {
+                                cache.put(event.request, networkResponse);
+                            });
+                        }
+                    }).catch(() => {});
+                    return cachedResponse;
                 }
                 
-                // Clone the request
-                const fetchRequest = event.request.clone();
-                
-                return fetch(fetchRequest).then((response) => {
-                    // Check if valid response
-                    if (!response || response.status !== 200 || response.type !== 'basic') {
-                        return response;
-                    }
-                    
-                    // Clone the response
-                    const responseToCache = response.clone();
-                    
-                    caches.open(CACHE_NAME)
-                        .then((cache) => {
-                            // Only cache same-origin requests
-                            if (event.request.url.startsWith(self.location.origin)) {
-                                cache.put(event.request, responseToCache);
+                // Not in cache, fetch from network
+                return fetch(event.request)
+                    .then((response) => {
+                        if (!response || response.status !== 200) {
+                            return response;
+                        }
+                        
+                        // Cache the new resource
+                        const responseClone = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => {
+                            if (event.request.url.startsWith(self.location.origin) ||
+                                externalResources.some(r => event.request.url.includes(r))) {
+                                cache.put(event.request, responseClone);
                             }
                         });
-                    
-                    return response;
-                }).catch(() => {
-                    // Return offline page or fallback
-                    return caches.match('./index.html');
-                });
+                        
+                        return response;
+                    })
+                    .catch(() => {
+                        // Return offline fallback for navigation
+                        if (event.request.mode === 'navigate') {
+                            return caches.match('./index.html');
+                        }
+                        return null;
+                    });
             })
     );
+});
+
+// Listen for skip waiting message from the app
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
 
 // Background sync for location updates (if supported)
@@ -87,7 +161,5 @@ self.addEventListener('sync', (event) => {
 });
 
 async function syncLocation() {
-    // This would handle background location sync if the browser supports it
-    console.log('Background sync triggered');
+    console.log('[SW] Background sync triggered');
 }
-

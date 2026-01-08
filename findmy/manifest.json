@@ -2,10 +2,11 @@
     "name": "Find My",
     "short_name": "Find My",
     "description": "Share your location with friends in real-time",
-    "start_url": "./index.html",
+    "version": "2.0.0",
+    "start_url": "./index.html?v=2",
     "display": "standalone",
-    "background_color": "#000000",
-    "theme_color": "#1c1c1e",
+    "background_color": "#1a1a2e",
+    "theme_color": "#1a1a2e",
     "orientation": "portrait-primary",
     "icons": [
         {
@@ -31,4 +32,3 @@
         }
     ]
 }
-
