@@ -1281,6 +1281,33 @@
             return colors[Math.abs(hash) % colors.length];
         }
         
+        // Format timestamp as relative time ("2 hours ago", "just now", etc.)
+        function getRelativeTime(timestamp) {
+            if (!timestamp) return 'unknown';
+            
+            const now = Date.now();
+            const time = typeof timestamp === 'number' ? timestamp : new Date(timestamp).getTime();
+            const diff = now - time;
+            
+            // Handle future timestamps (server time drift)
+            if (diff < 0) return 'just now';
+            
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            
+            if (seconds < 30) return 'just now';
+            if (seconds < 60) return `${seconds}s ago`;
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            if (days === 1) return 'yesterday';
+            if (days < 7) return `${days}d ago`;
+            
+            // For older timestamps, show the date
+            return new Date(time).toLocaleDateString([], { month: 'short', day: 'numeric' });
+        }
+        
         // Initialize Leaflet Map
         function initMap(lat = 37.7749, lng = -122.4194) {
             if (state.map) return;
@@ -1417,7 +1444,7 @@
             el.peopleList.innerHTML = otherUsers.map(([id, data]) => {
                 const name = data.name || 'Unknown';
                 const color = getAvatarColor(name);
-                const time = data.timestamp ? new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'now';
+                const lastSeen = getRelativeTime(data.timestamp);
                 const deviceInfo = data.device ? `${data.device.device} · ${data.device.browser}` : '';
                 
                 return `
@@ -1425,7 +1452,7 @@
                         <div class="person-avatar" style="background:${color}">${name.charAt(0).toUpperCase()}</div>
                         <div class="person-info">
                             <div class="person-name">${name}</div>
-                            <div class="person-status">${time}${deviceInfo ? ' · ' + deviceInfo : ''}</div>
+                            <div class="person-status">Last seen ${lastSeen}${deviceInfo ? ' · ' + deviceInfo : ''}</div>
                         </div>
                     </div>
                 `;
