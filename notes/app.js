@@ -1,6 +1,7 @@
 // ==========================================
 // Notes App - Main Application Script
 // ==========================================
+// Using Yjs CRDT for conflict-free real-time collaboration
 
 // ==========================================
 // Firebase Configuration
@@ -10,6 +11,12 @@ firebase.initializeApp({
     databaseURL: "https://arjunchakri-commonutil-db-dnd-default-rtdb.firebaseio.com",
 });
 const db = firebase.database();
+
+// ==========================================
+// Yjs CRDT for Real-time Collaboration
+// ==========================================
+// Y is loaded asynchronously via ES module
+let Y = window.Y;
 
 // ==========================================
 // Marvel/DC Character Names
@@ -38,18 +45,17 @@ const CURSOR_COLORS = [
 // ==========================================
 let editor = null;
 let currentNote = null;
-let saveTimeout = null;
-let lastSaved = '';
-let isLocalChange = false;
-let lastSavedContent = ''; // Track the exact content we last saved
-let isTyping = false; // Track if user is actively typing
-let typingTimeout = null;
-let unsubscribe = null;
 let wordWrap = false;
 let minimapEnabled = false;
 let fontSize = 14;
 let lineHighlight = true;
 let currentTheme = 'dark';
+
+// Yjs state
+let ydoc = null;
+let ytext = null;
+let firebaseProvider = null;
+let monacoBinding = null;
 
 // Collaboration
 let myUserId = null;
@@ -131,7 +137,7 @@ function setStatus(saving) {
     const text = $('statusText');
     if (syncStatus) syncStatus.classList.toggle('saving', saving);
     if (dot) dot.className = saving ? 'status-dot saving' : 'status-dot';
-    if (text) text.textContent = saving ? 'Saving...' : 'Synced';
+    if (text) text.textContent = saving ? 'Syncing...' : 'Live';
 }
 
 function updateStats() {
@@ -168,23 +174,295 @@ function getRef(note) {
     return db.ref(`notes/${sanitize(note)}`);
 }
 
-async function loadNote(note) {
-    const snap = await getRef(note).once('value');
-    return snap.val() || { content: '', language: 'plaintext' };
+async function loadNoteMeta(note) {
+    const snap = await getRef(note).child('meta').once('value');
+    return snap.val() || { language: 'plaintext' };
 }
 
-async function saveNote(note, content, language) {
-    isLocalChange = true;
-    lastSavedContent = content; // Track what we're saving
-    await getRef(note).update({ content, language, updatedAt: Date.now() });
-    // Don't reset isLocalChange on a timer - we'll check content match instead
-    setTimeout(() => { isLocalChange = false; }, 2000); // Extended timeout as backup
+async function saveNoteMeta(note, meta) {
+    await getRef(note).child('meta').update({ ...meta, updatedAt: Date.now() });
 }
 
-function subscribe(note, cb) {
-    const ref = getRef(note);
-    const handler = ref.on('value', snap => cb(snap.val() || { content: '', language: 'plaintext' }));
-    return () => ref.off('value', handler);
+// ==========================================
+// Firebase Yjs Provider
+// ==========================================
+class FirebaseYjsProvider {
+    constructor(noteId, ydoc) {
+        this.noteId = sanitize(noteId);
+        this.ydoc = ydoc;
+        this.updatesRef = db.ref(`yjs/${this.noteId}/updates`);
+        this.stateRef = db.ref(`yjs/${this.noteId}/state`);
+        this.synced = false;
+        this.clientId = Math.random().toString(36).substr(2, 9);
+        this.lastUpdateKey = null;
+        this.destroying = false;
+        
+        this._init();
+    }
+    
+    async _init() {
+        // First, try to load the full document state
+        await this._loadState();
+        
+        // Listen for incremental updates from other clients
+        this._setupUpdateListener();
+        
+        // Listen for local changes and broadcast them
+        this.ydoc.on('update', this._onLocalUpdate.bind(this));
+        
+        // Periodically compact updates into full state
+        this._compactionInterval = setInterval(() => this._compactUpdates(), 60000);
+    }
+    
+    async _loadState() {
+        try {
+            // Try to load full state first
+            const stateSnap = await this.stateRef.once('value');
+            const stateData = stateSnap.val();
+            
+            if (stateData && stateData.data) {
+                const stateVector = this._base64ToUint8Array(stateData.data);
+                Y.applyUpdate(this.ydoc, stateVector);
+                console.log('[Yjs] Loaded full state from Firebase');
+            }
+            
+            // Then apply any updates that came after the state snapshot
+            const updatesSnap = await this.updatesRef
+                .orderByChild('timestamp')
+                .startAt(stateData?.timestamp || 0)
+                .once('value');
+            
+            const updates = updatesSnap.val();
+            if (updates) {
+                Object.keys(updates).forEach(key => {
+                    const update = updates[key];
+                    if (update.clientId !== this.clientId) {
+                        try {
+                            const updateData = this._base64ToUint8Array(update.data);
+                            Y.applyUpdate(this.ydoc, updateData);
+                        } catch (e) {
+                            console.warn('[Yjs] Failed to apply update:', e);
+                        }
+                    }
+                    this.lastUpdateKey = key;
+                });
+                console.log('[Yjs] Applied', Object.keys(updates).length, 'incremental updates');
+            }
+            
+            this.synced = true;
+        } catch (err) {
+            console.error('[Yjs] Failed to load state:', err);
+        }
+    }
+    
+    _setupUpdateListener() {
+        // Listen for new updates
+        let query = this.updatesRef.orderByKey();
+        if (this.lastUpdateKey) {
+            query = query.startAfter(this.lastUpdateKey);
+        }
+        
+        this.updateListener = query.on('child_added', snap => {
+            if (this.destroying) return;
+            
+            const update = snap.val();
+            if (update && update.clientId !== this.clientId) {
+                try {
+                    const updateData = this._base64ToUint8Array(update.data);
+                    Y.applyUpdate(this.ydoc, updateData);
+                    console.log('[Yjs] Applied remote update');
+                } catch (e) {
+                    console.warn('[Yjs] Failed to apply remote update:', e);
+                }
+            }
+            this.lastUpdateKey = snap.key;
+        });
+    }
+    
+    _onLocalUpdate(update, origin) {
+        // Don't broadcast updates that came from remote
+        if (origin === 'remote' || this.destroying) return;
+        
+        // Encode and send to Firebase
+        const base64 = this._uint8ArrayToBase64(update);
+        this.updatesRef.push({
+            data: base64,
+            clientId: this.clientId,
+            timestamp: Date.now()
+        });
+    }
+    
+    async _compactUpdates() {
+        if (this.destroying) return;
+        
+        try {
+            // Get the full document state
+            const state = Y.encodeStateAsUpdate(this.ydoc);
+            const base64 = this._uint8ArrayToBase64(state);
+            const timestamp = Date.now();
+            
+            // Save full state
+            await this.stateRef.set({
+                data: base64,
+                timestamp: timestamp
+            });
+            
+            // Remove old updates (keep last 5 minutes)
+            const cutoff = timestamp - 5 * 60 * 1000;
+            const oldUpdates = await this.updatesRef
+                .orderByChild('timestamp')
+                .endAt(cutoff)
+                .once('value');
+            
+            const toDelete = oldUpdates.val();
+            if (toDelete) {
+                const deleteOps = {};
+                Object.keys(toDelete).forEach(key => {
+                    deleteOps[key] = null;
+                });
+                await this.updatesRef.update(deleteOps);
+                console.log('[Yjs] Compacted', Object.keys(toDelete).length, 'old updates');
+            }
+        } catch (err) {
+            console.warn('[Yjs] Compaction failed:', err);
+        }
+    }
+    
+    _uint8ArrayToBase64(uint8Array) {
+        let binary = '';
+        const len = uint8Array.byteLength;
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(uint8Array[i]);
+        }
+        return btoa(binary);
+    }
+    
+    _base64ToUint8Array(base64) {
+        const binary = atob(base64);
+        const len = binary.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes;
+    }
+    
+    destroy() {
+        this.destroying = true;
+        
+        if (this._compactionInterval) {
+            clearInterval(this._compactionInterval);
+        }
+        
+        if (this.updateListener) {
+            this.updatesRef.off('child_added', this.updateListener);
+        }
+        
+        this.ydoc.off('update', this._onLocalUpdate);
+        
+        // Final compaction before leaving
+        this._compactUpdates();
+    }
+}
+
+// ==========================================
+// Monaco Yjs Binding (inline implementation)
+// ==========================================
+class MonacoBinding {
+    constructor(ytext, monacoEditor, awareness = null) {
+        this.ytext = ytext;
+        this.editor = monacoEditor;
+        this.model = monacoEditor.getModel();
+        this.isApplyingRemote = false;
+        this.isApplyingLocal = false;
+        
+        // Bind Yjs text to Monaco
+        this._ytextObserver = this._onYTextChange.bind(this);
+        this.ytext.observe(this._ytextObserver);
+        
+        // Bind Monaco changes to Yjs
+        this._monacoDisposable = this.model.onDidChangeContent(this._onMonacoChange.bind(this));
+        
+        // Initial sync: set Monaco content from Yjs
+        const initialContent = this.ytext.toString();
+        if (initialContent && this.model.getValue() !== initialContent) {
+            this.isApplyingRemote = true;
+            this.model.setValue(initialContent);
+            this.isApplyingRemote = false;
+        }
+    }
+    
+    _onYTextChange(event) {
+        if (this.isApplyingLocal) return;
+        
+        this.isApplyingRemote = true;
+        
+        try {
+            // Save cursor position
+            const selections = this.editor.getSelections();
+            
+            // Apply each delta operation
+            let index = 0;
+            event.delta.forEach(op => {
+                if (op.retain !== undefined) {
+                    index += op.retain;
+                } else if (op.insert !== undefined) {
+                    const pos = this.model.getPositionAt(index);
+                    const range = new monaco.Range(pos.lineNumber, pos.column, pos.lineNumber, pos.column);
+                    this.model.applyEdits([{ range, text: op.insert }]);
+                    index += op.insert.length;
+                } else if (op.delete !== undefined) {
+                    const startPos = this.model.getPositionAt(index);
+                    const endPos = this.model.getPositionAt(index + op.delete);
+                    const range = new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column);
+                    this.model.applyEdits([{ range, text: '' }]);
+                }
+            });
+            
+            // Restore cursor (best effort)
+            if (selections && selections.length > 0) {
+                try {
+                    this.editor.setSelections(selections);
+                } catch (e) {
+                    // Cursor position may be invalid after edit
+                }
+            }
+        } finally {
+            this.isApplyingRemote = false;
+        }
+    }
+    
+    _onMonacoChange(event) {
+        if (this.isApplyingRemote) return;
+        
+        this.isApplyingLocal = true;
+        
+        try {
+            // Apply Monaco changes to Yjs
+            // Changes need to be processed in reverse order to maintain correct offsets
+            const changes = [...event.changes].sort((a, b) => b.rangeOffset - a.rangeOffset);
+            
+            this.ytext.doc.transact(() => {
+                changes.forEach(change => {
+                    // Delete old text
+                    if (change.rangeLength > 0) {
+                        this.ytext.delete(change.rangeOffset, change.rangeLength);
+                    }
+                    // Insert new text
+                    if (change.text.length > 0) {
+                        this.ytext.insert(change.rangeOffset, change.text);
+                    }
+                });
+            });
+        } finally {
+            this.isApplyingLocal = false;
+        }
+    }
+    
+    destroy() {
+        this.ytext.unobserve(this._ytextObserver);
+        this._monacoDisposable.dispose();
+    }
 }
 
 // ==========================================
@@ -662,10 +940,22 @@ async function finishBootSequence() {
 // ==========================================
 function goHome() {
     cleanupPresence();
-    if (unsubscribe) { unsubscribe(); unsubscribe = null; }
-    if (typingTimeout) { clearTimeout(typingTimeout); typingTimeout = null; }
-    if (saveTimeout) { clearTimeout(saveTimeout); saveTimeout = null; }
-    isTyping = false;
+    
+    // Cleanup Yjs
+    if (monacoBinding) {
+        monacoBinding.destroy();
+        monacoBinding = null;
+    }
+    if (firebaseProvider) {
+        firebaseProvider.destroy();
+        firebaseProvider = null;
+    }
+    if (ydoc) {
+        ydoc.destroy();
+        ydoc = null;
+    }
+    ytext = null;
+    
     window.location.href = window.location.pathname;
 }
 
@@ -686,23 +976,65 @@ async function connectToNote(noteName) {
     try {
         // Step 1: Connect to Firebase
         showBootStep('boot-connect', 10, 'Establishing connection to Firebase...');
-        await wait(200); // Small delay to show the step
+        await wait(200);
         completeBootStep('boot-connect', 20);
 
-        // Step 2: Load note data
+        // Step 2: Initialize Yjs document
         await wait(150);
-        showBootStep('boot-load', 25, `Loading "${noteName}" from database...`);
-        const data = await loadNote(noteName);
+        showBootStep('boot-load', 25, `Loading "${noteName}" with CRDT sync...`);
+        
+        // Create Yjs document
+        ydoc = new Y.Doc();
+        ytext = ydoc.getText('content');
+        
+        // Check if we need to migrate from old format
+        const oldDataSnap = await getRef(noteName).once('value');
+        const oldData = oldDataSnap.val();
+        
+        // Setup Firebase provider for Yjs
+        firebaseProvider = new FirebaseYjsProvider(noteName, ydoc);
+        
+        // Wait for initial sync
+        await new Promise(resolve => {
+            const checkSync = () => {
+                if (firebaseProvider.synced) {
+                    resolve();
+                } else {
+                    setTimeout(checkSync, 50);
+                }
+            };
+            checkSync();
+            // Timeout after 5 seconds
+            setTimeout(resolve, 5000);
+        });
+        
+        // Migrate old content if Yjs is empty and old content exists
+        if (ytext.toString() === '' && oldData?.content) {
+            console.log('[Migration] Migrating old content to Yjs');
+            ytext.insert(0, oldData.content);
+        }
+        
         completeBootStep('boot-load', 45);
 
-        // Step 3: Initialize Monaco editor
+        // Step 3: Initialize Monaco editor with Yjs content
         await wait(150);
         showBootStep('boot-editor', 50, 'Loading Monaco editor...');
-        await initEditor(noteName, data);
+        
+        const meta = await loadNoteMeta(noteName);
+        const editorData = {
+            content: ytext.toString(),
+            language: oldData?.language || meta.language || 'plaintext'
+        };
+        
+        await initEditor(noteName, editorData);
+        
+        // Bind Monaco to Yjs (this enables real-time sync)
+        monacoBinding = new MonacoBinding(ytext, editor);
+        
         completeBootStep('boot-editor', 75);
         addRecent(noteName);
 
-        // Step 4: Setup collaboration
+        // Step 4: Setup collaboration (presence/cursors)
         await wait(150);
         showBootStep('boot-collab', 80, 'Setting up real-time collaboration...');
         try {
@@ -714,76 +1046,11 @@ async function connectToNote(noteName) {
         // Step 5: Final setup
         await wait(100);
         showBootStep('boot-ready', 95, 'Almost ready...');
-        
-        // Real-time sync
-        unsubscribe = subscribe(noteName, (newData) => {
-            if (!editor) return;
-            
-            const incomingContent = newData.content || '';
-            const currentContent = editor.getValue();
-            
-            // Skip if content is the same
-            if (incomingContent === currentContent) {
-                lastSaved = incomingContent;
-                lastSavedContent = incomingContent;
-                return;
-            }
-            
-            // Skip if this is our own save coming back (check if incoming matches what we saved)
-            if (incomingContent === lastSavedContent) {
-                lastSaved = incomingContent;
-                return;
-            }
-            
-            // Skip if user is actively typing - don't interrupt them
-            if (isTyping) {
-                console.log('[Sync] Skipping remote update - user is typing');
-                return;
-            }
-            
-            // Skip if we have a pending save (local changes not yet saved)
-            if (saveTimeout) {
-                console.log('[Sync] Skipping remote update - save pending');
-                return;
-            }
-            
-            // This is a genuine remote change - apply it
-            console.log('[Sync] Applying remote update');
-            const pos = editor.getPosition();
-            const scroll = editor.getScrollTop();
-            
-            // Temporarily disable change tracking while applying remote update
-            isLocalChange = true;
-            try {
-                editor.setValue(incomingContent);
-            } finally {
-                isLocalChange = false;
-            }
-            
-            // Restore position (clamped to valid range)
-            if (pos) {
-                const model = editor.getModel();
-                const maxLine = model.getLineCount();
-                const targetLine = Math.min(pos.lineNumber, maxLine);
-                const maxCol = model.getLineMaxColumn(targetLine);
-                const targetCol = Math.min(pos.column, maxCol);
-                editor.setPosition({ lineNumber: targetLine, column: targetCol });
-            }
-            editor.setScrollTop(scroll);
-            
-            lastSaved = incomingContent;
-            lastSavedContent = incomingContent;
-            
-            if (newData.language && newData.language !== $('langSelect').value) {
-                $('langSelect').value = newData.language;
-                monaco.editor.setModelLanguage(editor.getModel(), newData.language);
-            }
-        });
 
         completeBootStep('boot-ready', 100);
         const bootStatus = $('bootStatusText');
         if (bootStatus) {
-            bootStatus.textContent = '✓ Connected successfully!';
+            bootStatus.textContent = '✓ Connected with CRDT sync!';
             bootStatus.style.color = 'var(--green)';
         }
 
@@ -945,15 +1212,13 @@ function exportPDF() {
 }
 
 function triggerSave() {
+    // With Yjs, content is synced automatically
+    // This function now only saves metadata (language)
     setStatus(true);
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(async () => {
-        const text = editor.getValue();
-        const lang = $('langSelect').value;
-        await saveNote(currentNote, text, lang);
-        lastSaved = text;
+    const lang = $('langSelect').value;
+    saveNoteMeta(currentNote, { language: lang }).then(() => {
         setStatus(false);
-    }, 400);
+    });
 }
 
 // ==========================================
@@ -1040,28 +1305,12 @@ async function initEditor(note, data) {
                 tabSize: 2,
             });
 
-            lastSaved = data.content || '';
-            lastSavedContent = data.content || '';
             $('langSelect').value = lang;
             $('lineHighlightBtn')?.classList.toggle('active', lineHighlight);
             updateSettingsUI();
 
-            editor.onDidChangeModelContent(() => {
-                // Skip if this change came from applying a remote update
-                if (isLocalChange) {
-                    return;
-                }
-                
-                // Track that user is actively typing
-                isTyping = true;
-                clearTimeout(typingTimeout);
-                typingTimeout = setTimeout(() => {
-                    isTyping = false;
-                }, 1500); // Consider user "not typing" after 1.5s of inactivity
-                
-                updateStats(); 
-                triggerSave(); 
-            });
+            // Note: Content sync is handled by MonacoBinding + Yjs
+            // We only need to handle cursor/selection broadcasting and manual save
             
             editor.onDidChangeCursorPosition(() => {
                 updateStats();
@@ -1072,13 +1321,12 @@ async function initEditor(note, data) {
                 updateStats();
                 broadcastCursor();
             });
-
+            
+            // Ctrl+S saves metadata (language) and shows confirmation
             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, async () => {
-                clearTimeout(saveTimeout);
-                await saveNote(currentNote, editor.getValue(), $('langSelect').value);
-                lastSaved = editor.getValue();
+                await saveNoteMeta(currentNote, { language: $('langSelect').value });
                 setStatus(false);
-                showToast('Saved!');
+                showToast('Synced!');
             });
 
             updateStats();
@@ -1090,7 +1338,35 @@ async function initEditor(note, data) {
 // ==========================================
 // Init
 // ==========================================
+async function waitForYjs() {
+    // If Y is already loaded, return immediately
+    if (window.Y) {
+        Y = window.Y;
+        return;
+    }
+    
+    // Wait for the yjs-loaded event
+    return new Promise(resolve => {
+        window.addEventListener('yjs-loaded', () => {
+            Y = window.Y;
+            console.log('[Yjs] Library loaded successfully');
+            resolve();
+        }, { once: true });
+        
+        // Timeout after 10 seconds
+        setTimeout(() => {
+            if (!window.Y) {
+                console.error('[Yjs] Library failed to load within timeout');
+            }
+            resolve();
+        }, 10000);
+    });
+}
+
 async function init() {
+    // Wait for Yjs to load first
+    await waitForYjs();
+    
     const params = new URLSearchParams(window.location.search);
     const note = params.get('n');
 
@@ -1121,6 +1397,11 @@ document.addEventListener('click', e => {
 
 window.addEventListener('beforeunload', () => {
     cleanupPresence();
+    
+    // Cleanup Yjs
+    if (monacoBinding) monacoBinding.destroy();
+    if (firebaseProvider) firebaseProvider.destroy();
+    if (ydoc) ydoc.destroy();
 });
 
 $('renameInput')?.addEventListener('keypress', e => {
