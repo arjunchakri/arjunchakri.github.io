@@ -41,6 +41,9 @@ let currentNote = null;
 let saveTimeout = null;
 let lastSaved = '';
 let isLocalChange = false;
+let lastSavedContent = ''; // Track the exact content we last saved
+let isTyping = false; // Track if user is actively typing
+let typingTimeout = null;
 let unsubscribe = null;
 let wordWrap = false;
 let minimapEnabled = false;
@@ -172,8 +175,10 @@ async function loadNote(note) {
 
 async function saveNote(note, content, language) {
     isLocalChange = true;
+    lastSavedContent = content; // Track what we're saving
     await getRef(note).update({ content, language, updatedAt: Date.now() });
-    setTimeout(() => { isLocalChange = false; }, 100);
+    // Don't reset isLocalChange on a timer - we'll check content match instead
+    setTimeout(() => { isLocalChange = false; }, 2000); // Extended timeout as backup
 }
 
 function subscribe(note, cb) {
@@ -658,6 +663,9 @@ async function finishBootSequence() {
 function goHome() {
     cleanupPresence();
     if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+    if (typingTimeout) { clearTimeout(typingTimeout); typingTimeout = null; }
+    if (saveTimeout) { clearTimeout(saveTimeout); saveTimeout = null; }
+    isTyping = false;
     window.location.href = window.location.pathname;
 }
 
@@ -709,18 +717,66 @@ async function connectToNote(noteName) {
         
         // Real-time sync
         unsubscribe = subscribe(noteName, (newData) => {
-            if (!isLocalChange && editor && newData.content !== editor.getValue()) {
-                const pos = editor.getPosition();
-                const scroll = editor.getScrollTop();
-                editor.setValue(newData.content || '');
-                if (pos) editor.setPosition(pos);
-                editor.setScrollTop(scroll);
-                lastSaved = newData.content || '';
-                
-                if (newData.language && newData.language !== $('langSelect').value) {
-                    $('langSelect').value = newData.language;
-                    monaco.editor.setModelLanguage(editor.getModel(), newData.language);
-                }
+            if (!editor) return;
+            
+            const incomingContent = newData.content || '';
+            const currentContent = editor.getValue();
+            
+            // Skip if content is the same
+            if (incomingContent === currentContent) {
+                lastSaved = incomingContent;
+                lastSavedContent = incomingContent;
+                return;
+            }
+            
+            // Skip if this is our own save coming back (check if incoming matches what we saved)
+            if (incomingContent === lastSavedContent) {
+                lastSaved = incomingContent;
+                return;
+            }
+            
+            // Skip if user is actively typing - don't interrupt them
+            if (isTyping) {
+                console.log('[Sync] Skipping remote update - user is typing');
+                return;
+            }
+            
+            // Skip if we have a pending save (local changes not yet saved)
+            if (saveTimeout) {
+                console.log('[Sync] Skipping remote update - save pending');
+                return;
+            }
+            
+            // This is a genuine remote change - apply it
+            console.log('[Sync] Applying remote update');
+            const pos = editor.getPosition();
+            const scroll = editor.getScrollTop();
+            
+            // Temporarily disable change tracking while applying remote update
+            isLocalChange = true;
+            try {
+                editor.setValue(incomingContent);
+            } finally {
+                isLocalChange = false;
+            }
+            
+            // Restore position (clamped to valid range)
+            if (pos) {
+                const model = editor.getModel();
+                const maxLine = model.getLineCount();
+                const targetLine = Math.min(pos.lineNumber, maxLine);
+                const maxCol = model.getLineMaxColumn(targetLine);
+                const targetCol = Math.min(pos.column, maxCol);
+                editor.setPosition({ lineNumber: targetLine, column: targetCol });
+            }
+            editor.setScrollTop(scroll);
+            
+            lastSaved = incomingContent;
+            lastSavedContent = incomingContent;
+            
+            if (newData.language && newData.language !== $('langSelect').value) {
+                $('langSelect').value = newData.language;
+                monaco.editor.setModelLanguage(editor.getModel(), newData.language);
             }
         });
 
@@ -985,11 +1041,24 @@ async function initEditor(note, data) {
             });
 
             lastSaved = data.content || '';
+            lastSavedContent = data.content || '';
             $('langSelect').value = lang;
             $('lineHighlightBtn')?.classList.toggle('active', lineHighlight);
             updateSettingsUI();
 
-            editor.onDidChangeModelContent(() => { 
+            editor.onDidChangeModelContent(() => {
+                // Skip if this change came from applying a remote update
+                if (isLocalChange) {
+                    return;
+                }
+                
+                // Track that user is actively typing
+                isTyping = true;
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    isTyping = false;
+                }, 1500); // Consider user "not typing" after 1.5s of inactivity
+                
                 updateStats(); 
                 triggerSave(); 
             });
