@@ -1371,6 +1371,159 @@ body.transitioning .glow-orb {
     opacity: 0.6;
 }
 
+/* ====================== INSTALL APP ITEM ====================== */
+.install-item {
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(167, 139, 250, 0.1));
+    border: 1px solid rgba(88, 166, 255, 0.2);
+    border-radius: 6px;
+    margin-bottom: 4px;
+}
+
+.install-item:hover {
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.2), rgba(167, 139, 250, 0.2));
+    border-color: var(--accent);
+}
+
+/* ====================== TYPING INDICATOR ====================== */
+.online-user.typing {
+    border-color: var(--yellow);
+    background: rgba(251, 191, 36, 0.1);
+}
+
+.online-user.typing::after {
+    content: '';
+    width: 4px;
+    height: 4px;
+    background: var(--yellow);
+    border-radius: 50%;
+    margin-left: 4px;
+    animation: typingDot 1s ease-in-out infinite;
+}
+
+@keyframes typingDot {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--yellow);
+    padding: 4px 8px;
+    background: rgba(251, 191, 36, 0.1);
+    border-radius: 12px;
+    margin-left: 8px;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 2px;
+}
+
+.typing-dots span {
+    width: 4px;
+    height: 4px;
+    background: var(--yellow);
+    border-radius: 50%;
+    animation: typingBounce 1.4s ease-in-out infinite;
+}
+
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-4px); }
+}
+
+/* ====================== MOBILE TOOLBAR ====================== */
+.mobile-toolbar {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+    padding: 8px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    gap: 4px;
+    z-index: 150;
+    justify-content: space-around;
+}
+
+.mobile-btn {
+    flex: 1;
+    max-width: 60px;
+    height: 44px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-btn:active {
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: scale(0.95);
+}
+
+/* Show mobile toolbar on touch devices */
+@media (pointer: coarse) {
+    .mobile-toolbar {
+        display: flex;
+    }
+    
+    .editor-container .editor-main {
+        padding-bottom: calc(60px + env(safe-area-inset-bottom));
+    }
+    
+    #monaco-container {
+        height: calc(100% - 60px - env(safe-area-inset-bottom)) !important;
+    }
+}
+
+/* ====================== AWARENESS CURSORS ====================== */
+.awareness-cursor {
+    position: absolute;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.awareness-cursor-caret {
+    width: 2px;
+    height: 18px;
+    position: absolute;
+}
+
+.awareness-cursor-label {
+    position: absolute;
+    top: -18px;
+    left: 0;
+    padding: 2px 6px;
+    border-radius: 3px 3px 3px 0;
+    font-size: 10px;
+    font-weight: 500;
+    white-space: nowrap;
+    color: white;
+    pointer-events: none;
+    animation: cursorFadeIn 0.2s ease;
+}
+
+@keyframes cursorFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 /* Mobile */
 @media (max-width: 768px) {
     .ascii-art { font-size: 8px; }
@@ -1382,5 +1535,12 @@ body.transitioning .glow-orb {
     .view-tab span:not(.tab-icon) { display: none; }
     .live-indicator { margin-left: 8px; padding: 4px 8px; }
     .live-user { display: none; }
+}
+
+/* Standalone PWA - hide browser UI compensation */
+@media (display-mode: standalone) {
+    body {
+        padding-top: env(safe-area-inset-top);
+    }
 }
 

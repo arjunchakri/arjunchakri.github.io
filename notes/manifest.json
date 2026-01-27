@@ -1,0 +1,32 @@
+{
+    "name": "Notes",
+    "short_name": "Notes",
+    "description": "Real-time collaborative notes editor",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#0a0a0f",
+    "theme_color": "#0a0a0f",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "../favicon.png",
+            "sizes": "16x16",
+            "type": "image/png"
+        }
+    ],
+    "categories": ["productivity", "utilities"],
+    "shortcuts": [
+        {
+            "name": "New Note",
+            "short_name": "New",
+            "url": "./index.html",
+            "icons": [{ "src": "icon.svg", "sizes": "any" }]
+        }
+    ]
+}

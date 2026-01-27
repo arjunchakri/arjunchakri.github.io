@@ -2,8 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Notes</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Real-time collaborative notes editor">
+    <meta name="theme-color" content="#0a0a0f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Notes">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.svg">
     
     <!-- Preconnect for faster CDN loads -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -117,7 +126,7 @@
 
     <!-- Editor View -->
     <div class="editor-container" id="editorContainer">
-        <div class="toolbar">
+        <div class="toolbar" id="toolbar">
             <div class="toolbar-left">
                 <button class="back-btn" onclick="goHome()" title="Disconnect">←</button>
                 <span class="note-name" id="noteName">note</span>
@@ -139,6 +148,13 @@
                 <div class="dropdown">
                     <button class="toolbar-btn settings-btn" onclick="toggleDropdown('settingsMenu')" title="Settings">⚙️</button>
                     <div class="dropdown-menu" id="settingsMenu">
+                        <!-- Install App (shown when available) -->
+                        <div class="dropdown-section" id="installSection" style="display: none;">
+                            <div class="dropdown-item install-item" onclick="installPWA()">
+                                <span class="icon">📲</span>
+                                <span class="label">Install App</span>
+                            </div>
+                        </div>
                         <div class="dropdown-section">
                             <div class="dropdown-label">Language</div>
                             <select class="lang-select-dropdown" id="langSelect" onchange="changeLanguage()">
@@ -158,6 +174,7 @@
                                 <option value="css">CSS</option>
                                 <option value="yaml">YAML</option>
                                 <option value="shell">Shell</option>
+                                <option value="markdown">Markdown</option>
                             </select>
                         </div>
                         <div class="dropdown-section">
@@ -213,6 +230,14 @@
             <div id="monaco-container"></div>
         </div>
 
+        <!-- Mobile Toolbar -->
+        <div class="mobile-toolbar" id="mobileToolbar">
+            <button class="mobile-btn" onclick="mobileAction('tab')" title="Tab">⇥</button>
+            <button class="mobile-btn" onclick="mobileAction('undo')" title="Undo">↶</button>
+            <button class="mobile-btn" onclick="mobileAction('redo')" title="Redo">↷</button>
+            <button class="mobile-btn" onclick="mobileAction('indent')" title="Indent">→|</button>
+            <button class="mobile-btn" onclick="mobileAction('outdent')" title="Outdent">|←</button>
+        </div>
     </div>
 
     <!-- Toast -->
@@ -230,7 +255,6 @@
                 <div class="shortcut-item"><span>Find</span><div class="shortcut-key"><span class="key">Ctrl</span><span class="key">F</span></div></div>
                 <div class="shortcut-item"><span>Find & Replace</span><div class="shortcut-key"><span class="key">Ctrl</span><span class="key">H</span></div></div>
                 <div class="shortcut-item"><span>Go to Line</span><div class="shortcut-key"><span class="key">Ctrl</span><span class="key">G</span></div></div>
-                <div class="shortcut-item"><span>Focus Mode</span><div class="shortcut-key"><span class="key">F11</span></div></div>
                 <div class="shortcut-item"><span>Command Palette</span><div class="shortcut-key"><span class="key">F1</span></div></div>
             </div>
         </div>

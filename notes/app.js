@@ -68,6 +68,18 @@ let cursorDecorations = [];
 let selectionDecorations = [];
 let presenceCleanupInterval = null;
 
+// Cursor label fade tracking
+let lastCursorPositions = {};
+let cursorLabelTimeouts = {};
+
+// Typing indicator
+let isTyping = false;
+let typingTimeout = null;
+let typingRef = null;
+
+// PWA
+let deferredPrompt = null;
+
 const RECENT_KEY = 'notes_recent';
 const PREFS_KEY = 'notes_prefs';
 const USER_KEY = 'notes_user';
@@ -637,39 +649,40 @@ function renderCollaboratorCursors(cursorsData) {
     if (!editor) return;
 
     const now = Date.now();
-    const decorations = [];
+    const activeCursors = new Set();
 
+    // Detect cursor movement and manage active labels
     Object.keys(cursorsData).forEach(uid => {
         if (uid === myUserId) return;
         
         const cursor = cursorsData[uid];
         if (now - cursor.timestamp > 15000) return; // Stale cursor
 
-        // Cursor decoration
-        decorations.push({
-            range: new monaco.Range(cursor.line, cursor.column, cursor.line, cursor.column),
-            options: {
-                className: 'collab-cursor-decoration',
-                beforeContentClassName: `collab-cursor-before`,
-                stickiness: 1,
-                hoverMessage: { value: cursor.name }
+        const posKey = `${cursor.line}:${cursor.column}`;
+        const lastPos = lastCursorPositions[uid];
+        
+        // Check if cursor moved
+        if (lastPos !== posKey) {
+            lastCursorPositions[uid] = posKey;
+            activeCursors.add(uid);
+            
+            // Clear existing timeout
+            if (cursorLabelTimeouts[uid]) {
+                clearTimeout(cursorLabelTimeouts[uid]);
             }
-        });
-
-        // Selection decoration
-        if (cursor.selection) {
-            decorations.push({
-                range: new monaco.Range(
-                    cursor.selection.startLine,
-                    cursor.selection.startCol,
-                    cursor.selection.endLine,
-                    cursor.selection.endCol
-                ),
-                options: {
-                    className: 'collab-selection-decoration',
-                    stickiness: 1
+            
+            // Set timeout to hide label after 2 seconds
+            cursorLabelTimeouts[uid] = setTimeout(() => {
+                // Re-render to remove active class
+                if (cursorsRef) {
+                    cursorsRef.once('value', snap => {
+                        if (snap.val()) renderCollaboratorCursors(snap.val());
+                    });
                 }
-            });
+            }, 2000);
+        } else if (cursorLabelTimeouts[uid]) {
+            // Cursor hasn't moved but has a pending timeout - still active
+            activeCursors.add(uid);
         }
     });
 
@@ -681,7 +694,6 @@ function renderCollaboratorCursors(cursorsData) {
     Object.keys(cursorsData).forEach(uid => {
         if (uid === myUserId) return;
         const cursor = cursorsData[uid];
-        const now = Date.now();
         if (now - cursor.timestamp > 15000) return;
         
         styles += `
@@ -697,6 +709,12 @@ function renderCollaboratorCursors(cursorsData) {
                 border-radius: 3px;
                 white-space: nowrap;
                 z-index: 100;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                pointer-events: none;
+            }
+            .collab-cursor-${uid}.cursor-active::before {
+                opacity: 1;
             }
             .collab-cursor-${uid}::after {
                 content: '';
@@ -721,14 +739,18 @@ function renderCollaboratorCursors(cursorsData) {
     Object.keys(cursorsData).forEach(uid => {
         if (uid === myUserId) return;
         const cursor = cursorsData[uid];
-        const now = Date.now();
         if (now - cursor.timestamp > 15000) return;
+
+        // Add cursor-active class if this cursor recently moved
+        const isActive = activeCursors.has(uid);
+        const cursorClass = isActive ? `collab-cursor-${uid} cursor-active` : `collab-cursor-${uid}`;
 
         finalDecorations.push({
             range: new monaco.Range(cursor.line, cursor.column, cursor.line, cursor.column + 1),
             options: {
-                className: `collab-cursor-${uid}`,
-                stickiness: 1
+                className: cursorClass,
+                stickiness: 1,
+                hoverMessage: { value: cursor.name }
             }
         });
 
@@ -761,6 +783,11 @@ function cleanupPresence() {
     if (cursorsRef && myUserId) {
         cursorsRef.child(myUserId).remove();
     }
+    
+    // Clear cursor label timeouts
+    Object.values(cursorLabelTimeouts).forEach(clearTimeout);
+    cursorLabelTimeouts = {};
+    lastCursorPositions = {};
 }
 
 // ==========================================
@@ -795,6 +822,169 @@ function saveUserName() {
         hideRenameModal();
         showToast('Name updated!');
     }
+}
+
+// ==========================================
+// PWA Install
+// ==========================================
+function initPWA() {
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('[PWA] Service worker registered'))
+            .catch(err => console.warn('[PWA] Service worker failed:', err));
+    }
+    
+    // Listen for install prompt
+    window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Show install section in settings
+        const section = $('installSection');
+        if (section) section.style.display = 'block';
+    });
+    
+    // Hide section if already installed
+    window.addEventListener('appinstalled', () => {
+        deferredPrompt = null;
+        const section = $('installSection');
+        if (section) section.style.display = 'none';
+        showToast('App installed!');
+    });
+}
+
+async function installPWA() {
+    closeAllDropdowns();
+    
+    if (!deferredPrompt) {
+        showToast('App already installed or not supported');
+        return;
+    }
+    
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+        showToast('Installing app...');
+    }
+    
+    deferredPrompt = null;
+    const section = $('installSection');
+    if (section) section.style.display = 'none';
+}
+
+// ==========================================
+// Typing Indicators
+// ==========================================
+function setupTypingIndicator(note) {
+    typingRef = db.ref(`typing/${sanitize(note)}`);
+    
+    // Listen for typing changes
+    typingRef.on('value', snap => {
+        const data = snap.val() || {};
+        updateTypingIndicators(data);
+    });
+}
+
+function broadcastTyping() {
+    if (!typingRef || !myUserId) return;
+    
+    // Set typing status
+    typingRef.child(myUserId).set({
+        name: myUserName,
+        timestamp: Date.now()
+    });
+    
+    // Clear after 2 seconds
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+        if (typingRef && myUserId) {
+            typingRef.child(myUserId).remove();
+        }
+    }, 2000);
+}
+
+function updateTypingIndicators(typingData) {
+    const now = Date.now();
+    const typingUsers = [];
+    
+    Object.keys(typingData).forEach(uid => {
+        if (uid !== myUserId) {
+            const data = typingData[uid];
+            // Only show if typing in last 3 seconds
+            if (now - data.timestamp < 3000) {
+                typingUsers.push(data.name);
+            }
+        }
+    });
+    
+    // Update online user badges with typing state
+    document.querySelectorAll('.online-user').forEach(el => {
+        const name = el.querySelector('.online-user-name')?.textContent;
+        if (typingUsers.includes(name)) {
+            el.classList.add('typing');
+        } else {
+            el.classList.remove('typing');
+        }
+    });
+    
+    // Show typing indicator if anyone is typing
+    let indicator = $('typingIndicator');
+    if (typingUsers.length > 0) {
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'typingIndicator';
+            indicator.className = 'typing-indicator';
+            $('onlineUsers')?.appendChild(indicator);
+        }
+        
+        const names = typingUsers.slice(0, 2).join(', ');
+        const extra = typingUsers.length > 2 ? ` +${typingUsers.length - 2}` : '';
+        indicator.innerHTML = `
+            <span>${names}${extra} typing</span>
+            <div class="typing-dots"><span></span><span></span><span></span></div>
+        `;
+    } else if (indicator) {
+        indicator.remove();
+    }
+}
+
+function cleanupTyping() {
+    if (typingRef && myUserId) {
+        typingRef.child(myUserId).remove();
+    }
+    if (typingRef) {
+        typingRef.off('value');
+    }
+    clearTimeout(typingTimeout);
+}
+
+// ==========================================
+// Mobile Keyboard Actions
+// ==========================================
+function mobileAction(action) {
+    if (!editor) return;
+    
+    switch (action) {
+        case 'tab':
+            editor.trigger('keyboard', 'type', { text: '\t' });
+            break;
+        case 'undo':
+            editor.trigger('keyboard', 'undo', {});
+            break;
+        case 'redo':
+            editor.trigger('keyboard', 'redo', {});
+            break;
+        case 'indent':
+            editor.trigger('keyboard', 'editor.action.indentLines', {});
+            break;
+        case 'outdent':
+            editor.trigger('keyboard', 'editor.action.outdentLines', {});
+            break;
+    }
+    
+    editor.focus();
 }
 
 // ==========================================
@@ -940,6 +1130,7 @@ async function finishBootSequence() {
 // ==========================================
 function goHome() {
     cleanupPresence();
+    cleanupTyping();
     
     // Cleanup Yjs
     if (monacoBinding) {
@@ -1034,11 +1225,12 @@ async function connectToNote(noteName) {
         completeBootStep('boot-editor', 75);
         addRecent(noteName);
 
-        // Step 4: Setup collaboration (presence/cursors)
+        // Step 4: Setup collaboration (presence/cursors/typing)
         await wait(150);
         showBootStep('boot-collab', 80, 'Setting up real-time collaboration...');
         try {
             setupPresence(noteName);
+            setupTypingIndicator(noteName);
         } catch (e) { console.warn('Presence setup failed:', e); }
         await wait(200);
         completeBootStep('boot-collab', 90);
@@ -1310,7 +1502,12 @@ async function initEditor(note, data) {
             updateSettingsUI();
 
             // Note: Content sync is handled by MonacoBinding + Yjs
-            // We only need to handle cursor/selection broadcasting and manual save
+            // We handle cursor/selection broadcasting, typing indicator, and manual save
+            
+            editor.onDidChangeModelContent(() => {
+                // Broadcast typing status
+                broadcastTyping();
+            });
             
             editor.onDidChangeCursorPosition(() => {
                 updateStats();
@@ -1364,6 +1561,9 @@ async function waitForYjs() {
 }
 
 async function init() {
+    // Initialize PWA
+    initPWA();
+    
     // Wait for Yjs to load first
     await waitForYjs();
     
@@ -1397,6 +1597,7 @@ document.addEventListener('click', e => {
 
 window.addEventListener('beforeunload', () => {
     cleanupPresence();
+    cleanupTyping();
     
     // Cleanup Yjs
     if (monacoBinding) monacoBinding.destroy();
