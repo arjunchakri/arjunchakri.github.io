@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap">
+    <link href="https://arjunchakri.github.io/favicon.png" rel="icon" sizes="16x16">
+    <link rel="preconnect" href="https://docs.google.com">
+    <link rel="preconnect" href="https://script.google.com">
+    <title>Notes — Google Drive</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body, html {
+            height: 100%; width: 100%;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #0a0a0f;
+            color: #e6edf3;
+        }
+
+        /* Views */
+        .view {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s;
+        }
+        .view.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0a0a0f;
+        }
+
+        .card {
+            width: 90%;
+            max-width: 420px;
+            background: #12131a;
+            border: 1px solid #2a2d3a;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #4285f4, #34a853);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #e6edf3;
+        }
+        .tagline {
+            color: #6b7280;
+            font-size: 0.8rem;
+            margin-bottom: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-label {
+            display: block;
+            font-size: 0.7rem;
+            color: #6b7280;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .input-field {
+            width: 100%;
+            padding: 14px 16px;
+            background: #1a1b26;
+            border: 1px solid #2a2d3a;
+            border-radius: 8px;
+            color: #e6edf3;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .input-field:focus {
+            border-color: #4285f4;
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
+        }
+        .input-field::placeholder {
+            color: #4a4a5a;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #4285f4, #34a853);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            box-shadow: 0 4px 20px rgba(66, 133, 244, 0.3);
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .recent {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #2a2d3a;
+        }
+        .recent-title {
+            font-size: 0.65rem;
+            color: #4a4a5a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        .recent-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .recent-item {
+            padding: 6px 12px;
+            background: #1a1b26;
+            border: 1px solid #2a2d3a;
+            border-radius: 6px;
+            color: #58a6ff;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .recent-item:hover {
+            background: #2a2d3a;
+            border-color: #4285f4;
+        }
+
+        .hint {
+            margin-top: 16px;
+            font-size: 0.7rem;
+            color: #4a4a5a;
+            text-align: center;
+        }
+        .hint kbd {
+            padding: 2px 6px;
+            background: #1a1b26;
+            border: 1px solid #2a2d3a;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+        }
+
+        /* Editor View */
+        .editor-view {
+            display: flex;
+            flex-direction: column;
+            background: #0a0a0f;
+        }
+
+        /* Minimal toolbar - auto-hide */
+        .toolbar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 44px;
+            background: rgba(18, 19, 26, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #2a2d3a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            z-index: 100;
+            transform: translateY(-100%);
+            transition: transform 0.25s ease;
+        }
+        .toolbar.visible {
+            transform: translateY(0);
+        }
+        .editor-view:hover .toolbar,
+        .toolbar:hover {
+            transform: translateY(0);
+        }
+
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid #2a2d3a;
+            border-radius: 6px;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .back-btn:hover {
+            color: #e6edf3;
+            border-color: #4285f4;
+            background: rgba(66, 133, 244, 0.1);
+        }
+
+        .doc-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #e6edf3;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .doc-name::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #34a853;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 50% { opacity: 0.5; } }
+
+        .toolbar-btn {
+            padding: 6px 12px;
+            background: #1a1b26;
+            border: 1px solid #2a2d3a;
+            border-radius: 6px;
+            color: #6b7280;
+            font-family: inherit;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .toolbar-btn:hover {
+            color: #e6edf3;
+            border-color: #4285f4;
+        }
+
+        /* Iframe container */
+        .iframe-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        #viewer {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #0a0a0f;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        #viewer.loaded {
+            opacity: 1;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: #0a0a0f;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            z-index: 50;
+            transition: opacity 0.3s ease;
+        }
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #2a2d3a;
+            border-top-color: #4285f4;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .loading-text {
+            font-size: 0.8rem;
+            color: #6b7280;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 18px;
+            background: #12131a;
+            border: 1px solid #34a853;
+            border-radius: 8px;
+            color: #e6edf3;
+            font-size: 0.8rem;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Shortcuts modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+            backdrop-filter: blur(4px);
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: #12131a;
+            border: 1px solid #2a2d3a;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+        }
+        .modal-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #2a2d3a;
+            font-size: 0.85rem;
+        }
+        .shortcut-item:last-child { border: none; }
+        .shortcut-keys {
+            display: flex;
+            gap: 4px;
+        }
+        .key {
+            padding: 4px 8px;
+            background: #1a1b26;
+            border: 1px solid #2a2d3a;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: #58a6ff;
+        }
+
+        /* Fullscreen mode */
+        body.fullscreen .toolbar {
+            transform: translateY(-100%) !important;
+        }
+        body.fullscreen .toolbar:hover {
+            transform: translateY(0) !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="view dashboard active">
+        <div class="card">
+            <div class="logo">
+                <div class="logo-icon">📄</div>
+                <span class="logo-text">Notes</span>
+            </div>
+            <p class="tagline">Google Drive backend • Real-time collaboration</p>
+
+            <div class="input-group">
+                <label class="input-label">Note Name</label>
+                <input type="text" id="noteInput" class="input-field" placeholder="my-project-notes" autocomplete="off" autofocus>
+            </div>
+
+            <button class="btn" onclick="openNote()">Open Note →</button>
+
+            <div class="recent" id="recentSection" style="display: none;">
+                <div class="recent-title">Recent</div>
+                <div class="recent-list" id="recentList"></div>
+            </div>
+
+            <p class="hint">Press <kbd>Enter</kbd> to open • <kbd>?</kbd> for shortcuts</p>
+        </div>
+    </div>
+
+    <!-- Editor -->
+    <div id="editorView" class="view editor-view">
+        <div class="toolbar visible" id="toolbar">
+            <div class="toolbar-left">
+                <button class="back-btn" onclick="goHome()" title="Back (Esc)">←</button>
+                <span class="doc-name" id="docName">note</span>
+            </div>
+            <div class="toolbar-right">
+                <button class="toolbar-btn" onclick="copyLink()" title="Copy link (Ctrl+L)">🔗 Share</button>
+                <button class="toolbar-btn" onclick="openInDocs()" title="Open in Google Docs">↗ Docs</button>
+                <button class="toolbar-btn" onclick="toggleFullscreen()" title="Fullscreen (F)">⛶</button>
+                <button class="toolbar-btn" onclick="showShortcuts()" title="Shortcuts (?)">⌨</button>
+            </div>
+        </div>
+
+        <div class="iframe-container">
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="spinner"></div>
+                <span class="loading-text">Connecting to Google Drive...</span>
+            </div>
+            <iframe id="viewer"></iframe>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Shortcuts Modal -->
+    <div class="modal" id="shortcutsModal" onclick="hideShortcuts()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-title">
+                Keyboard Shortcuts
+                <button class="modal-close" onclick="hideShortcuts()">×</button>
+            </div>
+            <div class="shortcut-item">
+                <span>Go back / Close</span>
+                <div class="shortcut-keys"><span class="key">Esc</span></div>
+            </div>
+            <div class="shortcut-item">
+                <span>Toggle fullscreen</span>
+                <div class="shortcut-keys"><span class="key">F</span></div>
+            </div>
+            <div class="shortcut-item">
+                <span>Copy share link</span>
+                <div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">L</span></div>
+            </div>
+            <div class="shortcut-item">
+                <span>Open in Google Docs</span>
+                <div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">O</span></div>
+            </div>
+            <div class="shortcut-item">
+                <span>Show shortcuts</span>
+                <div class="shortcut-keys"><span class="key">?</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===========================================
+        // Configuration
+        // ===========================================
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5Fy4CHje4vEyBdUdyw02WNhZoZKdGUtn0MLAA7dAB0o7EbDBHxc5GyE9S0qN0AawY1A/exec";
+        const CACHE_PREFIX = "gdrive_note_";
+        const RECENT_KEY = "gdrive_recent";
+        const MAX_RECENT = 8;
+
+        // ===========================================
+        // State
+        // ===========================================
+        let currentFileId = null;
+        let currentNoteName = null;
+
+        // ===========================================
+        // Utils
+        // ===========================================
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerHTML = `<span style="color: #34a853">✓</span> ${msg}`;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId)?.classList.add('active');
+        }
+
+        // ===========================================
+        // Recent Notes
+        // ===========================================
+        function getRecent() {
+            try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; }
+            catch { return []; }
+        }
+
+        function addRecent(name) {
+            let r = getRecent().filter(n => n !== name);
+            r.unshift(name);
+            localStorage.setItem(RECENT_KEY, JSON.stringify(r.slice(0, MAX_RECENT)));
+        }
+
+        function renderRecent() {
+            const r = getRecent();
+            if (!r.length) return;
+            document.getElementById('recentSection').style.display = 'block';
+            document.getElementById('recentList').innerHTML = r.map(n => 
+                `<span class="recent-item" onclick="navigateToNote('${n}')">${n}</span>`
+            ).join('');
+        }
+
+        // ===========================================
+        // Navigation
+        // ===========================================
+        function navigateToNote(name) {
+            window.location.href = `?n=${encodeURIComponent(name)}`;
+        }
+
+        function openNote() {
+            const input = document.getElementById('noteInput');
+            const val = input.value.trim();
+            if (val) navigateToNote(val);
+        }
+
+        function goHome() {
+            window.location.href = window.location.pathname;
+        }
+
+        function getNoteFromURL() {
+            return new URLSearchParams(window.location.search).get('n');
+        }
+
+        // ===========================================
+        // Google Drive Integration
+        // ===========================================
+        async function loadNote(noteName) {
+            currentNoteName = noteName;
+            document.title = `${noteName} — Drive`;
+            document.getElementById('docName').textContent = noteName;
+
+            switchView('editorView');
+
+            const overlay = document.getElementById('loadingOverlay');
+            const iframe = document.getElementById('viewer');
+
+            // Check cache first
+            const cachedId = localStorage.getItem(CACHE_PREFIX + noteName);
+
+            if (cachedId) {
+                // Preload iframe immediately with cached ID
+                preloadIframe(cachedId);
+            }
+
+            try {
+                // Fetch from API (even if cached, to verify)
+                const response = await fetch(`${APPS_SCRIPT_URL}?key=${encodeURIComponent(noteName)}`);
+                const fileId = await response.text();
+
+                if (fileId.includes("Error") || fileId.length < 5) {
+                    throw new Error(fileId);
+                }
+
+                currentFileId = fileId;
+                localStorage.setItem(CACHE_PREFIX + noteName, fileId);
+                addRecent(noteName);
+
+                // If not already preloading, load now
+                if (!cachedId || cachedId !== fileId) {
+                    preloadIframe(fileId);
+                }
+
+            } catch (err) {
+                console.error('Load error:', err);
+                document.getElementById('loadingOverlay').innerHTML = `
+                    <span style="color: #f85149; font-size: 2rem;">⚠</span>
+                    <span class="loading-text" style="color: #f85149;">Failed to load: ${err.message}</span>
+                    <button class="toolbar-btn" onclick="goHome()" style="margin-top: 16px;">← Go Back</button>
+                `;
+            }
+        }
+
+        function preloadIframe(fileId) {
+            const iframe = document.getElementById('viewer');
+            const overlay = document.getElementById('loadingOverlay');
+
+            // Set iframe src immediately
+            iframe.src = `https://docs.google.com/document/d/${fileId}/edit?rm=minimal`;
+
+            iframe.onload = () => {
+                // Smooth transition
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                    iframe.classList.add('loaded');
+                }, 200);
+            };
+        }
+
+        // ===========================================
+        // Actions
+        // ===========================================
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href);
+            showToast('Link copied!');
+        }
+
+        function openInDocs() {
+            if (currentFileId) {
+                window.open(`https://docs.google.com/document/d/${currentFileId}/edit`, '_blank');
+            }
+        }
+
+        function toggleFullscreen() {
+            document.body.classList.toggle('fullscreen');
+            const isFS = document.body.classList.contains('fullscreen');
+            showToast(isFS ? 'Fullscreen mode' : 'Normal mode');
+        }
+
+        function showShortcuts() {
+            document.getElementById('shortcutsModal').classList.add('show');
+        }
+
+        function hideShortcuts() {
+            document.getElementById('shortcutsModal').classList.remove('show');
+        }
+
+        // ===========================================
+        // Keyboard Shortcuts
+        // ===========================================
+        document.addEventListener('keydown', (e) => {
+            const inInput = e.target.tagName === 'INPUT';
+            const inIframe = e.target.tagName === 'IFRAME';
+
+            // Always handle Escape
+            if (e.key === 'Escape') {
+                if (document.getElementById('shortcutsModal').classList.contains('show')) {
+                    hideShortcuts();
+                } else if (document.getElementById('editorView').classList.contains('active')) {
+                    goHome();
+                }
+                return;
+            }
+
+            // Dashboard shortcuts
+            if (document.getElementById('dashboard').classList.contains('active')) {
+                if (e.key === 'Enter' && inInput) {
+                    openNote();
+                }
+                if (e.key === '?' && !inInput) {
+                    e.preventDefault();
+                    showShortcuts();
+                }
+                return;
+            }
+
+            // Editor shortcuts (only when not in iframe)
+            if (document.getElementById('editorView').classList.contains('active') && !inIframe) {
+                if (e.key === 'f' || e.key === 'F') {
+                    e.preventDefault();
+                    toggleFullscreen();
+                }
+                if (e.key === '?') {
+                    e.preventDefault();
+                    showShortcuts();
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+                    e.preventDefault();
+                    copyLink();
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+                    e.preventDefault();
+                    openInDocs();
+                }
+            }
+        });
+
+        // ===========================================
+        // Init
+        // ===========================================
+        const noteName = getNoteFromURL();
+
+        if (noteName) {
+            loadNote(noteName);
+        } else {
+            document.title = 'Notes — Google Drive';
+            renderRecent();
+            switchView('dashboard');
+            setTimeout(() => document.getElementById('noteInput').focus(), 100);
+        }
+
+        // Handle Enter on input
+        document.getElementById('noteInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') openNote();
+        });
+    </script>
+</body>
+</html>
