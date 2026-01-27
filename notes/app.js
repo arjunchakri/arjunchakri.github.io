@@ -209,7 +209,8 @@ class FirebaseYjsProvider {
         this.lastUpdateKey = null;
         this.destroying = false;
         
-        this._init();
+        // Promise that resolves when initial sync is complete
+        this.whenSynced = this._init();
     }
     
     async _init() {
@@ -1073,51 +1074,33 @@ function failBootStep(stepId, errorMsg) {
 }
 
 async function finishBootSequence() {
-    await wait(150);
-    
     const terminal = $('terminal');
     const terminalWrapper = $('terminalWrapper');
     const editorContainer = $('editorContainer');
     
-    // Remove loading animation
     if (terminal) terminal.classList.remove('loading');
     
-    // Mark body and wrapper as transitioning
+    // Start transition
     document.body.classList.add('transitioning');
     if (terminalWrapper) terminalWrapper.classList.add('transitioning');
-    
-    // Phase 1: Terminal content fades out while card starts expanding
     if (terminal) terminal.classList.add('expanding');
     
-    // Wait for content to fade
-    await wait(250);
+    // Prepare editor while terminal expands
+    if (editorContainer) editorContainer.classList.add('morphing');
     
-    // Phase 2: Prepare editor container underneath (still hidden)
-    if (editorContainer) {
-        editorContainer.classList.add('morphing');
-    }
+    await wait(200);
     
-    // Wait for terminal to fully expand
-    await wait(350);
-    
-    // Phase 3: Cross-fade - reveal editor as terminal fades
+    // Crossfade
     if (editorContainer) {
         editorContainer.classList.add('reveal');
         editorContainer.classList.add('active');
     }
-    
-    // Simultaneously fade out terminal
     if (terminal) terminal.classList.add('fade-out');
     
-    await wait(300);
+    await wait(250);
     
-    // Phase 4: Cleanup
-    if (terminalWrapper) {
-        terminalWrapper.style.display = 'none';
-    }
-    
-    // Remove transition classes after a moment
-    await wait(200);
+    // Cleanup
+    if (terminalWrapper) terminalWrapper.style.display = 'none';
     document.body.classList.remove('transitioning');
     if (editorContainer) {
         editorContainer.classList.remove('morphing');
@@ -1161,90 +1144,64 @@ async function connectToNote(noteName) {
     // Initialize boot sequence UI
     initBootSequence(noteName);
     
-    // Wait for boot sequence to be visible
-    await wait(300);
-    
     try {
         // Step 1: Connect to Firebase
-        showBootStep('boot-connect', 10, 'Establishing connection to Firebase...');
-        await wait(200);
+        showBootStep('boot-connect', 10, 'Connecting...');
         completeBootStep('boot-connect', 20);
 
-        // Step 2: Initialize Yjs document
-        await wait(150);
-        showBootStep('boot-load', 25, `Loading "${noteName}" with CRDT sync...`);
+        // Step 2: Initialize Yjs and load all data in parallel
+        showBootStep('boot-load', 25, `Loading "${noteName}"...`);
         
         // Create Yjs document
         ydoc = new Y.Doc();
         ytext = ydoc.getText('content');
         
-        // Check if we need to migrate from old format
-        const oldDataSnap = await getRef(noteName).once('value');
-        const oldData = oldDataSnap.val();
-        
-        // Setup Firebase provider for Yjs
+        // Start all Firebase operations in parallel
+        const oldDataPromise = getRef(noteName).once('value');
+        const metaPromise = loadNoteMeta(noteName);
         firebaseProvider = new FirebaseYjsProvider(noteName, ydoc);
         
-        // Wait for initial sync
-        await new Promise(resolve => {
-            const checkSync = () => {
-                if (firebaseProvider.synced) {
-                    resolve();
-                } else {
-                    setTimeout(checkSync, 50);
-                }
-            };
-            checkSync();
-            // Timeout after 5 seconds
-            setTimeout(resolve, 5000);
-        });
+        // Wait for all to complete (Yjs sync with 3s timeout)
+        const [oldDataSnap, meta] = await Promise.all([
+            oldDataPromise,
+            metaPromise,
+            Promise.race([
+                firebaseProvider.whenSynced,
+                new Promise(resolve => setTimeout(resolve, 3000))
+            ])
+        ]);
         
-        // Migrate old content if Yjs is empty and old content exists
+        const oldData = oldDataSnap.val();
+        
+        // Migrate old content if needed
         if (ytext.toString() === '' && oldData?.content) {
-            console.log('[Migration] Migrating old content to Yjs');
             ytext.insert(0, oldData.content);
         }
         
-        completeBootStep('boot-load', 45);
+        completeBootStep('boot-load', 50);
 
-        // Step 3: Initialize Monaco editor with Yjs content
-        await wait(150);
-        showBootStep('boot-editor', 50, 'Loading Monaco editor...');
+        // Step 3: Initialize Monaco editor
+        showBootStep('boot-editor', 55, 'Starting editor...');
         
-        const meta = await loadNoteMeta(noteName);
-        const editorData = {
+        await initEditor(noteName, {
             content: ytext.toString(),
             language: oldData?.language || meta.language || 'plaintext'
-        };
+        });
         
-        await initEditor(noteName, editorData);
-        
-        // Bind Monaco to Yjs (this enables real-time sync)
         monacoBinding = new MonacoBinding(ytext, editor);
-        
-        completeBootStep('boot-editor', 75);
+        completeBootStep('boot-editor', 80);
         addRecent(noteName);
 
-        // Step 4: Setup collaboration (presence/cursors/typing)
-        await wait(150);
-        showBootStep('boot-collab', 80, 'Setting up real-time collaboration...');
+        // Step 4: Setup collaboration
+        showBootStep('boot-collab', 85, 'Collaboration...');
         try {
             setupPresence(noteName);
             setupTypingIndicator(noteName);
         } catch (e) { console.warn('Presence setup failed:', e); }
-        await wait(200);
-        completeBootStep('boot-collab', 90);
+        completeBootStep('boot-collab', 95);
 
-        // Step 5: Final setup
-        await wait(100);
-        showBootStep('boot-ready', 95, 'Almost ready...');
-
+        // Complete
         completeBootStep('boot-ready', 100);
-        const bootStatus = $('bootStatusText');
-        if (bootStatus) {
-            bootStatus.textContent = '✓ Connected with CRDT sync!';
-            bootStatus.style.color = 'var(--green)';
-        }
 
         // Update URL
         history.pushState({}, '', `?n=${encodeURIComponent(noteName)}`);
@@ -1550,13 +1507,13 @@ async function waitForYjs() {
             resolve();
         }, { once: true });
         
-        // Timeout after 10 seconds
+        // Timeout after 5 seconds
         setTimeout(() => {
             if (!window.Y) {
                 console.error('[Yjs] Library failed to load within timeout');
             }
             resolve();
-        }, 10000);
+        }, 5000);
     });
 }
 
