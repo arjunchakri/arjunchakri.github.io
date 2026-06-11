@@ -1760,7 +1760,7 @@
                             <div class="code-line"><span class="line-number">2</span>&nbsp;&nbsp;<span class="code-property">name</span>: <span class="code-string">"Arjun Chakravarthy"</span>,</div>
                             <div class="code-line"><span class="line-number">3</span>&nbsp;&nbsp;<span class="code-property">location</span>: <span class="code-string">"Hyderabad, India"</span>,</div>
                             <div class="code-line"><span class="line-number">4</span>&nbsp;&nbsp;<span class="code-property">experience</span>: <span class="code-string">"<span id="expTimer">0y 0m 0d 00:00:00</span>"</span>,</div>
-                            <div class="code-line"><span class="line-number">5</span>&nbsp;&nbsp;<span class="code-property">mindset</span>: <span class="code-string">"Build it right, make it fast #WorkEasyPlayHard ✅🎮 "</span></div>
+                            <div class="code-line"><span class="line-number">5</span>&nbsp;&nbsp;<span class="code-property">mindset</span>: <span class="code-string">"<span id="mindsetText"></span><span class="typing-cursor"></span>"</span></div>
                             <div class="code-line"><span class="line-number">6</span>};</div>
                         </div>
                     </div>
@@ -2285,13 +2285,23 @@
         // ==========================================
         const roles = ["Software Engineer", "Developer", "AI Enthusiast", "DevOps Expert"];
         const domains = ["Fintech", "Supply Chain", "E-commerce"];
+        const mindsets = [
+            "Work Easy, Play Hard ✅🎮",
+            "Compiling backends by day, running emulators by night 🎮",
+            "Code clean, scale fast, game on 🚀🕹️",
+            "Ship it flawlessly, play it relentlessly 💻",
+            "Design for scale, code for speed 🛠️"
+        ];
         
         let roleIndex = 0;
         let domainIndex = 0;
+        let mindsetIndex = 0;
         let roleCharIndex = 0;
         let domainCharIndex = 0;
+        let mindsetCharIndex = 0;
         let isDeleting = false;
         let isDomainDeleting = false;
+        let isMindsetDeleting = false;
 
         function typeRole() {
             const roleText = document.getElementById('roleText');
@@ -2343,6 +2353,32 @@
             }
 
             setTimeout(typeDomain, typeSpeed);
+        }
+
+        function typeMindset() {
+            const mindsetText = document.getElementById('mindsetText');
+            const currentMindset = mindsets[mindsetIndex];
+
+            if (isMindsetDeleting) {
+                mindsetText.innerHTML = currentMindset.substring(0, mindsetCharIndex - 1);
+                mindsetCharIndex--;
+            } else {
+                mindsetText.innerHTML = currentMindset.substring(0, mindsetCharIndex + 1);
+                mindsetCharIndex++;
+            }
+
+            let typeSpeed = isMindsetDeleting ? 40 : 90;
+
+            if (!isMindsetDeleting && mindsetCharIndex === currentMindset.length) {
+                typeSpeed = 2000; // Pause at end
+                isMindsetDeleting = true;
+            } else if (isMindsetDeleting && mindsetCharIndex === 0) {
+                isMindsetDeleting = false;
+                mindsetIndex = (mindsetIndex + 1) % mindsets.length;
+                typeSpeed = 500;
+            }
+
+            setTimeout(typeMindset, typeSpeed);
         }
 
         // ==========================================
@@ -2746,6 +2782,7 @@
             // Start typing animations
             setTimeout(typeRole, 500);
             setTimeout(typeDomain, 1000);
+            setTimeout(typeMindset, 1500);
             
             // Render projects
             renderProjects();
@@ -2808,5 +2845,3 @@
     </script>
 </body>
 </html>
-
-
